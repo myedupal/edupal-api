@@ -13,6 +13,14 @@ Rails.application.routes.draw do
         resource :account, only: [:show, :update] do
           put :password, on: :collection
         end
+        resources :curriculums
+        resources :subjects
+        resources :topics
+        resources :papers
+        resources :exams
+        resources :questions
+        resources :answers
+        resources :question_images
       end
 
       namespace :user do
