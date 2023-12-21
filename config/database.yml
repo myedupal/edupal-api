@@ -1,0 +1,22 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: <%= ENV['DEV_DATABASE_NAME'] ||= 'edupal_api_development' %>
+  url: <%= ENV['DEV_DATABASE_URL'] %>
+
+test:
+  <<: *default
+  database: edupal_api_test
+  url: <%= ENV['TEST_DATABASE_URL'] %>
+
+production:
+  <<: *default
+  database: edupal_api_production
+  host: <%= ENV['PRODUCTION_DATABASE_HOST'] %>
+  port: <%= ENV['PRODUCTION_DATABASE_PORT'] %>
+  username: <%= ENV['PRODUCTION_DATABASE_USERNAME'] %>
+  password: <%= ENV['PRODUCTION_DATABASE_PASSWORD'] %>       
