@@ -4,6 +4,10 @@ Rails.application.routes.draw do
 
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
+      namespace :stripe do
+        resource :webhook, only: [:create]
+      end
+
       namespace :admin do
         devise_scope :admin do
           post   'sign_in',  to: 'sessions#create'

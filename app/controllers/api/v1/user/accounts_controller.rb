@@ -1,6 +1,6 @@
 class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
   def show
-    render json: current_user
+    render json: current_user, serializer: Api::V1::User::UserWithActiveSubscriptionSerializer
   end
 
   def update
