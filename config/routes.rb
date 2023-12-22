@@ -15,6 +15,7 @@ Rails.application.routes.draw do
         end
         resources :admins
         resources :users
+        resources :plans
 
         resources :curriculums
         resources :subjects
@@ -41,6 +42,7 @@ Rails.application.routes.draw do
       end
 
       namespace :web do
+        resources :plans, only: [:index]
         resources :curriculums, only: [:index, :show]
         resources :subjects, only: [:index, :show]
         resources :topics, only: [:index, :show]

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_12_21_112727) do
+ActiveRecord::Schema[7.0].define(version: 2023_12_22_094259) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -68,6 +68,26 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_21_112727) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["subject_id"], name: "index_papers_on_subject_id"
+  end
+
+  create_table "plans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name"
+    t.jsonb "limits"
+    t.boolean "is_published"
+    t.string "stripe_product_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "plan_id", null: false
+    t.bigint "amount_cents", default: 0, null: false
+    t.string "amount_currency", default: "USD", null: false
+    t.string "billing_cycle"
+    t.string "stripe_price_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["plan_id"], name: "index_prices_on_plan_id"
   end
 
   create_table "question_images", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -134,6 +154,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_21_112727) do
   add_foreign_key "answers", "questions"
   add_foreign_key "exams", "papers"
   add_foreign_key "papers", "subjects"
+  add_foreign_key "prices", "plans"
   add_foreign_key "question_images", "questions"
   add_foreign_key "question_topics", "questions"
   add_foreign_key "question_topics", "topics"
