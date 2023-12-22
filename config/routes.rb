@@ -33,6 +33,16 @@ Rails.application.routes.draw do
         resource :account, only: [:show, :update] do
           put :password, on: :collection
         end
+
+        resources :questions, only: [:index, :show]
+      end
+
+      namespace :web do
+        resources :curriculums, only: [:index, :show]
+        resources :subjects, only: [:index, :show]
+        resources :topics, only: [:index, :show]
+        resources :papers, only: [:index, :show]
+        resources :exams, only: [:index, :show]
       end
     end
   end
