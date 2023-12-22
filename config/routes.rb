@@ -13,6 +13,9 @@ Rails.application.routes.draw do
         resource :account, only: [:show, :update] do
           put :password, on: :collection
         end
+        resources :admins
+        resources :users
+
         resources :curriculums
         resources :subjects
         resources :topics
