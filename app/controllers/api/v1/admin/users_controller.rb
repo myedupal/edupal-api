@@ -47,7 +47,7 @@ class Api::V1::Admin::UsersController < Api::V1::Admin::ApplicationController
 
     def set_users
       pundit_authorize(User)
-      @users = pundit_scope(User.all)
+      @users = pundit_scope(User.includes(:stripe_profile))
       @users = keyword_queryable(@users)
       @users = attribute_sortable(@users)
     end

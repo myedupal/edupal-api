@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_12_22_094259) do
+ActiveRecord::Schema[7.0].define(version: 2023_12_22_112942) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -134,6 +134,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_094259) do
     t.index ["token"], name: "index_sessions_on_token", unique: true
   end
 
+  create_table "stripe_profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "customer_id"
+    t.string "payment_method_id"
+    t.string "current_setup_intent_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_stripe_profiles_on_user_id"
+  end
+
   create_table "subjects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name"
     t.uuid "curriculum_id", null: false
@@ -141,6 +151,29 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_094259) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["curriculum_id"], name: "index_subjects_on_curriculum_id"
+  end
+
+  create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "plan_id", null: false
+    t.uuid "price_id", null: false
+    t.uuid "user_id", null: false
+    t.uuid "created_by_id", null: false
+    t.datetime "start_at"
+    t.datetime "end_at"
+    t.boolean "auto_renew", default: true, null: false
+    t.string "stripe_subscription_id"
+    t.string "status"
+    t.boolean "cancel_at_period_end", default: false, null: false
+    t.datetime "canceled_at"
+    t.string "cancel_reason"
+    t.datetime "current_period_start"
+    t.datetime "current_period_end"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_subscriptions_on_created_by_id"
+    t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
+    t.index ["price_id"], name: "index_subscriptions_on_price_id"
+    t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
   create_table "topics", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -160,6 +193,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_094259) do
   add_foreign_key "question_topics", "topics"
   add_foreign_key "questions", "exams"
   add_foreign_key "sessions", "accounts"
+  add_foreign_key "stripe_profiles", "accounts", column: "user_id"
   add_foreign_key "subjects", "curriculums"
+  add_foreign_key "subscriptions", "accounts", column: "created_by_id"
+  add_foreign_key "subscriptions", "accounts", column: "user_id"
+  add_foreign_key "subscriptions", "plans"
+  add_foreign_key "subscriptions", "prices"
   add_foreign_key "topics", "subjects"
 end

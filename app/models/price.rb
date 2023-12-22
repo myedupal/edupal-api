@@ -1,7 +1,7 @@
 class Price < ApplicationRecord
   belongs_to :plan
 
-  # has_many :subscriptions, dependent: :restrict_with_error
+  has_many :subscriptions, dependent: :restrict_with_error
 
   monetize :amount_cents
 

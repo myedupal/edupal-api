@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Plan, type: :model do
   describe 'associations' do
-    # it { is_expected.to have_many(:subscriptions).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:subscriptions).dependent(:restrict_with_error) }
     it { is_expected.to have_many(:prices).dependent(:destroy) }
   end
 

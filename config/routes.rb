@@ -16,6 +16,7 @@ Rails.application.routes.draw do
         resources :admins
         resources :users
         resources :plans
+        resources :subscriptions, only: [:index]
 
         resources :curriculums
         resources :subjects
@@ -36,6 +37,17 @@ Rails.application.routes.draw do
         end
         resource :account, only: [:show, :update] do
           put :password, on: :collection
+        end
+        resource :stripe, only: [] do
+          collection do
+            get :payment_methods
+            post :setup_intent
+            put :default_payment_method
+            get :customer
+          end
+        end
+        resources :subscriptions, only: [:index, :show, :create, :update] do
+          put :cancel, on: :member
         end
 
         resources :questions, only: [:index, :show]

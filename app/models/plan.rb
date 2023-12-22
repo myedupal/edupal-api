@@ -1,5 +1,5 @@
 class Plan < ApplicationRecord
-  # has_many :subscriptions, dependent: :restrict_with_error
+  has_many :subscriptions, dependent: :restrict_with_error
   has_many :prices, dependent: :destroy
 
   accepts_nested_attributes_for :prices, allow_destroy: true
