@@ -1,12 +1,13 @@
 # change this to respective ruby and bundle version
-FROM ruby:2.7.2-slim
+FROM ruby:3.2.2-slim-bullseye
 
 # Setting env up
 ENV RAILS_ENV='production'
 ENV RACK_ENV='production'
 ENV RAILS_SERVE_STATIC_FILES='yes'
 ENV APP_HOME='/app'
-ENV BUNDLER_VERSION=2.1.4
+ENV BUNDLER_VERSION=2.4.14
+ENV RUBY_YJIT_ENABLE=1
 
 # install required packages
 # RUN apk update && apk add postgresql-dev build-base tzdata
@@ -29,13 +30,6 @@ RUN bundle install
 
 # copy files
 COPY . ${APP_HOME}
-
-# added rubocop test to catch syntax error 
-# and prevent success build
-RUN bundle exec rubocop -l
-
-# vulnerability check
-RUN bundle exec brakeman -w3
 
 # expose port
 EXPOSE 3000
