@@ -11,5 +11,11 @@ RSpec.describe Exam, type: :model do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:year) }
+
+    describe 'uniqueness' do
+      subject { create(:exam) }
+
+      it { is_expected.to validate_uniqueness_of(:year).scoped_to([:paper_id, :season, :zone, :level]).case_insensitive }
+    end
   end
 end

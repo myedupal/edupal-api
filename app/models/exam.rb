@@ -6,7 +6,7 @@ class Exam < ApplicationRecord
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
 
-  validates :year, presence: true
+  validates :year, presence: true, uniqueness: { scope: [:paper_id, :season, :zone, :level], case_sensitive: false }
 
   mount_base64_uploader :file, DocumentUploader
   mount_base64_uploader :marking_scheme, DocumentUploader
