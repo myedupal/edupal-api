@@ -61,6 +61,6 @@ class Api::V1::Admin::AnswersController < Api::V1::Admin::ApplicationController
     end
 
     def answer_params
-      params.require(:answer).permit(:question_id, :text, :image)
+      params.require(:answer).permit(:question_id, :text, :image, :display_order)
     end
 end

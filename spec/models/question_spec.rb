@@ -21,5 +21,11 @@ RSpec.describe Question, type: :model do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:number) }
+
+    describe 'uniqueness' do
+      subject { create(:question) }
+
+      it { is_expected.to validate_uniqueness_of(:number).case_insensitive.scoped_to(:exam_id) }
+    end
   end
 end

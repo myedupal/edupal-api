@@ -4,7 +4,7 @@ FactoryBot.define do
       exam { create(:exam) }
     end
     exam_id { exam.id }
-    number { Faker::Number.between(from: 1, to: 100) }
+    sequence(:number)
     question_type { Question.question_types.keys.sample }
     # metadata { '' }
   end

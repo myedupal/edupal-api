@@ -1,4 +1,6 @@
 class Question < ApplicationRecord
+  self.implicit_order_column = 'number'
+
   belongs_to :exam
 
   has_many :answers, dependent: :destroy
@@ -12,7 +14,7 @@ class Question < ApplicationRecord
 
   enum question_type: { mcq: 'mcq', text: 'text' }, _default: 'text'
 
-  validates :number, presence: true
+  validates :number, presence: true, uniqueness: { scope: :exam_id }
 
   store_accessor :metadata, :topics_label
 end
