@@ -1,7 +1,7 @@
 class Question < ApplicationRecord
   self.implicit_order_column = 'number'
 
-  belongs_to :exam
+  belongs_to :exam, optional: true
 
   has_many :answers, dependent: :destroy
   has_many :question_images, dependent: :destroy

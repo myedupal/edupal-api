@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Question, type: :model do
   describe 'associations' do
-    it { is_expected.to belong_to(:exam) }
+    it { is_expected.to belong_to(:exam).optional }
     it { is_expected.to have_many(:answers).dependent(:destroy) }
     it { is_expected.to have_many(:question_images).dependent(:destroy) }
     it { is_expected.to have_many(:question_topics).dependent(:destroy) }
