@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_24_092111) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_04_035637) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -27,6 +27,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_24_092111) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "points", default: 0, null: false
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
@@ -87,6 +88,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_24_092111) do
     t.string "stripe_product_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "point_activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "account_id", null: false
+    t.bigint "points", default: 0
+    t.string "action_type"
+    t.string "activity_type"
+    t.uuid "activity_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_point_activities_on_account_id"
+    t.index ["activity_type", "activity_id"], name: "index_point_activities_on_activity"
   end
 
   create_table "prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -197,6 +210,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_24_092111) do
   add_foreign_key "answers", "questions"
   add_foreign_key "exams", "papers"
   add_foreign_key "papers", "subjects"
+  add_foreign_key "point_activities", "accounts"
   add_foreign_key "prices", "plans"
   add_foreign_key "question_images", "questions"
   add_foreign_key "question_topics", "questions"
