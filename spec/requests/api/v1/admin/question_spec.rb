@@ -44,7 +44,8 @@ RSpec.describe 'api/v1/admin/questions', type: :request do
           question: {
             type: :object,
             properties: {
-              exam_id: { type: :string },
+              subject_id: { type: :string },
+              exam_id: { type: :string, description: "You can omit subject_id if you have exam_id" },
               number: { type: :string },
               question_type: { type: :string, enum: Question.question_types.keys },
               text: { type: :string },
@@ -121,7 +122,8 @@ RSpec.describe 'api/v1/admin/questions', type: :request do
           question: {
             type: :object,
             properties: {
-              exam_id: { type: :string },
+              subject_id: { type: :string },
+              exam_id: { type: :string, description: "You can omit subject_id if you have exam_id" },
               number: { type: :string },
               question_type: { type: :string, enum: Question.question_types.keys },
               text: { type: :string },

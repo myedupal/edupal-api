@@ -1,6 +1,7 @@
 class Question < ApplicationRecord
   self.implicit_order_column = 'number'
 
+  belongs_to :subject
   belongs_to :exam, optional: true
 
   has_many :answers, dependent: :destroy
@@ -17,4 +18,12 @@ class Question < ApplicationRecord
   validates :number, presence: true, uniqueness: { scope: :exam_id }
 
   store_accessor :metadata, :topics_label
+
+  before_validation :set_subject_id, if: -> { exam.present? }
+
+  private
+
+    def set_subject_id
+      self.subject_id = exam.paper.subject_id
+    end
 end

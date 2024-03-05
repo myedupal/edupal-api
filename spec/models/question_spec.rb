@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Question, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:subject) }
     it { is_expected.to belong_to(:exam).optional }
     it { is_expected.to have_many(:answers).dependent(:destroy) }
     it { is_expected.to have_many(:question_images).dependent(:destroy) }
@@ -26,6 +27,21 @@ RSpec.describe Question, type: :model do
       subject { create(:question) }
 
       it { is_expected.to validate_uniqueness_of(:number).case_insensitive.scoped_to(:exam_id) }
+    end
+  end
+
+  describe 'callbacks' do
+    describe '#set_subject_id' do
+      let(:subject) { create(:subject) }
+      let(:paper) { create(:paper, subject: subject) }
+      let(:exam) { create(:exam, paper: paper) }
+      let(:question) { build(:question, subject: nil, exam: nil) }
+
+      it 'sets the subject_id from the exam paper' do
+        question.exam = exam
+        question.valid?
+        expect(question.subject_id).to eq(subject.id)
+      end
     end
   end
 end

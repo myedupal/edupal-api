@@ -47,8 +47,8 @@ class Api::V1::Admin::QuestionsController < Api::V1::Admin::ApplicationControlle
 
     def set_questions
       pundit_authorize(Question)
-      @questions = pundit_scope(Question.includes(:exam, :answers, :question_images, :question_topics, :topics))
-      @questions = @questions.joins(exam: :paper).where(paper: { subject_id: params[:subject_id] }) if params[:subject_id].present?
+      @questions = pundit_scope(Question.includes(:subject, :exam, :answers, :question_images, :question_topics, :topics))
+      @questions = @questions.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @questions = @questions.joins(:exam).where(exam: { paper_id: params[:paper_id] }) if params[:paper_id].present?
       @questions = @questions.joins(:topics).where(topics: { id: params[:topic_id] }).distinct if params[:topic_id].present?
       @questions = @questions.where(exam_id: params[:exam_id]) if params[:exam_id].present?

@@ -1,9 +1,11 @@
 FactoryBot.define do
   factory :question do
     transient do
-      exam { create(:exam) }
+      subject { create(:subject) }
+      exam { create(:exam, paper: create(:paper, subject: subject)) }
     end
-    exam_id { exam.id }
+    subject_id { subject&.id }
+    exam_id { exam&.id }
     sequence(:number)
     question_type { Question.question_types.keys.sample }
     # metadata { '' }

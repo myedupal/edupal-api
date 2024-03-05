@@ -6,7 +6,8 @@ RSpec.describe Subject, type: :model do
     it { is_expected.to have_many(:topics).dependent(:destroy) }
     it { is_expected.to have_many(:papers).dependent(:destroy) }
     it { is_expected.to have_many(:exams).through(:papers) }
-    it { is_expected.to have_many(:questions).through(:exams) }
+    it { is_expected.to have_many(:questions) }
+    it { is_expected.to have_many(:exam_questions).through(:exams) }
     it { is_expected.to have_many(:answers).through(:questions) }
     it { is_expected.to have_many(:question_images).through(:questions) }
     it { is_expected.to have_many(:question_topics).through(:questions) }

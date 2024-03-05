@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_04_060240) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_05_040224) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -139,7 +139,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_04_060240) do
     t.jsonb "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "subject_id", null: false
     t.index ["exam_id"], name: "index_questions_on_exam_id"
+    t.index ["subject_id"], name: "index_questions_on_subject_id"
   end
 
   create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -216,6 +218,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_04_060240) do
   add_foreign_key "question_topics", "questions"
   add_foreign_key "question_topics", "topics"
   add_foreign_key "questions", "exams"
+  add_foreign_key "questions", "subjects"
   add_foreign_key "sessions", "accounts"
   add_foreign_key "stripe_profiles", "accounts", column: "user_id"
   add_foreign_key "subjects", "curriculums"

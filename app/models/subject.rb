@@ -4,7 +4,8 @@ class Subject < ApplicationRecord
   has_many :topics, dependent: :destroy
   has_many :papers, dependent: :destroy
   has_many :exams, through: :papers
-  has_many :questions, through: :exams
+  has_many :questions
+  has_many :exam_questions, through: :exams, class_name: 'Question', source: :questions
   has_many :answers, through: :questions
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
