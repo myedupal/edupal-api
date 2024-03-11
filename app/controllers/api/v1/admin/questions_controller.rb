@@ -53,6 +53,10 @@ class Api::V1::Admin::QuestionsController < Api::V1::Admin::ApplicationControlle
       @questions = @questions.joins(:topics).where(topics: { id: params[:topic_id] }).distinct if params[:topic_id].present?
       @questions = @questions.where(exam_id: params[:exam_id]) if params[:exam_id].present?
       @questions = @questions.where(number: params[:number]) if params[:number].present?
+      @questions = @questions.joins(:exam).where(exam: { year: params[:year] }) if params[:year].present?
+      @questions = @questions.joins(:exam).where(exam: { season: params[:season] }) if params[:season].present?
+      @questions = @questions.joins(:exam).where(exam: { zone: params[:zone] }) if params[:zone].present?
+      @questions = @questions.joins(:exam).where(exam: { level: params[:level] }) if params[:level].present?
       @questions = @questions.where(question_type: params[:question_type]) if params[:question_type].present?
       @questions = attribute_sortable(@questions)
     end
