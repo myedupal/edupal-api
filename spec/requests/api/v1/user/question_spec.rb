@@ -15,7 +15,8 @@ RSpec.describe 'api/v1/user/questions', type: :request do
 
       parameter name: :page, in: :query, type: :integer, required: false, description: 'Page number'
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
-      parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
+      parameter name: :sort_by, in: :query, type: :string, required: false,
+                description: 'Sort by column name. When sort_by is topic, it will be sorted by topic display order ASC (default) and question number ASC.'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :paper_id, in: :query, type: :string, required: false, description: 'Filter by paper id'

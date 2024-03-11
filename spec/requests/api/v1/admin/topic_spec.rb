@@ -41,6 +41,7 @@ RSpec.describe 'api/v1/admin/topics', type: :request do
             type: :object,
             properties: {
               name: { type: :string },
+              display_order: { type: :integer },
               subject_id: { type: :string }
             }
           }
@@ -81,6 +82,7 @@ RSpec.describe 'api/v1/admin/topics', type: :request do
             type: :object,
             properties: {
               name: { type: :string },
+              display_order: { type: :integer },
               subject_id: { type: :string }
             }
           }

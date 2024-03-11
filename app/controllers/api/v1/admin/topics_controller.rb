@@ -62,6 +62,6 @@ class Api::V1::Admin::TopicsController < Api::V1::Admin::ApplicationController
     end
 
     def topic_params
-      params.require(:topic).permit(:name, :subject_id)
+      params.require(:topic).permit(:name, :subject_id, :display_order)
     end
 end
