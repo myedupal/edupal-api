@@ -13,6 +13,7 @@ class Challenge < ApplicationRecord
   enum reward_type: { binary: 'binary', proportional: 'proportional' }, _default: :binary
 
   scope :query, ->(keyword) { where('title ILIKE ?', "%#{keyword}%") }
+  scope :published, -> { where(is_published: true) }
 
   # validates :title, presence: true
   validates :reward_points, presence: true

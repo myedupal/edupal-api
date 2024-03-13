@@ -50,6 +50,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
       @challenges = pundit_scope(Challenge).preload({ subject: :curriculum }, :challenge_questions, { questions: [:exam, :topics] })
       @challenges = @challenges.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @challenges = @challenges.where(challenge_type: params[:challenge_type]) if params[:challenge_type].present?
+      @challenges = @challenges.where(is_published: ActiveModel::Type::Boolean.new.cast(params[:is_published])) if params[:is_published].present?
       @challenges = keyword_queryable(@challenges)
       @challenges = attribute_sortable(@challenges)
     end
@@ -64,7 +65,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
 
     def challenge_params
       params.require(:challenge).permit(
-        :title, :challenge_type, :start_at, :end_at, :reward_points, :reward_type, :penalty_seconds, :subject_id,
+        :title, :challenge_type, :start_at, :end_at, :reward_points, :reward_type, :penalty_seconds, :subject_id, :is_published,
         challenge_questions_attributes: [:id, :question_id, :display_order, :score, :_destroy]
       )
     end

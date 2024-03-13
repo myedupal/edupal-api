@@ -28,6 +28,16 @@ RSpec.describe Challenge, type: :model do
         expect(described_class.query(keyword)).not_to include(untargeted_challenge)
       end
     end
+
+    describe '.published' do
+      let!(:published_challenge) { create(:challenge, is_published: true) }
+      let!(:unpublished_challenge) { create(:challenge, is_published: false) }
+
+      it 'returns the published challenge' do
+        expect(described_class.published).to include(published_challenge)
+        expect(described_class.published).not_to include(unpublished_challenge)
+      end
+    end
   end
 
   describe 'validations' do

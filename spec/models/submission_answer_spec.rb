@@ -37,12 +37,16 @@ RSpec.describe SubmissionAnswer, type: :model do
       context 'when question is mcq' do
         it 'updates is_correct and score' do
           submission_answer.update(answer: correct_answer)
-          submission_answer.evaluate
+          expect do
+            submission_answer.evaluate(force: true)
+          end.to change(submission_answer, :evaluated_at)
           expect(submission_answer.is_correct).to be true
           expect(submission_answer.score).to eq(expected_score)
 
           submission_answer.update(answer: incorrect_answer)
-          submission_answer.evaluate
+          expect do
+            submission_answer.evaluate(force: true)
+          end.to change(submission_answer, :evaluated_at)
           expect(submission_answer.is_correct).to be false
           expect(submission_answer.score).to eq(0)
         end
@@ -53,9 +57,27 @@ RSpec.describe SubmissionAnswer, type: :model do
         let!(:submission_answer) { create(:submission_answer, challenge_submission: challenge_submission, question: question, answer: 'X') }
 
         it 'does not update is_correct and score' do
-          submission_answer.evaluate
+          expect do
+            submission_answer.evaluate(force: true)
+          end.not_to change(submission_answer, :evaluated_at)
           expect(submission_answer.is_correct).to be false
           expect(submission_answer.score).to eq(0)
+        end
+      end
+
+      context 'when evaluated_at is present' do
+        let!(:submission_answer) { create(:submission_answer, challenge_submission: challenge_submission, question: question, answer: correct_answer, evaluated_at: Time.current) }
+
+        it 'does not update evaluated_at' do
+          expect do
+            submission_answer.evaluate
+          end.not_to change(submission_answer, :evaluated_at)
+        end
+
+        it 'update evaluated_at when force is true' do
+          expect do
+            submission_answer.evaluate(force: true)
+          end.to change(submission_answer, :evaluated_at)
         end
       end
     end

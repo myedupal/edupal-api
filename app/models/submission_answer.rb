@@ -9,7 +9,8 @@ class SubmissionAnswer < ApplicationRecord
   before_commit :evaluate, on: :create, if: -> { challenge_submission.blank? }
   before_validation :set_user_id, on: :create, if: -> { challenge_submission.present? }
 
-  def evaluate
+  def evaluate(force: false)
+    return if evaluated_at.present? && !force
     return unless question.mcq?
 
     is_correct = question.answers.exists?(text: answer)
@@ -22,7 +23,7 @@ class SubmissionAnswer < ApplicationRecord
               0
             end
 
-    update(is_correct: is_correct, score: score)
+    update(is_correct: is_correct, score: score, evaluated_at: Time.current)
   end
 
   private

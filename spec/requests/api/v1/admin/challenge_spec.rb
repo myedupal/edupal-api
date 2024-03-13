@@ -19,6 +19,7 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search by title'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :challenge_type, in: :query, schema: { type: :string, enum: Challenge.challenge_types.keys }, required: false, description: 'Filter by challenge type'
+      parameter name: :is_published, in: :query, type: :boolean, required: false, description: 'Filter by published status'
 
       response(200, 'successful') do
         before do
@@ -43,6 +44,7 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
             properties: {
               title: { type: :string },
               challenge_type: { type: :string, enum: Challenge.challenge_types.keys },
+              is_published: { type: :boolean },
               start_at: { type: :string },
               end_at: { type: :string },
               reward_points: { type: :integer },
@@ -109,6 +111,7 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
             properties: {
               title: { type: :string },
               challenge_type: { type: :string, enum: Challenge.challenge_types.keys },
+              is_published: { type: :boolean },
               start_at: { type: :string },
               end_at: { type: :string },
               reward_points: { type: :integer },
