@@ -32,6 +32,7 @@ class SubmissionAnswer < ApplicationRecord
     end
 
     def question_belongs_to_challenge
+      return if question_id.blank?
       return if challenge_submission.challenge.challenge_questions.exists?(question_id: question_id)
 
       errors.add(:question, 'should belong to the challenge')

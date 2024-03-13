@@ -1,11 +1,4 @@
 Rails.application.routes.draw do
-  namespace :api do
-    namespace :v1 do
-      namespace :admin do
-        resources :challenges
-      end
-    end
-  end
   devise_for :admins, only: []
   devise_for :users, only: []
 
@@ -37,6 +30,9 @@ Rails.application.routes.draw do
         resources :questions
         resources :answers
         resources :question_images
+        resources :challenges
+        resources :challenge_submissions, only: [:index, :show]
+        resources :submission_answers, only: [:index]
       end
 
       namespace :user do

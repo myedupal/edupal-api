@@ -4,11 +4,11 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
 
   def index
     @pagy, @challenges = pagy(@challenges)
-    render json: @challenges, includes: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+    render json: @challenges, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
   end
 
   def show
-    render json: @challenge, includes: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+    render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
   end
 
   def create
@@ -16,7 +16,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
     pundit_authorize(@challenge)
 
     if @challenge.save
-      render json: @challenge, includes: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+      render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
     else
       render json: ErrorResponse.new(@challenge), status: :unprocessable_entity
     end
@@ -24,7 +24,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
 
   def update
     if @challenge.update(challenge_params)
-      render json: @challenge, includes: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+      render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
     else
       render json: ErrorResponse.new(@challenge), status: :unprocessable_entity
     end
@@ -41,7 +41,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
   private
 
     def set_challenge
-      @challenge = pundit_scope(Challenge).preload({ challenge_questions: :question }).find(params[:id])
+      @challenge = pundit_scope(Challenge).preload({ challenge_questions: { question: [:exam, :topics] } }).find(params[:id])
       pundit_authorize(@challenge) if @challenge
     end
 
@@ -49,6 +49,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
       pundit_authorize(Challenge)
       @challenges = pundit_scope(Challenge).preload({ subject: :curriculum }, :challenge_questions, { questions: [:exam, :topics] })
       @challenges = @challenges.where(subject_id: params[:subject_id]) if params[:subject_id].present?
+      @challenges = @challenges.where(challenge_type: params[:challenge_type]) if params[:challenge_type].present?
       @challenges = keyword_queryable(@challenges)
       @challenges = attribute_sortable(@challenges)
     end

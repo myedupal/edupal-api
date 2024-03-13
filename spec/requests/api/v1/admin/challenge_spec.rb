@@ -18,6 +18,7 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search by title'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
+      parameter name: :challenge_type, in: :query, schema: { type: :string, enum: Challenge.challenge_types.keys }, required: false, description: 'Filter by challenge type'
 
       response(200, 'successful') do
         before do
