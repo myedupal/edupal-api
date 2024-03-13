@@ -7,13 +7,17 @@ RSpec.describe ChallengeSubmission, type: :model do
     it { is_expected.to have_many(:submission_answers).dependent(:nullify) }
   end
 
+  describe 'nested attributes' do
+    it { is_expected.to accept_nested_attributes_for(:submission_answers).allow_destroy(true) }
+  end
+
   describe 'aasm' do
     describe 'default state' do
       it { is_expected.to have_state(:pending) }
     end
 
     describe 'guards' do
-      describe '#challenge_not_expired?' do
+      describe '#within_challenge_time?' do
         it 'fails if challenge expired' do
           challenge = create(:challenge, challenge_type: :contest, end_at: 1.day.ago)
           submission = create(:challenge_submission, challenge: challenge)
@@ -21,8 +25,15 @@ RSpec.describe ChallengeSubmission, type: :model do
           expect(submission).to transition_from(:pending).to(:failed).on_event(:submit)
         end
 
-        it 'submits if challenge not expired' do
-          challenge = create(:challenge, challenge_type: :contest, end_at: 1.day.from_now)
+        it 'fails if challenge not started' do
+          challenge = create(:challenge, challenge_type: :contest, start_at: 1.day.from_now)
+          submission = create(:challenge_submission, challenge: challenge)
+
+          expect(submission).to transition_from(:pending).to(:failed).on_event(:submit)
+        end
+
+        it 'submits if challenge within time' do
+          challenge = create(:challenge, challenge_type: :contest, start_at: 1.hour.ago, end_at: 1.hour.from_now)
           submission = create(:challenge_submission, challenge: challenge)
 
           expect(submission).to transition_from(:pending).to(:submitted).on_event(:submit)

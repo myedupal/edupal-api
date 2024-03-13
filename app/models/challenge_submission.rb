@@ -5,6 +5,8 @@ class ChallengeSubmission < ApplicationRecord
 
   has_many :submission_answers, dependent: :nullify
 
+  accepts_nested_attributes_for :submission_answers, allow_destroy: true, reject_if: :reject_submission_answer_attributes?
+
   before_save :evaluate_answers, if: -> { submitted? }
 
   aasm column: :status, whiny_transitions: false, timestamps: true do
@@ -13,15 +15,19 @@ class ChallengeSubmission < ApplicationRecord
 
     event :submit do
       transitions from: :pending, to: :submitted,
-                  guard: [:challenge_not_expired?]
+                  guard: [:within_challenge_time?]
       transitions from: :pending, to: :failed
     end
   end
 
   private
 
-    def challenge_not_expired?
-      challenge.end_at >= Time.current
+    def reject_submission_answer_attributes?(attributes)
+      attributes['answer'].blank? || attributes['question_id'].blank?
+    end
+
+    def within_challenge_time?
+      challenge.start_at <= Time.current && challenge.end_at >= Time.current
     end
 
     def evaluate_answers

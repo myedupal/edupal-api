@@ -58,6 +58,12 @@ Rails.application.routes.draw do
         end
 
         resources :questions, only: [:index, :show]
+        resources :daily_challenges, only: [:index, :show]
+        resources :challenge_submissions do
+          put :submit, on: :member
+          post :direct_submit, on: :collection
+        end
+        resources :submission_answers
       end
 
       namespace :web do

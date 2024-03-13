@@ -14,6 +14,33 @@ class Challenge < ApplicationRecord
 
   scope :query, ->(keyword) { where('title ILIKE ?', "%#{keyword}%") }
   scope :published, -> { where(is_published: true) }
+  scope :with_user_submission_count, lambda { |user_id|
+    sql = <<-SQL.squish
+      LEFT JOIN (
+        SELECT challenge_submissions.challenge_id,
+               COUNT(challenge_submissions.id) AS submission_count
+        FROM challenge_submissions
+        WHERE challenge_submissions.user_id = '#{user_id}' AND
+              challenge_submissions.status = 'submitted'
+        GROUP BY challenge_submissions.challenge_id
+      ) AS user_submission_count ON user_submission_count.challenge_id = challenges.id
+    SQL
+    joins(sql).select('challenges.*, COALESCE(user_submission_count.submission_count, 0) AS user_submission_count')
+  }
+  scope :with_user_success_submission_count, lambda { |user_id|
+    sql = <<-SQL.squish
+      LEFT JOIN (
+        SELECT challenge_submissions.challenge_id,
+               COUNT(challenge_submissions.id) AS success_submission_count
+        FROM challenge_submissions
+        WHERE challenge_submissions.user_id = '#{user_id}' AND
+              challenge_submissions.status = 'submitted' AND
+              challenge_submissions.total_score - challenge_submissions.score = 0
+        GROUP BY challenge_submissions.challenge_id
+      ) AS user_success_submission_count ON user_success_submission_count.challenge_id = challenges.id
+    SQL
+    joins(sql).select('challenges.*, COALESCE(user_success_submission_count.success_submission_count, 0) AS user_success_submission_count')
+  }
 
   # validates :title, presence: true
   validates :reward_points, presence: true

@@ -11,6 +11,14 @@ FactoryBot.define do
     reward_points { rand(10..50) }
     penalty_seconds { rand(30..180) }
 
+    trait :published do
+      is_published { true }
+    end
+
+    trait :daily do
+      challenge_type { :daily }
+    end
+
     trait :with_questions do
       after(:create) do |challenge|
         create_list(:challenge_question, 3, challenge: challenge)
