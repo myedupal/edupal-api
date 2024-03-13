@@ -8,6 +8,8 @@ class Question < ApplicationRecord
   has_many :question_images, dependent: :destroy
   has_many :question_topics, dependent: :destroy
   has_many :topics, -> { distinct }, through: :question_topics
+  has_many :submission_answers, dependent: :destroy
+  has_many :challenge_questions, dependent: :destroy
 
   accepts_nested_attributes_for :answers, allow_destroy: true, reject_if: proc { |attributes| attributes['text'].blank? && attributes['image'].blank? }
   accepts_nested_attributes_for :question_images, allow_destroy: true, reject_if: proc { |attributes| attributes['image'].blank? }

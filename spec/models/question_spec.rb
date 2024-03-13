@@ -8,6 +8,8 @@ RSpec.describe Question, type: :model do
     it { is_expected.to have_many(:question_images).dependent(:destroy) }
     it { is_expected.to have_many(:question_topics).dependent(:destroy) }
     it { is_expected.to have_many(:topics).through(:question_topics) }
+    it { is_expected.to have_many(:submission_answers).dependent(:destroy) }
+    it { is_expected.to have_many(:challenge_questions).dependent(:destroy) }
   end
 
   describe 'nested attributes' do

@@ -9,6 +9,7 @@ class Subject < ApplicationRecord
   has_many :answers, through: :questions
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
+  has_many :challenges, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { scope: :curriculum_id, case_sensitive: false }
   # validates :code, uniqueness: { scope: :curriculum_id, case_sensitive: false }, allow_nil: true

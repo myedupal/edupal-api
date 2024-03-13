@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_05_040224) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_13_025709) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -50,6 +50,47 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_05_040224) do
     t.datetime "processed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "challenge_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "challenge_id", null: false
+    t.uuid "question_id", null: false
+    t.integer "display_order", null: false
+    t.integer "score", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["challenge_id", "question_id"], name: "index_challenge_questions_on_challenge_id_and_question_id", unique: true
+    t.index ["challenge_id"], name: "index_challenge_questions_on_challenge_id"
+    t.index ["question_id"], name: "index_challenge_questions_on_question_id"
+  end
+
+  create_table "challenge_submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "challenge_id", null: false
+    t.uuid "user_id", null: false
+    t.string "status"
+    t.integer "score"
+    t.integer "total_score"
+    t.integer "completion_seconds"
+    t.integer "penalty_seconds"
+    t.datetime "submitted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["challenge_id"], name: "index_challenge_submissions_on_challenge_id"
+    t.index ["user_id"], name: "index_challenge_submissions_on_user_id"
+  end
+
+  create_table "challenges", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title"
+    t.string "challenge_type"
+    t.datetime "start_at"
+    t.datetime "end_at"
+    t.integer "reward_points", default: 0, null: false
+    t.string "reward_type"
+    t.integer "penalty_seconds", default: 0, null: false
+    t.uuid "subject_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subject_id"], name: "index_challenges_on_subject_id"
   end
 
   create_table "curriculums", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -178,6 +219,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_05_040224) do
     t.index ["curriculum_id"], name: "index_subjects_on_curriculum_id"
   end
 
+  create_table "submission_answers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "challenge_submission_id"
+    t.uuid "question_id", null: false
+    t.uuid "user_id", null: false
+    t.string "answer", null: false
+    t.boolean "is_correct", default: false, null: false
+    t.integer "score", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["challenge_submission_id"], name: "index_submission_answers_on_challenge_submission_id"
+    t.index ["question_id"], name: "index_submission_answers_on_question_id"
+    t.index ["user_id"], name: "index_submission_answers_on_user_id"
+  end
+
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "plan_id", null: false
     t.uuid "price_id", null: false
@@ -206,10 +261,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_05_040224) do
     t.uuid "subject_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "display_order", default: 0
     t.index ["subject_id"], name: "index_topics_on_subject_id"
   end
 
   add_foreign_key "answers", "questions"
+  add_foreign_key "challenge_questions", "challenges"
+  add_foreign_key "challenge_questions", "questions"
+  add_foreign_key "challenge_submissions", "accounts", column: "user_id"
+  add_foreign_key "challenge_submissions", "challenges"
+  add_foreign_key "challenges", "subjects"
   add_foreign_key "exams", "papers"
   add_foreign_key "papers", "subjects"
   add_foreign_key "point_activities", "accounts"
@@ -222,6 +283,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_05_040224) do
   add_foreign_key "sessions", "accounts"
   add_foreign_key "stripe_profiles", "accounts", column: "user_id"
   add_foreign_key "subjects", "curriculums"
+  add_foreign_key "submission_answers", "accounts", column: "user_id"
+  add_foreign_key "submission_answers", "challenge_submissions"
+  add_foreign_key "submission_answers", "questions"
   add_foreign_key "subscriptions", "accounts", column: "created_by_id"
   add_foreign_key "subscriptions", "accounts", column: "user_id"
   add_foreign_key "subscriptions", "plans"

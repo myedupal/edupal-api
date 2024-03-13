@@ -11,6 +11,7 @@ RSpec.describe Subject, type: :model do
     it { is_expected.to have_many(:answers).through(:questions) }
     it { is_expected.to have_many(:question_images).through(:questions) }
     it { is_expected.to have_many(:question_topics).through(:questions) }
+    it { is_expected.to have_many(:challenges).dependent(:destroy) }
   end
 
   describe 'validations' do
