@@ -10,5 +10,11 @@ FactoryBot.define do
     subject_id { subject.id }
     reward_points { rand(10..50) }
     penalty_seconds { rand(30..180) }
+
+    trait :with_questions do
+      after(:create) do |challenge|
+        create_list(:challenge_question, 3, challenge: challenge)
+      end
+    end
   end
 end

@@ -5,6 +5,7 @@ RSpec.describe Challenge, type: :model do
     it { is_expected.to belong_to(:subject).optional }
     it { is_expected.to have_many(:challenge_questions).dependent(:destroy) }
     it { is_expected.to have_many(:questions).through(:challenge_questions) }
+    it { is_expected.to have_many(:challenge_submissions).dependent(:restrict_with_error) }
   end
 
   describe 'nested attributes' do
@@ -14,6 +15,19 @@ RSpec.describe Challenge, type: :model do
   describe 'enums' do
     it { is_expected.to define_enum_for(:challenge_type).with_values(daily: 'daily', contest: 'contest').backed_by_column_of_type(:string) }
     it { is_expected.to define_enum_for(:reward_type).with_values(binary: 'binary', proportional: 'proportional').backed_by_column_of_type(:string) }
+  end
+
+  describe 'scopes' do
+    describe '.query' do
+      let(:keyword) { SecureRandom.uuid }
+      let!(:targeted_challenge) { create(:challenge, title: keyword) }
+      let!(:untargeted_challenge) { create(:challenge) }
+
+      it 'returns the targeted challenge' do
+        expect(described_class.query(keyword)).to include(targeted_challenge)
+        expect(described_class.query(keyword)).not_to include(untargeted_challenge)
+      end
+    end
   end
 
   describe 'validations' do

@@ -3,6 +3,7 @@ class Challenge < ApplicationRecord
 
   has_many :challenge_questions, dependent: :destroy
   has_many :questions, through: :challenge_questions
+  has_many :challenge_submissions, dependent: :restrict_with_error
 
   accepts_nested_attributes_for :challenge_questions,
                                 allow_destroy: true,
@@ -10,6 +11,8 @@ class Challenge < ApplicationRecord
 
   enum challenge_type: { daily: 'daily', contest: 'contest' }, _default: :daily
   enum reward_type: { binary: 'binary', proportional: 'proportional' }, _default: :binary
+
+  scope :query, ->(keyword) { where('title ILIKE ?', "%#{keyword}%") }
 
   # validates :title, presence: true
   validates :reward_points, presence: true
