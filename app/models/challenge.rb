@@ -72,9 +72,14 @@ class Challenge < ApplicationRecord
 
     def date_must_be_unique
       return if subject.blank?
-      return unless Challenge.exists?(start_at: start_at, subject_id: subject_id)
 
-      errors.add(:date, 'there is already a challenge for this date')
+      if id.present?
+        return unless Challenge.where.not(id: id).exists?(start_at: start_at, subject_id: subject_id)
+      else
+        return unless Challenge.exists?(start_at: start_at, subject_id: subject_id)
+      end
+
+      errors.add(:base, 'there is already a challenge for this date')
     end
 
     def set_start_at
