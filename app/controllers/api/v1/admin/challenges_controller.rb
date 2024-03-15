@@ -4,11 +4,11 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
 
   def index
     @pagy, @challenges = pagy(@challenges)
-    render json: @challenges, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+    render json: @challenges, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics', 'questions.question_images', 'questions.answers']
   end
 
   def show
-    render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+    render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics', 'questions.question_images', 'questions.answers']
   end
 
   def create
@@ -16,7 +16,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
     pundit_authorize(@challenge)
 
     if @challenge.save
-      render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+      render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics', 'questions.question_images', 'questions.answers']
     else
       render json: ErrorResponse.new(@challenge), status: :unprocessable_entity
     end
@@ -24,7 +24,7 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
 
   def update
     if @challenge.update(challenge_params)
-      render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics']
+      render json: @challenge, include: ['*', 'subject.curriculum', 'questions.exam', 'questions.topics', 'questions.question_images', 'questions.answers']
     else
       render json: ErrorResponse.new(@challenge), status: :unprocessable_entity
     end
@@ -41,13 +41,13 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
   private
 
     def set_challenge
-      @challenge = pundit_scope(Challenge).preload({ challenge_questions: { question: [:exam, :topics] } }).find(params[:id])
+      @challenge = pundit_scope(Challenge).preload({ challenge_questions: { question: [:exam, :topics, :question_images, :answers] } }).find(params[:id])
       pundit_authorize(@challenge) if @challenge
     end
 
     def set_challenges
       pundit_authorize(Challenge)
-      @challenges = pundit_scope(Challenge).preload({ subject: :curriculum }, :challenge_questions, { questions: [:exam, :topics] })
+      @challenges = pundit_scope(Challenge).preload({ subject: :curriculum }, :challenge_questions, { questions: [:exam, :topics, :question_images, :answers] })
       @challenges = @challenges.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @challenges = @challenges.where(challenge_type: params[:challenge_type]) if params[:challenge_type].present?
       @challenges = @challenges.where(is_published: ActiveModel::Type::Boolean.new.cast(params[:is_published])) if params[:is_published].present?
