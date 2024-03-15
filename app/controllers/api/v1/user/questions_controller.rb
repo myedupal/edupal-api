@@ -31,6 +31,7 @@ class Api::V1::User::QuestionsController < Api::V1::User::ApplicationController
       @questions = @questions.joins(:exam).where(exam: { zone: params[:zone] }) if params[:zone].present?
       @questions = @questions.joins(:exam).where(exam: { level: params[:level] }) if params[:level].present?
       @questions = @questions.where(question_type: params[:question_type]) if params[:question_type].present?
+      @questions = @questions.with_activity_presence(params[:activity_id]) if params[:activity_id].present?
       @questions = topic_sortable(@questions)
     end
 

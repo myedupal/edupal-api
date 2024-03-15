@@ -6,6 +6,7 @@ RSpec.describe Topic, type: :model do
 
     it { is_expected.to have_many(:question_topics).dependent(:destroy) }
     it { is_expected.to have_many(:questions).through(:question_topics) }
+    it { is_expected.to have_many(:activity_topics).dependent(:destroy) }
   end
 
   describe 'validations' do

@@ -10,6 +10,7 @@ RSpec.describe Question, type: :model do
     it { is_expected.to have_many(:topics).through(:question_topics) }
     it { is_expected.to have_many(:submission_answers).dependent(:destroy) }
     it { is_expected.to have_many(:challenge_questions).dependent(:destroy) }
+    it { is_expected.to have_many(:activity_questions).dependent(:destroy) }
   end
 
   describe 'nested attributes' do
@@ -29,6 +30,23 @@ RSpec.describe Question, type: :model do
       subject { create(:question) }
 
       it { is_expected.to validate_uniqueness_of(:number).case_insensitive.scoped_to(:exam_id) }
+    end
+  end
+
+  describe 'scopes' do
+    describe '.with_activity_presence' do
+      let!(:activity) { create(:activity, :topical) }
+      let!(:question) { create(:question) }
+      let(:another_activity) { create(:activity, :topical) }
+
+      it 'returns true' do
+        create(:activity_question, question: question, activity: activity)
+        expect(described_class.with_activity_presence(activity.id).first.activity_presence).to be_truthy
+      end
+
+      it 'returns false' do
+        expect(described_class.with_activity_presence(another_activity.id).first.activity_presence).to be_falsey
+      end
     end
   end
 

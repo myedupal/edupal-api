@@ -6,6 +6,7 @@ class Paper < ApplicationRecord
   has_many :answers, through: :questions
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
+  has_many :activity_papers, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { scope: :subject_id, case_sensitive: false }
 end

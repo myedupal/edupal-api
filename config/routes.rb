@@ -68,6 +68,8 @@ Rails.application.routes.draw do
           post :direct_submit, on: :collection
         end
         resources :submission_answers
+        resources :activities
+        resources :activity_questions, only: [:index, :create, :destroy]
       end
 
       namespace :web do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_14_094838) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_15_104254) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -31,6 +31,50 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_14_094838) do
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
+  end
+
+  create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "activity_type"
+    t.uuid "subject_id", null: false
+    t.uuid "exam_id"
+    t.integer "activity_questions_count", default: 0
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exam_id"], name: "index_activities_on_exam_id"
+    t.index ["subject_id"], name: "index_activities_on_subject_id"
+    t.index ["user_id"], name: "index_activities_on_user_id"
+  end
+
+  create_table "activity_papers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_id", null: false
+    t.uuid "paper_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_id", "paper_id"], name: "index_activity_papers_on_activity_id_and_paper_id", unique: true
+    t.index ["activity_id"], name: "index_activity_papers_on_activity_id"
+    t.index ["paper_id"], name: "index_activity_papers_on_paper_id"
+  end
+
+  create_table "activity_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_id", null: false
+    t.uuid "question_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_id", "question_id"], name: "index_activity_questions_on_activity_id_and_question_id", unique: true
+    t.index ["activity_id"], name: "index_activity_questions_on_activity_id"
+    t.index ["question_id"], name: "index_activity_questions_on_question_id"
+  end
+
+  create_table "activity_topics", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_id", null: false
+    t.uuid "topic_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_id", "topic_id"], name: "index_activity_topics_on_activity_id_and_topic_id", unique: true
+    t.index ["activity_id"], name: "index_activity_topics_on_activity_id"
+    t.index ["topic_id"], name: "index_activity_topics_on_topic_id"
   end
 
   create_table "answers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -271,6 +315,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_14_094838) do
     t.index ["subject_id"], name: "index_topics_on_subject_id"
   end
 
+  add_foreign_key "activities", "accounts", column: "user_id"
+  add_foreign_key "activities", "exams"
+  add_foreign_key "activities", "subjects"
+  add_foreign_key "activity_papers", "activities"
+  add_foreign_key "activity_papers", "papers"
+  add_foreign_key "activity_questions", "activities"
+  add_foreign_key "activity_questions", "questions"
+  add_foreign_key "activity_topics", "activities"
+  add_foreign_key "activity_topics", "topics"
   add_foreign_key "answers", "questions"
   add_foreign_key "challenge_questions", "challenges"
   add_foreign_key "challenge_questions", "questions"

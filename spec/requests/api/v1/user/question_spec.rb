@@ -28,6 +28,7 @@ RSpec.describe 'api/v1/user/questions', type: :request do
       parameter name: :zone, in: :query, type: :string, required: false, description: 'Filter by zone'
       parameter name: :level, in: :query, type: :string, required: false, description: 'Filter by level'
       parameter name: :question_type, in: :query, type: :string, required: false, description: 'Filter by question type'
+      parameter name: :activity_id, in: :query, type: :string, required: false, description: 'Return a helper activity_question_presence for the given activity_id'
 
       response(200, 'successful') do
         before do

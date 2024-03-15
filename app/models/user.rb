@@ -6,6 +6,7 @@ class User < Account
   has_many :challenge_submissions, dependent: :destroy
   has_many :submission_answers, dependent: :destroy
   has_one :active_subscription, -> { active }, class_name: 'Subscription'
+  has_many :activities, dependent: :destroy
 
   validates :name, presence: true
 

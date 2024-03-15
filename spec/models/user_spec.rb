@@ -7,6 +7,7 @@ RSpec.describe User, type: :model do
     it { is_expected.to have_one(:active_subscription).class_name('Subscription') }
     it { is_expected.to have_many(:challenge_submissions).dependent(:destroy) }
     it { is_expected.to have_many(:submission_answers).dependent(:destroy) }
+    it { is_expected.to have_many(:activities).dependent(:destroy) }
   end
 
   describe 'validations' do

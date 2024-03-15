@@ -138,7 +138,12 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
 
       response(200, 'successful', save_request_example: :data) do
         let(:id) { create(:challenge, :with_questions, start_at: 1.day.from_now).id }
-        let(:data) { { challenge: attributes_for(:challenge) } }
+        let(:data) do
+          { challenge: { challenge_questions_attributes: [
+            attributes_for(:challenge_question).except(:challenge_id),
+            attributes_for(:challenge_question).except(:challenge_id)
+          ] } }
+        end
 
         run_test!
       end
