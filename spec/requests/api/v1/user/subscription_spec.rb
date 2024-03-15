@@ -65,18 +65,41 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
       let(:price) { create(:price) }
       let(:data) { { subscription: { price_id: price.id } } }
 
-      response(200, 'successful', save_request_example: :data) do
-        run_test! do
-          expect(user.reload.active_subscription).to be_present
+      context 'when plan type is stripe' do
+        response(200, 'successful', save_request_example: :data) do
+          run_test! do
+            expect(user.reload.active_subscription).to be_present
+          end
+        end
+
+        response(422, 'unprocessable entity') do
+          before do
+            user.stripe_profile.update_column(:payment_method_id, 'pm_1234567890')
+          end
+
+          run_test!
         end
       end
 
-      response(422, 'unprocessable entity') do
-        before do
-          user.stripe_profile.update_column(:payment_method_id, 'pm_1234567890')
+      context 'when plan type is razorpay' do
+        let(:plan) { create(:plan, plan_type: :razorpay) }
+        let(:id) { create(:subscription, user: user, plan_type: :razorpay, plan: plan).id }
+        let(:price) { create(:price, plan: plan) }
+
+        response(200, 'successful', save_request_example: :data) do
+          run_test! do |response|
+            response_body = JSON.parse(response.body)
+            expect(response_body['subscription']['razorpay_short_url']).to be_present
+          end
         end
 
-        run_test!
+        response(422, 'unprocessable entity') do
+          before do
+            create(:subscription, user: user, plan_type: :razorpay, status: :active)
+          end
+
+          run_test!
+        end
       end
     end
   end
@@ -112,7 +135,7 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
         }
       }
 
-      let(:new_price) { create(:price) }
+      let(:new_price) { create(:price, :yearly) }
       let(:data) { { subscription: { price_id: new_price.id } } }
 
       before do
@@ -130,16 +153,36 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
         subscription.update_column(:stripe_subscription_id, stripe_subscription.id)
       end
 
-      response(200, 'successful', save_request_example: :data) do
-        run_test!
-      end
-
-      response(422, 'unprocessable entity') do
-        before do
-          user.stripe_profile.update_column(:payment_method_id, 'pm_1234567890')
+      context 'when plan type is stripe' do
+        response(200, 'successful', save_request_example: :data) do
+          run_test!
         end
 
-        run_test!
+        response(422, 'unprocessable entity') do
+          before do
+            user.stripe_profile.update_column(:payment_method_id, 'pm_1234567890')
+          end
+
+          run_test!
+        end
+      end
+
+      context 'when plan type is razorpay' do
+        let(:plan) { create(:plan, plan_type: :razorpay) }
+        let(:id) { create(:subscription, user: user, plan_type: :razorpay, plan: plan).id }
+        let(:new_price) { create(:price, :yearly, plan: plan) }
+
+        response(200, 'successful', save_request_example: :data) do
+          run_test! do |response|
+            response_body = JSON.parse(response.body)
+            expect(response_body['subscription']['razorpay_short_url']).to be_present
+          end
+        end
+
+        response(422, 'unprocessable entity') do
+          let(:data) { { subscription: { price_id: SecureRandom.uuid } } }
+          run_test!
+        end
       end
     end
   end
@@ -183,22 +226,47 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
         subscription.update_column(:stripe_subscription_id, stripe_subscription.id)
       end
 
-      response(200, 'successful', save_request_example: :data) do
-        run_test! do |response|
-          response_body = JSON.parse(response.body)
-          expect(response_body['subscription']['status']).to eq('canceled')
+      context 'when plan type is stripe' do
+        response(200, 'successful', save_request_example: :data) do
+          run_test! do |response|
+            response_body = JSON.parse(response.body)
+            expect(response_body['subscription']['status']).to eq('canceled')
+          end
+        end
+
+        context 'when cancel_at_period_end is true' do
+          let(:data) { { subscription: { cancel_at_period_end: true } } }
+
+          it 'remains active' do
+            put "/api/v1/user/subscriptions/#{id}/cancel", headers: { Authorization: bearer_token_for(user) }, params: data
+            expect(response).to have_http_status(:ok)
+            response_body = JSON.parse(response.body)
+            expect(response_body['subscription']['status']).to eq('active')
+            expect(response_body['subscription']['cancel_at_period_end']).to eq(true)
+          end
         end
       end
 
-      context 'when cancel_at_period_end is true' do
-        let(:data) { { subscription: { cancel_at_period_end: true } } }
+      context 'when plan type is razorpay' do
+        let(:id) { create(:subscription, user: user, plan_type: :razorpay).id }
 
-        it 'remains active' do
-          put "/api/v1/user/subscriptions/#{id}/cancel", headers: { Authorization: bearer_token_for(user) }, params: data
-          expect(response).to have_http_status(:ok)
-          response_body = JSON.parse(response.body)
-          expect(response_body['subscription']['status']).to eq('active')
-          expect(response_body['subscription']['cancel_at_period_end']).to eq(true)
+        response(200, 'successful', save_request_example: :data) do
+          run_test! do |response|
+            response_body = JSON.parse(response.body)
+            expect(response_body['subscription']['status']).to eq('cancelled')
+          end
+        end
+
+        context 'when cancel_at_period_end is true' do
+          let(:data) { { subscription: { cancel_at_period_end: true } } }
+
+          it 'remains active' do
+            put "/api/v1/user/subscriptions/#{id}/cancel", headers: { Authorization: bearer_token_for(user) }, params: data
+            expect(response).to have_http_status(:ok)
+            response_body = JSON.parse(response.body)
+            expect(response_body['subscription']['status']).to eq('active')
+            expect(response_body['subscription']['cancel_at_period_end']).to be_truthy
+          end
         end
       end
     end

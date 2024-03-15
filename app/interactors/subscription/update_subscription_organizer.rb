@@ -2,9 +2,9 @@ class Subscription::UpdateSubscriptionOrganizer
   include Interactor::Organizer
 
   organize [
+    Subscription::SetPriceAndPlan,
     Subscription::CheckStripeCustomer,
     Subscription::CheckStripePaymentMethod,
-    Subscription::CheckStripePrice,
     Subscription::UpdateSubscription
   ]
 

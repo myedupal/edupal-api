@@ -3,9 +3,9 @@ class Subscription::CreateSubscriptionOrganizer
 
   organize [
     Subscription::CheckActiveSubscription,
+    Subscription::SetPriceAndPlan,
     Subscription::CheckStripeCustomer,
     Subscription::CheckStripePaymentMethod,
-    Subscription::CheckStripePrice,
     Subscription::CreateSubscription
   ]
 

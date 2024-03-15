@@ -24,47 +24,16 @@ require 'bearer_token_helper'
 require 'webmock/rspec'
 WebMock.disable_net_connect!(allow_localhost: true)
 
+# webmocks
+require 'webmocks/fake_razorpay'
+
 RSpec.configure do |config|
   # registering http request stub
   # you need to enable sinatra gem in Gemfile
-  # you can place the sinatra fake external api code in support/fake_api.rb
-  # config.before do
-  #   stubbing using sinatra
-  #   stub_request(:get, /external.api.host/).to_rack(FakeExternalApi)
-
-  #   easimeru_response = {
-  #     "scheduled_job": {
-  #       "id": SecureRandom.uuid,
-  #       "schedule_at": Time.current.to_s,
-  #       "status": "SCHEDULED",
-  #       "priority": "LOW",
-  #       "rendering_data": {
-  #         "subject": {
-  #           "test": "testing"
-  #         },
-  #         "body": {
-  #           "test": "testing"
-  #         },
-  #         "text": {
-  #           "test": "testing"
-  #         }
-  #       },
-  #       "send_to": Faker::Internet.email,
-  #       "recipient_name": Faker::Name.name,
-  #       "created_at": Time.current.to_s
-  #       }
-  #   }
-  #   stub_request(:post, "https://www.easimeru.com/api/v1/email/send").to_return(
-  #     status: 200,
-  #     body: easimeru_response.to_json,
-  #     headers: { "Content-Type": "application/json" }
-  #   )
-  #   stub_request(:post, "https://www.easimeru.com/api/v1/sms/send").to_return(
-  #     status: 200,
-  #     body: easimeru_response.to_json,
-  #     headers: { "Content-Type": "application/json" }
-  #   )
-  # end
+  # you can place the sinatra fake external api code in webmocks/fake_api.rb
+  config.before do
+    stub_request(:any, /api.razorpay.com/).to_rack(FakeRazorpay)
+  end
 
   config.before(:suite) do
     StripeMock.start

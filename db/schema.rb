@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_13_093839) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_14_094838) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -130,6 +130,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_13_093839) do
     t.string "stripe_product_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "plan_type"
   end
 
   create_table "point_activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -152,6 +153,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_13_093839) do
     t.string "stripe_price_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "razorpay_plan_id"
     t.index ["plan_id"], name: "index_prices_on_plan_id"
   end
 
@@ -252,6 +254,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_13_093839) do
     t.datetime "current_period_end"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "razorpay_subscription_id"
+    t.string "razorpay_short_url"
     t.index ["created_by_id"], name: "index_subscriptions_on_created_by_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["price_id"], name: "index_subscriptions_on_price_id"

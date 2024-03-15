@@ -6,6 +6,10 @@ RSpec.describe Plan, type: :model do
     it { is_expected.to have_many(:prices).dependent(:destroy) }
   end
 
+  describe 'enums' do
+    it { is_expected.to define_enum_for(:plan_type).with_values({ stripe: 'stripe', razorpay: 'razorpay' }).backed_by_column_of_type(:string) }
+  end
+
   describe 'validations' do
     it { is_expected.to validate_presence_of(:name) }
   end

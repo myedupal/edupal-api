@@ -71,8 +71,8 @@ group :test do
   gem 'stripe-ruby-mock', git: 'https://github.com/stripe-ruby-mock/stripe-ruby-mock', require: 'stripe_mock'
 
   # only enable if it is necessary
+  gem "sinatra"
   gem "webmock"
-  # gem "sinatra"
 end
 
 group :production do
@@ -145,3 +145,5 @@ gem "noticed", "~> 1.6"
 
 # payment processing
 gem "stripe"
+
+gem "razorpay"

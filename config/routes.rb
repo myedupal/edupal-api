@@ -8,6 +8,10 @@ Rails.application.routes.draw do
         resource :webhook, only: [:create]
       end
 
+      namespace :razorpay do
+        resource :webhook, only: [:create]
+      end
+
       namespace :admin do
         devise_scope :admin do
           post   'sign_in',  to: 'sessions#create'

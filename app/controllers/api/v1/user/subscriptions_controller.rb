@@ -19,9 +19,9 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
       subscription_params: subscription_params
     )
 
-    if organizer.success? && organizer.subscription.status == 'active'
+    if organizer.success? && (organizer.subscription.status == 'active' || organizer.subscription.plan.razorpay?)
       render json: organizer.subscription
-    elsif organizer.success? && organizer.stripe_subscription.status == 'incomplete'
+    elsif organizer.success? && organizer.subscription.plan.stripe? && organizer.stripe_subscription.status == 'incomplete'
       stripe_invoice = Stripe::Invoice.retrieve(organizer.stripe_subscription.latest_invoice)
       payment_intent = Stripe::PaymentIntent.retrieve(stripe_invoice.payment_intent)
       render json: { payment_intent: payment_intent.id, client_secret: payment_intent.client_secret }, status: :payment_required
@@ -38,9 +38,9 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
       subscription_params: subscription_params
     )
 
-    if organizer.success? && organizer.subscription.status == 'active'
+    if organizer.success? && (organizer.subscription.status == 'active' || organizer.subscription.plan.razorpay?)
       render json: @subscription
-    elsif organizer.success? && organizer.stripe_subscription.status == 'incomplete'
+    elsif organizer.success? && organizer.subscription.plan.stripe? && organizer.stripe_subscription.status == 'incomplete'
       stripe_invoice = Stripe::Invoice.retrieve(organizer.stripe_subscription.latest_invoice)
       payment_intent = Stripe::PaymentIntent.retrieve(stripe_invoice.payment_intent)
       render json: { payment_intent: payment_intent.id, client_secret: payment_intent.client_secret }, status: :payment_required

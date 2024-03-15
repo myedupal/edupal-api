@@ -30,4 +30,17 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  errors:
+    stripe_payment_method_id_missing: "Please update your billing details in your account settings to continue."
+    stripe_payment_method_id_invalid: "Please update your billing details in your account settings to continue."
+    stripe_payment_method_not_found: "Please update your billing details in your account settings to continue."
+    stripe_customer_id_missing: "Please update your billing details in your account settings to continue."
+    stripe_customer_id_invalid: "Please update your billing details in your account settings to continue."
+    active_subscription_exists: "You already have an active subscription. To avoid any interruption to your service, we suggest you to turn on auto-renewal for your current subscription. Thank you."
+    stripe_subscription_create_failed: "We are unable to process your request at this time. Please ensure your billing details are correct and try again."
+    stripe_subscription_update_failed: "We are unable to process your request at this time. Please ensure your billing details are correct and try again."
+    stripe_price_not_found: "We cannot find the subscription plan you are looking for. Please try again later."
+    price_not_found: "We cannot find the subscription plan you are looking for. Please try again later."
+    razorpay_plan_not_found: "We cannot find the subscription plan you are looking for. Please try again later."
+    razorpay_subscription_cancel_failed: "We are unable to process your request at this time. Please ensure your billing details are correct and try again."
+    plan_type_not_found: "We cannot find the subscription plan you are looking for. Please try again later."

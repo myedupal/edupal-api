@@ -2,6 +2,8 @@ class Subscription::CheckStripeCustomer
   include Interactor
 
   def call
+    return unless context.plan.stripe?
+
     context.stripe_profile = context.current_user.stripe_profile
     context.stripe_customer_id = context.stripe_profile&.customer_id
 

@@ -2,10 +2,12 @@ FactoryBot.define do
   factory :subscription do
     transient do
       user { create(:user) }
+      plan_type { :stripe }
+      plan { create(:plan, plan_type) }
+      price { create(:price, plan: plan) }
     end
-    plan { create(:plan) }
     plan_id { plan.id }
-    price_id { create(:price, plan: plan).id }
+    price_id { price.id }
     user_id { user.id }
     created_by { user }
     start_at { Time.current }
@@ -20,5 +22,7 @@ FactoryBot.define do
     trait :incomplete do
       status { 'incomplete' }
     end
+
+    razorpay_subscription_id { 'sub_00000000000001' }
   end
 end
