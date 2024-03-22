@@ -17,7 +17,8 @@ CarrierWave.configure do |config|
       region: ENV.fetch('S3_REGION', nil)
     }
     config.fog_directory  = ENV.fetch('S3_BUCKET_NAME', nil)
-    config.fog_public     = true
+    config.fog_public     = false
     config.fog_attributes = { cache_control: "public, max-age=#{365.days.to_i}" }
+    config.asset_host = ENV.fetch('ASSET_HOST', nil)
   end
 end
