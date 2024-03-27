@@ -65,7 +65,7 @@ class Api::V1::User::ActivitiesController < Api::V1::User::ApplicationController
 
     def activity_params
       params.require(:activity).permit(
-        :subject_id, :exam_id, :activity_type,
+        :subject_id, :exam_id, :activity_type, :title, :recorded_time,
         topic_ids: [], paper_ids: [],
         metadata: [:sort_by, :sort_order, :page, :items, :question_type, { years: [], seasons: [], zones: [], levels: [], numbers: [] }]
       )

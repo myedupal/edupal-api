@@ -1,7 +1,7 @@
 class Api::V1::User::ActivitySerializer < ActiveModel::Serializer
   attributes :id, :activity_type, :activity_questions_count, :user_id,
              :subject_id, :exam_id, :metadata, :topic_ids, :paper_ids,
-             :questions_count
+             :questions_count, :title, :recorded_time
   attributes :created_at, :updated_at
   # has_one :user
   has_one :subject

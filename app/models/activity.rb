@@ -21,8 +21,6 @@ class Activity < ApplicationRecord
                              :last_question_id, :last_position]
 
   def questions_count
-    return 0 if yearly?
-
     Rails.cache.fetch("activity/#{id}/questions_count", expires_in: 1.hour) do
       questions = Question.where(subject_id: subject_id)
       questions = questions.joins(:topics).where(topics: { id: topic_ids }) if topic_ids.any?

@@ -42,6 +42,8 @@ RSpec.describe 'api/v1/user/activities', type: :request do
           activity: {
             type: :object,
             properties: {
+              title: { type: :string },
+              recorded_time: { type: :integer },
               activity_type: { type: :string, enum: Activity.activity_types.keys },
               subject_id: { type: :string },
               exam_id: { type: :string },
@@ -121,6 +123,8 @@ RSpec.describe 'api/v1/user/activities', type: :request do
           activity: {
             type: :object,
             properties: {
+              title: { type: :string },
+              recorded_time: { type: :integer },
               metadata: {
                 type: :object,
                 properties: {

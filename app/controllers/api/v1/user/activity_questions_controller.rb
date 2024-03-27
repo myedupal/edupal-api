@@ -41,7 +41,7 @@ class Api::V1::User::ActivityQuestionsController < Api::V1::User::ApplicationCon
 
     def set_activity_questions
       pundit_authorize(ActivityQuestion)
-      @activity_questions = pundit_scope(ActivityQuestion.all)
+      @activity_questions = pundit_scope(ActivityQuestion.includes(:activity, :question))
       @activity_questions = @activity_questions.where(activity_id: params[:activity_id]) if params[:activity_id].present?
       @activity_questions = @activity_questions.where(question_id: params[:question_id]) if params[:question_id].present?
       @activity_questions = attribute_sortable(@activity_questions)
