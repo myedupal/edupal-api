@@ -7,6 +7,7 @@ class User < Account
   has_many :submission_answers, dependent: :destroy
   has_one :active_subscription, -> { active }, class_name: 'Subscription'
   has_many :activities, dependent: :destroy
+  has_many :saved_user_exams, dependent: :destroy
 
   validates :name, presence: true
 

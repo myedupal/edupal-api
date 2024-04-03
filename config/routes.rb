@@ -70,6 +70,9 @@ Rails.application.routes.draw do
         resources :submission_answers
         resources :activities
         resources :activity_questions, only: [:index, :create, :destroy]
+
+        resources :saved_user_exams, only: [:index, :create, :destroy]
+        resources :user_exams
       end
 
       namespace :web do

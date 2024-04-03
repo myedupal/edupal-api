@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_27_084457) do
+ActiveRecord::Schema[7.0].define(version: 2024_04_03_085821) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -234,6 +234,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_084457) do
     t.index ["subject_id"], name: "index_questions_on_subject_id"
   end
 
+  create_table "saved_user_exams", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "user_exam_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_exam_id"], name: "index_saved_user_exams_on_user_exam_id"
+    t.index ["user_id", "user_exam_id"], name: "index_saved_user_exams_on_user_id_and_user_exam_id", unique: true
+    t.index ["user_id"], name: "index_saved_user_exams_on_user_id"
+  end
+
   create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "account_id", null: false
     t.string "scope"
@@ -317,6 +327,29 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_084457) do
     t.index ["subject_id"], name: "index_topics_on_subject_id"
   end
 
+  create_table "user_exam_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_exam_id", null: false
+    t.uuid "question_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["question_id"], name: "index_user_exam_questions_on_question_id"
+    t.index ["user_exam_id", "question_id"], name: "index_user_exam_questions_on_user_exam_id_and_question_id", unique: true
+    t.index ["user_exam_id"], name: "index_user_exam_questions_on_user_exam_id"
+  end
+
+  create_table "user_exams", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title"
+    t.uuid "created_by_id", null: false
+    t.uuid "subject_id", null: false
+    t.boolean "is_public", default: false, null: false
+    t.string "nanoid", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_user_exams_on_created_by_id"
+    t.index ["nanoid"], name: "index_user_exams_on_nanoid", unique: true
+    t.index ["subject_id"], name: "index_user_exams_on_subject_id"
+  end
+
   add_foreign_key "activities", "accounts", column: "user_id"
   add_foreign_key "activities", "exams"
   add_foreign_key "activities", "subjects"
@@ -341,6 +374,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_084457) do
   add_foreign_key "question_topics", "topics"
   add_foreign_key "questions", "exams"
   add_foreign_key "questions", "subjects"
+  add_foreign_key "saved_user_exams", "accounts", column: "user_id"
+  add_foreign_key "saved_user_exams", "user_exams"
   add_foreign_key "sessions", "accounts"
   add_foreign_key "stripe_profiles", "accounts", column: "user_id"
   add_foreign_key "subjects", "curriculums"
@@ -352,4 +387,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_27_084457) do
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "prices"
   add_foreign_key "topics", "subjects"
+  add_foreign_key "user_exam_questions", "questions"
+  add_foreign_key "user_exam_questions", "user_exams"
+  add_foreign_key "user_exams", "accounts", column: "created_by_id"
+  add_foreign_key "user_exams", "subjects"
 end
