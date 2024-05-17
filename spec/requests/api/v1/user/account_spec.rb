@@ -15,6 +15,22 @@ RSpec.describe 'api/v1/user/account', type: :request do
       end
     end
 
+    path '/api/v1/user/account/zklogin_salt' do
+      get('show zklogin salt') do
+        response(200, 'successful') do
+          tags 'User Account'
+          produces 'application/json'
+          security [{ bearerAuth: nil }]
+
+          before do
+            allow_any_instance_of(User).to receive(:zklogin_salt).and_return('salt')
+          end
+
+          run_test!
+        end
+      end
+    end
+
     put('update account') do
       tags 'User Account'
       produces 'application/json'

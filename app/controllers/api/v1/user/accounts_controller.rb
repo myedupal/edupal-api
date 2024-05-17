@@ -19,6 +19,10 @@ class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
     end
   end
 
+  def zklogin_salt
+    render json: { zklogin_salt: current_user.zklogin_salt }
+  end
+
   private
 
     def account_params

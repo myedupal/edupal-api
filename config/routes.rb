@@ -46,8 +46,12 @@ Rails.application.routes.draw do
           delete 'sign_out', to: 'sessions#destroy'
           resource :passwords, only: [:create, :update]
         end
+        resource :oauth, controller: :oauth, only: [] do
+          post :google, on: :collection
+        end
         resource :account, only: [:show, :update] do
           put :password, on: :collection
+          get :zklogin_salt, on: :collection
         end
         resource :stripe, only: [] do
           collection do

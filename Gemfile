@@ -147,3 +147,5 @@ gem "noticed", "~> 1.6"
 gem "stripe"
 
 gem "razorpay"
+
+gem "googleauth", "~> 1.11"

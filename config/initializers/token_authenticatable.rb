@@ -6,9 +6,10 @@ TokenAuthenticatable.configure do |config|
 
   # mandatory, otherwise no token will be dispatched
   config.creator_requests = [
-    ['POST', '/api/v1/admin/sign_in'],
-    ['POST', '/api/v1/user/sign_in'],
-    ['POST', '/api/v1/user']
+    ['POST', %r{/api/v1/admin/sign_in$}],
+    ['POST', %r{/api/v1/user/sign_in$}],
+    ['POST', %r{/api/v1/user$}],
+    ['POST', %r{/api/v1/user/oauth/google$}]
   ]
 
   # mandatory, otherwise sign out will not have any effect
