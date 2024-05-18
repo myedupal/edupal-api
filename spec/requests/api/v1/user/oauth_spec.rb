@@ -1,7 +1,7 @@
 require 'swagger_helper'
 
 RSpec.describe 'api/v1/user/oauth', type: :request do
-  let(:user) { create(:user, :sign_in_with_google, password: 'password') }
+  let(:user) { build(:user, :sign_in_with_google, password: 'password') }
 
   path '/api/v1/user/oauth/google' do
     post('Sign in with google') do
