@@ -8,7 +8,7 @@ class Api::V1::User::OauthController < Api::V1::User::ApplicationController
       u.name = payload['name']
       u.password = SecureRandom.alphanumeric(128)
       u.oauth2_provider = 'google'
-      u.oauth2_uid = payload['sub']
+      u.oauth2_sub = payload['sub']
       u.oauth2_profile_picture_url = payload['picture']
     end
 
