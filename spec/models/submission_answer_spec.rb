@@ -9,6 +9,7 @@ RSpec.describe SubmissionAnswer, type: :model do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:answer) }
+    it { is_expected.to validate_presence_of(:recorded_time) }
 
     context 'when challenge_submission is present' do
       let!(:challenge) { create(:challenge) }

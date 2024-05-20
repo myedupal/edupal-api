@@ -43,7 +43,8 @@ RSpec.describe 'api/v1/user/submission_answers', type: :request do
             properties: {
               challenge_submission_id: { type: :string },
               question_id: { type: :string },
-              answer: { type: :string }
+              answer: { type: :string },
+              recorded_time: { type: :integer, description: 'Time in seconds' }
             }
           }
         }
@@ -91,7 +92,8 @@ RSpec.describe 'api/v1/user/submission_answers', type: :request do
           submission_answer: {
             type: :object,
             properties: {
-              answer: { type: :string }
+              answer: { type: :string },
+              recorded_time: { type: :integer, description: 'Time in seconds' }
             }
           }
         }

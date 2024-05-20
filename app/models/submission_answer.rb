@@ -4,6 +4,7 @@ class SubmissionAnswer < ApplicationRecord
   belongs_to :user
 
   validates :answer, presence: true
+  validates :recorded_time, presence: true
   validate :question_belongs_to_challenge, if: -> { challenge_submission.present? }
 
   before_commit :evaluate, on: :create, if: -> { challenge_submission.blank? }

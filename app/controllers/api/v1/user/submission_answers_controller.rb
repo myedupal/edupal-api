@@ -4,7 +4,7 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
 
   def index
     @pagy, @submission_answers = pagy(@submission_answers)
-    render json: @submission_answer, include: ['*', 'challenge_submission.challenge.subject.curriculum', 'question.subject.curriculum']
+    render json: @submission_answers, include: ['*', 'challenge_submission.challenge.subject.curriculum', 'question.subject.curriculum']
   end
 
   def show
@@ -63,6 +63,6 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
     end
 
     def submission_answer_params
-      params.require(:submission_answer).permit(:challenge_submission_id, :question_id, :answer)
+      params.require(:submission_answer).permit(:challenge_submission_id, :question_id, :answer, :recorded_time)
     end
 end
