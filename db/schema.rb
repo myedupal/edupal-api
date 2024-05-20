@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_20_064956) do
+ActiveRecord::Schema[7.0].define(version: 2024_05_20_073928) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -31,6 +31,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_20_064956) do
     t.string "oauth2_provider"
     t.string "oauth2_sub"
     t.string "oauth2_profile_picture_url"
+    t.integer "daily_streak", default: 0, null: false
+    t.integer "maximum_streak", default: 0, null: false
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true

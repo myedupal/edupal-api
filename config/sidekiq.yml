@@ -5,7 +5,8 @@
   - low
 
 # use below to define a background cronjob for sidekiq worker
-# :schedule:
-#  schedule_name:
-#    cron: '*/15 * * * *' # run every 15 minutes
-#    class: SomeSidekiqWorker
+:scheduler:
+  :schedule:
+    ResetUsersDailyStreakJob:
+      # every day at midnight, Singapore time
+      cron: '0 0 * * * Asia/Singapore'

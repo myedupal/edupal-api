@@ -85,5 +85,52 @@ RSpec.describe ChallengeSubmission, type: :model do
         end
       end
     end
+
+    describe '#update_user_streaks' do
+      it 'updates user daily streak and maximum streak to 1' do
+        user = create(:user)
+        submission = create(:challenge_submission, :with_submission_answers, user: user)
+
+        expect do
+          submission.submit!
+          user.reload
+        end.to change { user.daily_streak }.from(0).to(1)
+           .and change { user.maximum_streak }.from(0).to(1)
+      end
+
+      it 'update user daily streak to 7' do
+        user = create(:user, daily_streak: 6, maximum_streak: 10)
+        submission = create(:challenge_submission, :with_submission_answers, user: user)
+
+        expect do
+          submission.submit!
+          user.reload
+        end.to change { user.daily_streak }.from(6).to(7)
+           .and(not_change { user.maximum_streak })
+      end
+    end
+  end
+
+  describe 'methods' do
+    describe '#is_user_first_full_score_daily_challenge_submission?' do
+      let(:user) { create(:user) }
+
+      it 'returns true if user has no previous submissions' do
+        submission = build(:challenge_submission, user: user, score: 100, total_score: 100)
+        expect(submission.send(:is_user_first_full_score_daily_challenge_submission?)).to be_truthy
+      end
+
+      it 'returns false if user has previous full score submissions' do
+        create(:challenge_submission, :with_submission_answers, :submitted, user: user)
+        submission = create(:challenge_submission, :with_submission_answers, user: user)
+        expect(submission.send(:is_user_first_full_score_daily_challenge_submission?)).to be_falsey
+      end
+
+      it 'returns true if user has previous full score submissions with lower score' do
+        create(:challenge_submission, :with_incorrect_submission_answers, :submitted, user: user)
+        submission = create(:challenge_submission, :with_submission_answers, user: user)
+        expect(submission.send(:is_user_first_full_score_daily_challenge_submission?)).to be_truthy
+      end
+    end
   end
 end

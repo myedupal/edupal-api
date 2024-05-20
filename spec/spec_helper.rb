@@ -27,6 +27,8 @@ WebMock.disable_net_connect!(allow_localhost: true)
 # webmocks
 require 'webmocks/fake_razorpay'
 
+RSpec::Matchers.define_negated_matcher :not_change, :change
+
 RSpec.configure do |config|
   # registering http request stub
   # you need to enable sinatra gem in Gemfile

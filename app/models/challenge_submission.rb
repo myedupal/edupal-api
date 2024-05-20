@@ -8,6 +8,7 @@ class ChallengeSubmission < ApplicationRecord
   accepts_nested_attributes_for :submission_answers, allow_destroy: true, reject_if: :reject_submission_answer_attributes?
 
   before_save :evaluate_answers, if: -> { submitted? }
+  after_commit :update_user_streaks, if: -> { saved_change_to_status? && submitted? }
 
   aasm column: :status, whiny_transitions: false, timestamps: true do
     state :pending, initial: true
@@ -39,5 +40,26 @@ class ChallengeSubmission < ApplicationRecord
       self.total_score = challenge.challenge_questions.sum(:score)
       self.penalty_seconds = attempted * challenge.penalty_seconds
       self.completion_seconds = (submitted_at - challenge.start_at).to_i + penalty_seconds
+    end
+
+    def update_user_streaks
+      return unless is_user_first_full_score_daily_challenge_submission?
+
+      user.update(
+        daily_streak: user.daily_streak + 1,
+        maximum_streak: [user.maximum_streak, user.daily_streak + 1].max
+      )
+    end
+
+    def is_user_first_full_score_daily_challenge_submission?
+      first_submission = ChallengeSubmission.joins(:challenge)
+                                            .submitted
+                                            .where(challenge: { challenge_type: Challenge.challenge_types[:daily] })
+                                            .where(user_id: user_id)
+                                            .where('score > 0')
+                                            .where('score = total_score')
+                                            .order(submitted_at: :asc)
+                                            .first
+      first_submission.nil? || first_submission.id == id
     end
 end
