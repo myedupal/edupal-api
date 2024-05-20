@@ -77,6 +77,10 @@ Rails.application.routes.draw do
 
         resources :saved_user_exams, only: [:index, :create, :destroy]
         resources :user_exams
+        resources :reports, only: [] do
+          get :daily_challenge, on: :collection
+          get :mcq, on: :collection
+        end
       end
 
       namespace :web do

@@ -10,6 +10,7 @@ FactoryBot.define do
     question_id { question.id }
     user_id { user.id }
     answer { %w[A B C D].sample }
+    recorded_time { rand(5..45).minutes.seconds.to_i }
 
     after(:build) do |_submission_answer, evaluator|
       create(:challenge_question, question: evaluator.question, challenge: evaluator.challenge)
