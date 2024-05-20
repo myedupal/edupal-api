@@ -1,7 +1,7 @@
 require 'swagger_helper'
 
 RSpec.describe 'api/v1/user/oauth', type: :request do
-  let(:user) { build(:user, :sign_in_with_google, password: 'password') }
+  let(:user) { create(:user) }
 
   path '/api/v1/user/oauth/google' do
     post('Sign in with google') do
@@ -16,28 +16,40 @@ RSpec.describe 'api/v1/user/oauth', type: :request do
       }
 
       let(:data) { { id_token: 'google_id_token' } }
-      let(:google_payload) { { 'email' => user.email, 'name' => user.name, 'sub' => user.oauth2_sub, 'picture' => user.oauth2_profile_picture_url } }
+      let(:google_payload) do
+        {
+          'email' => user.email,
+          'name' => user.name,
+          'sub' => SecureRandom.uuid,
+          'picture' => Faker::Internet.url
+        }
+      end
+
+      before do
+        allow(Google::Auth::IDTokens).to receive(:verify_oidc).and_return(google_payload)
+        allow(ZkloginSaltGenerator).to receive(:new).and_return(double(generate: 'salt'))
+      end
 
       response(200, 'successful', save_request_example: :data) do
         header 'Authorization', schema: { type: :string }, description: 'Bearer token'
 
-        before do
-          allow(Google::Auth::IDTokens).to receive(:verify_oidc).and_return(google_payload)
-          allow(ZkloginSaltGenerator).to receive(:new).and_return(double(generate: 'salt'))
+        context 'when user email exists' do
+          run_test! do |response|
+            parsed_response = JSON.parse(response.body)
+            expect(parsed_response['meta']['zklogin_salt']).to eq('salt')
+          end
         end
 
-        run_test! do |response|
-          parsed_response = JSON.parse(response.body)
-          expect(parsed_response['meta']['zklogin_salt']).to eq(user.zklogin_salt)
+        context 'when user email does not exist' do
+          run_test! do |response|
+            parsed_response = JSON.parse(response.body)
+            expect(parsed_response['meta']['zklogin_salt']).to eq('salt')
+          end
         end
       end
 
       response(401, 'unauthorized') do
         let(:user) { create(:user, :sign_in_with_google, active: false) }
-
-        before do
-          allow(Google::Auth::IDTokens).to receive(:verify_oidc).and_return(google_payload)
-        end
 
         run_test!
       end

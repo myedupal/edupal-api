@@ -9,6 +9,28 @@ class Account < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :point_activities, dependent: :destroy
 
+  def self.find_or_register_by_oauth(provider, id_token)
+    user = find_or_create_by!(email: id_token['email']) do |u|
+      u.name = id_token['name']
+      u.password = SecureRandom.alphanumeric(128)
+      u.oauth2_provider = provider
+      u.oauth2_sub = id_token['sub']
+      u.oauth2_profile_picture_url = id_token['picture']
+    end
+
+    return user unless user.active_for_authentication?
+
+    if user.oauth2_provider.blank?
+      user.update_columns(
+        oauth2_provider: provider,
+        oauth2_sub: id_token['sub'],
+        oauth2_profile_picture_url: id_token['picture']
+      )
+    end
+
+    user
+  end
+
   def active_for_authentication?
     super && active?
   end
