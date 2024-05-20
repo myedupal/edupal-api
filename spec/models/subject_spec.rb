@@ -34,5 +34,15 @@ RSpec.describe Subject, type: :model do
         expect(described_class.query('phy')).not_to include(mathematics)
       end
     end
+
+    describe '.published' do
+      let!(:published_subject) { create(:subject, is_published: true) }
+      let!(:unpublished_subject) { create(:subject, is_published: false) }
+
+      it 'returns published subjects' do
+        expect(described_class.published).to include(published_subject)
+        expect(described_class.published).not_to include(unpublished_subject)
+      end
+    end
   end
 end

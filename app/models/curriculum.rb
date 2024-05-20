@@ -12,4 +12,5 @@ class Curriculum < ApplicationRecord
   validates :board, presence: true
 
   scope :query, ->(keyword) { where("name ILIKE :keyword OR board ILIKE :keyword", keyword: "%#{keyword}%") }
+  scope :published, -> { where(is_published: true) }
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_20_073928) do
+ActiveRecord::Schema[7.0].define(version: 2024_05_20_105430) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -151,6 +151,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_20_073928) do
     t.integer "display_order"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_published", default: false
   end
 
   create_table "exams", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -280,6 +281,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_20_073928) do
     t.string "code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_published", default: false
     t.index ["curriculum_id"], name: "index_subjects_on_curriculum_id"
   end
 

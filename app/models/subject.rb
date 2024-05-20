@@ -15,4 +15,5 @@ class Subject < ApplicationRecord
   # validates :code, uniqueness: { scope: :curriculum_id, case_sensitive: false }, allow_nil: true
 
   scope :query, ->(keyword) { where('name ILIKE :keyword OR code ILIKE :keyword', keyword: "%#{keyword}%") }
+  scope :published, -> { where(is_published: true) }
 end

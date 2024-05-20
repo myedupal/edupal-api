@@ -41,7 +41,8 @@ RSpec.describe 'api/v1/admin/curriculums', type: :request do
             properties: {
               name: { type: :string },
               board: { type: :string },
-              display_order: { type: :integer }
+              display_order: { type: :integer },
+              is_published: { type: :boolean }
             }
           }
         }
@@ -82,7 +83,8 @@ RSpec.describe 'api/v1/admin/curriculums', type: :request do
             properties: {
               name: { type: :string },
               board: { type: :string },
-              display_order: { type: :integer }
+              display_order: { type: :integer },
+              is_published: { type: :boolean }
             }
           }
         }

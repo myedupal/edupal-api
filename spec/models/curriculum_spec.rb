@@ -32,5 +32,15 @@ RSpec.describe Curriculum, type: :model do
         expect(described_class.query('STPM')).not_to include(caluk)
       end
     end
+
+    describe '.published' do
+      let(:published_curriculum) { create(:curriculum, is_published: true) }
+      let(:unpublished_curriculum) { create(:curriculum, is_published: false) }
+
+      it 'returns published curriculums' do
+        expect(described_class.published).to include(published_curriculum)
+        expect(described_class.published).not_to include(unpublished_curriculum)
+      end
+    end
   end
 end

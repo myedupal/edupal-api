@@ -61,6 +61,6 @@ class Api::V1::Admin::CurriculumsController < Api::V1::Admin::ApplicationControl
     end
 
     def curriculum_params
-      params.require(:curriculum).permit(:name, :board, :display_order)
+      params.require(:curriculum).permit(:name, :board, :display_order, :is_published)
     end
 end

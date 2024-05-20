@@ -18,7 +18,7 @@ class Api::V1::Web::CurriculumsController < Api::V1::Web::ApplicationController
     end
 
     def set_curriculums
-      @curriculums = Curriculum.includes(:subjects)
+      @curriculums = Curriculum.preload(:subjects).published
       @curriculums = keyword_queryable(@curriculums)
       @curriculums = attribute_sortable(@curriculums)
     end
