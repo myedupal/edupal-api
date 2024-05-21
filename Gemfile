@@ -149,3 +149,5 @@ gem "stripe"
 gem "razorpay"
 
 gem "googleauth", "~> 1.11"
+
+gem "progressbar", "~> 1.13"

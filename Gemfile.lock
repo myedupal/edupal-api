@@ -289,6 +289,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.4)
+    progressbar (1.13.0)
     psych (5.1.2)
       stringio
     public_suffix (5.0.4)
@@ -492,6 +493,7 @@ DEPENDENCIES
   noticed (~> 1.6)
   pagy
   pg (~> 1.1)
+  progressbar (~> 1.13)
   puma (~> 5.0)
   pundit
   rack-cors

@@ -30,6 +30,7 @@ class Question < ApplicationRecord
     joins(sql).select('questions.*')
               .select('activity_question_presence.question_id IS NOT NULL AS activity_presence')
   }
+  scope :have_topics, -> { joins(:topics).distinct }
 
   validates :number, presence: true, uniqueness: { scope: :exam_id }
 
