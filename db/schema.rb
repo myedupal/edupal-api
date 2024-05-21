@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_20_105430) do
+ActiveRecord::Schema[7.0].define(version: 2024_05_21_093116) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -263,6 +263,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_20_105430) do
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_sessions_on_account_id"
     t.index ["token"], name: "index_sessions_on_token", unique: true
+  end
+
+  create_table "settings", force: :cascade do |t|
+    t.string "var", null: false
+    t.text "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["var"], name: "index_settings_on_var", unique: true
   end
 
   create_table "stripe_profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
