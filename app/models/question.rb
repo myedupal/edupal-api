@@ -12,6 +12,7 @@ class Question < ApplicationRecord
   has_many :challenge_questions, dependent: :destroy
   has_many :activity_questions, dependent: :destroy
   has_many :user_exam_questions, dependent: :destroy
+  has_many :point_activities, as: :activity, dependent: :destroy
 
   accepts_nested_attributes_for :answers, allow_destroy: true, reject_if: proc { |attributes| attributes['text'].blank? && attributes['image'].blank? }
   accepts_nested_attributes_for :question_images, allow_destroy: true, reject_if: proc { |attributes| attributes['image'].blank? }

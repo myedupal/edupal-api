@@ -13,7 +13,7 @@ FactoryBot.define do
     recorded_time { rand(5..45).minutes.seconds.to_i }
 
     after(:build) do |_submission_answer, evaluator|
-      create(:challenge_question, question: evaluator.question, challenge: evaluator.challenge)
+      create(:challenge_question, question: evaluator.question, challenge: evaluator.challenge) if evaluator.challenge
     end
 
     trait :correct_answer do

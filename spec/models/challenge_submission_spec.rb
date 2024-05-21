@@ -5,6 +5,7 @@ RSpec.describe ChallengeSubmission, type: :model do
     it { is_expected.to belong_to(:challenge) }
     it { is_expected.to belong_to(:user) }
     it { is_expected.to have_many(:submission_answers).dependent(:nullify) }
+    it { is_expected.to have_many(:point_activities).dependent(:destroy) }
   end
 
   describe 'nested attributes' do
@@ -107,6 +108,22 @@ RSpec.describe ChallengeSubmission, type: :model do
           user.reload
         end.to change { user.daily_streak }.from(6).to(7)
            .and(not_change { user.maximum_streak })
+      end
+    end
+
+    describe '#create_or_update_daily_challenge_point_activity' do
+      it 'creates point activity for daily challenge if it is full score' do
+        challenge_submission = create(:challenge_submission, :with_submission_answers)
+        expect do
+          challenge_submission.submit!
+        end.to change { challenge_submission.user.point_activities.count }.by(1)
+      end
+
+      it 'does not create point activity for daily challenge if it is not full score' do
+        challenge_submission = create(:challenge_submission, :with_incorrect_submission_answers)
+        expect do
+          challenge_submission.submit!
+        end.not_to(change { challenge_submission.user.point_activities.count })
       end
     end
   end

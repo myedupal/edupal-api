@@ -9,6 +9,7 @@ class SubmissionAnswer < ApplicationRecord
 
   before_commit :evaluate, on: :create, if: -> { challenge_submission.blank? }
   before_validation :set_user_id, on: :create, if: -> { challenge_submission.present? }
+  after_commit :create_answered_question_point_activity, on: :create, if: -> { challenge_submission.blank? }
 
   def evaluate(force: false)
     return if evaluated_at.present? && !force
@@ -38,5 +39,17 @@ class SubmissionAnswer < ApplicationRecord
       return if challenge_submission.challenge.challenge_questions.exists?(question_id: question_id)
 
       errors.add(:question, 'should belong to the challenge')
+    end
+
+    def create_answered_question_point_activity
+      return unless is_correct
+
+      user.point_activities.find_or_create_by(
+        action_type: :answered_question,
+        activity_id: question_id,
+        activity_type: question.class.name
+      ) do |point_activity|
+        point_activity.points = Setting.answered_question_points
+      end
     end
 end

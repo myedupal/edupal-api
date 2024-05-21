@@ -72,4 +72,29 @@ RSpec.describe 'api/v1/user/reports', type: :request do
       end
     end
   end
+
+  path '/api/v1/user/reports/points' do
+    get('Points report') do
+      tags 'User Reports'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      before do
+        create(:point_activity, account: user, points: 100, action_type: PointActivity.action_types[:redeem])
+        create(:point_activity, account: user, points: 50, action_type: PointActivity.action_types[:daily_challenge])
+        create(:point_activity, account: user, points: 10, action_type: PointActivity.action_types[:daily_check_in])
+        create(:point_activity, account: user, points: 5, action_type: PointActivity.action_types[:answered_question])
+      end
+
+      response(200, 'successful') do
+        run_test! do |response|
+          json_response = JSON.parse(response.body)
+          expect(json_response['total_points']).to eq(165)
+          expect(json_response['mcq_points']).to eq(5)
+          expect(json_response['daily_challenge_points']).to eq(50)
+          expect(json_response['daily_check_in_points']).to eq(10)
+        end
+      end
+    end
+  end
 end

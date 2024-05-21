@@ -80,7 +80,9 @@ Rails.application.routes.draw do
         resources :reports, only: [] do
           get :daily_challenge, on: :collection
           get :mcq, on: :collection
+          get :points, on: :collection
         end
+        resources :point_activities, only: [:index]
       end
 
       namespace :web do

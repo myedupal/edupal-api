@@ -8,6 +8,7 @@ class User < Account
   has_one :active_subscription, -> { active }, class_name: 'Subscription'
   has_many :activities, dependent: :destroy
   has_many :saved_user_exams, dependent: :destroy
+  has_many :daily_check_ins, dependent: :destroy
 
   validates :name, presence: true
 

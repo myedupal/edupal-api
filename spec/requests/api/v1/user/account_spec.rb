@@ -11,22 +11,9 @@ RSpec.describe 'api/v1/user/account', type: :request do
         produces 'application/json'
         security [{ bearerAuth: nil }]
 
-        run_test!
-      end
-    end
-
-    path '/api/v1/user/account/zklogin_salt' do
-      get('show zklogin salt') do
-        response(200, 'successful') do
-          tags 'User Account'
-          produces 'application/json'
-          security [{ bearerAuth: nil }]
-
-          before do
-            allow_any_instance_of(User).to receive(:zklogin_salt).and_return('salt')
-          end
-
-          run_test!
+        run_test! do |_response|
+          expect(user.daily_check_ins).to exist(date: Date.current)
+          expect(user.point_activities).to exist(action_type: :daily_check_in)
         end
       end
     end
@@ -93,6 +80,22 @@ RSpec.describe 'api/v1/user/account', type: :request do
 
       response(422, 'successful', save_request_example: :data) do
         let(:data) { { account: { current_password: 'password', password: password, password_confirmation: password } } }
+
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/user/account/zklogin_salt' do
+    get('show zklogin salt') do
+      response(200, 'successful') do
+        tags 'User Account'
+        produces 'application/json'
+        security [{ bearerAuth: nil }]
+
+        before do
+          allow_any_instance_of(User).to receive(:zklogin_salt).and_return('salt')
+        end
 
         run_test!
       end

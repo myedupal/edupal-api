@@ -41,7 +41,7 @@ RSpec.describe Challenge, type: :model do
 
     describe '.with_user_submission_count' do
       let(:user) { create(:user) }
-      let!(:challenge_submission) { create(:challenge_submission, user: user) }
+      let!(:challenge_submission) { create(:challenge_submission, :with_submission_answers, user: user) }
 
       before do
         create_list(:challenge, 3)

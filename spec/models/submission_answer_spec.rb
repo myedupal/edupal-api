@@ -94,5 +94,49 @@ RSpec.describe SubmissionAnswer, type: :model do
         it { expect(submission_answer.is_correct).to be_truthy }
       end
     end
+
+    describe '#create_answered_question_point_activity' do
+      it 'creates point activity for answered question if it is correct' do
+        user = create(:user)
+        question = create(:question, :mcq_with_answer)
+        submission_answer = build(:submission_answer, challenge_submission: nil,
+                                                      question: question,
+                                                      user: user,
+                                                      answer: question.answers.first.text)
+
+        expect do
+          submission_answer.save
+        end.to change { user.point_activities.count }.by(1)
+      end
+
+      it 'does not create point activity for answered question if it is incorrect' do
+        user = create(:user)
+        question = create(:question, :mcq_with_answer)
+        submission_answer = build(:submission_answer, challenge_submission: nil,
+                                                      question: question,
+                                                      user: user,
+                                                      answer: 'X')
+
+        expect do
+          submission_answer.save
+        end.not_to(change { user.point_activities.count })
+      end
+
+      it 'does not create point activity for answered question if previous submission answer is present' do
+        user = create(:user)
+        question = create(:question, :mcq_with_answer)
+        create(:submission_answer, challenge_submission: nil,
+                                   question: question,
+                                   user: user,
+                                   answer: question.answers.first.text)
+        submission_answer = build(:submission_answer, challenge_submission: nil,
+                                                      question: question,
+                                                      user: user,
+                                                      answer: question.answers.first.text)
+        expect do
+          submission_answer.save
+        end.not_to(change { user.point_activities.count })
+      end
+    end
   end
 end

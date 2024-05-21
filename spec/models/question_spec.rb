@@ -12,6 +12,7 @@ RSpec.describe Question, type: :model do
     it { is_expected.to have_many(:challenge_questions).dependent(:destroy) }
     it { is_expected.to have_many(:activity_questions).dependent(:destroy) }
     it { is_expected.to have_many(:user_exam_questions).dependent(:destroy) }
+    it { is_expected.to have_many(:point_activities).dependent(:destroy) }
   end
 
   describe 'nested attributes' do

@@ -4,11 +4,13 @@ class ChallengeSubmission < ApplicationRecord
   belongs_to :user
 
   has_many :submission_answers, dependent: :nullify
+  has_many :point_activities, as: :activity, dependent: :destroy
 
   accepts_nested_attributes_for :submission_answers, allow_destroy: true, reject_if: :reject_submission_answer_attributes?
 
   before_save :evaluate_answers, if: -> { submitted? }
   after_commit :update_user_streaks, if: -> { saved_change_to_status? && submitted? }
+  after_commit :create_or_update_daily_challenge_point_activity, if: -> { saved_change_to_status? && submitted? }
 
   aasm column: :status, whiny_transitions: false, timestamps: true do
     state :pending, initial: true
@@ -61,5 +63,18 @@ class ChallengeSubmission < ApplicationRecord
                                             .order(submitted_at: :asc)
                                             .first
       first_submission.nil? || first_submission.id == id
+    end
+
+    def create_or_update_daily_challenge_point_activity
+      return unless challenge.daily?
+      return unless score == total_score
+
+      point_activity = user.point_activities.find_or_initialize_by(
+        action_type: PointActivity.action_types[:daily_challenge],
+        activity_id: id,
+        activity_type: self.class.name
+      )
+      point_activity.points = score
+      point_activity.save!
     end
 end

@@ -9,6 +9,7 @@ RSpec.describe User, type: :model do
     it { is_expected.to have_many(:submission_answers).dependent(:destroy) }
     it { is_expected.to have_many(:activities).dependent(:destroy) }
     it { is_expected.to have_many(:saved_user_exams).dependent(:destroy) }
+    it { is_expected.to have_many(:daily_check_ins).dependent(:destroy) }
   end
 
   describe 'validations' do
