@@ -14,7 +14,8 @@ RSpec.describe 'api/v1/user/registrations', type: :request do
             properties: {
               email: { type: :string },
               password: { type: :string },
-              name: { type: :string }
+              name: { type: :string },
+              phone_number: { type: :string }
             }
           }
         }

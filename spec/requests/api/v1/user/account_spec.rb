@@ -30,7 +30,8 @@ RSpec.describe 'api/v1/user/account', type: :request do
           account: {
             type: :object,
             properties: {
-              name: { type: :string }
+              name: { type: :string },
+              phone_number: { type: :string }
             }
           }
         }
