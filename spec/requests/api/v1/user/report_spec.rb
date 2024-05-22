@@ -20,23 +20,23 @@ RSpec.describe 'api/v1/user/reports', type: :request do
 
       before do
         biology_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: biology, start_at: 1.hour.ago, end_at: 1.hour.from_now)
-        biology_submission = create(:challenge_submission, challenge: biology_daily_challenge, user: user)
+        biology_submission = create(:submission, challenge: biology_daily_challenge, user: user)
         biology_questions.each do |question|
-          create(:submission_answer, challenge: biology_daily_challenge, challenge_submission: biology_submission, question: question)
+          create(:submission_answer, challenge: biology_daily_challenge, submission: biology_submission, question: question)
         end
         biology_submission.submit!
 
         physics_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: physics, start_at: 1.hour.ago, end_at: 1.hour.from_now)
-        physics_submission = create(:challenge_submission, challenge: physics_daily_challenge, user: user)
+        physics_submission = create(:submission, challenge: physics_daily_challenge, user: user)
         physics_questions.each do |question|
-          create(:submission_answer, challenge: physics_daily_challenge, challenge_submission: physics_submission, question: question)
+          create(:submission_answer, challenge: physics_daily_challenge, submission: physics_submission, question: question)
         end
         physics_submission.submit!
 
         chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: 1.hour.ago, end_at: 1.hour.from_now)
-        chemistry_submission = create(:challenge_submission, challenge: chemistry_daily_challenge, user: user)
+        chemistry_submission = create(:submission, challenge: chemistry_daily_challenge, user: user)
         chemistry_questions.each do |question|
-          create(:submission_answer, challenge: chemistry_daily_challenge, challenge_submission: chemistry_submission, question: question)
+          create(:submission_answer, challenge: chemistry_daily_challenge, submission: chemistry_submission, question: question)
         end
         chemistry_submission.submit!
       end
@@ -54,17 +54,33 @@ RSpec.describe 'api/v1/user/reports', type: :request do
       produces 'application/json'
 
       before do
+        current_time = Time.current
+        travel_to current_time - Faker::Number.within(range: 1..6).hours
+        biology_submission = create(:submission, challenge: nil, user: user)
         biology_questions.each do |question|
-          create(:submission_answer, challenge_submission: nil, question: question, user: user)
+          create(:submission_answer, submission: biology_submission, question: question)
         end
 
+        travel_to current_time + Faker::Number.within(range: 1..30).minutes
+        biology_submission.submit!
+
+        travel_to current_time - Faker::Number.within(range: 1..6).hours
+        physics_submission = create(:submission, challenge: nil, user: user)
         physics_questions.each do |question|
-          create(:submission_answer, challenge_submission: nil, question: question, user: user)
+          create(:submission_answer, submission: physics_submission, question: question)
         end
 
+        travel_to current_time + Faker::Number.within(range: 1..30).minutes
+        physics_submission.submit!
+
+        travel_to current_time - Faker::Number.within(range: 1..6).hours
+        chemistry_submission = create(:submission, challenge: nil, user: user)
         chemistry_questions.each do |question|
-          create(:submission_answer, challenge_submission: nil, question: question, user: user)
+          create(:submission_answer, submission: chemistry_submission, question: question)
         end
+
+        travel_to current_time + Faker::Number.within(range: 1..30).minutes
+        chemistry_submission.submit!
       end
 
       response(200, 'successful') do

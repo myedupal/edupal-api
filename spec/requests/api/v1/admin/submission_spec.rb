@@ -1,14 +1,14 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/admin/challenge_submissions', type: :request do
+RSpec.describe 'api/v1/admin/submissions', type: :request do
   # change the create(:user) to respective user model name
   let(:user) { create(:admin) }
   let(:Authorization) { bearer_token_for(user) }
-  let(:id) { create(:challenge_submission).id }
+  let(:id) { create(:submission).id }
 
-  path '/api/v1/admin/challenge_submissions' do
-    get('list challenge submissions') do
-      tags 'Admin Challenge Submissions'
+  path '/api/v1/admin/submissions' do
+    get('list submissions') do
+      tags 'Admin Submissions'
       security [{ bearerAuth: nil }]
       produces 'application/json'
 
@@ -21,7 +21,7 @@ RSpec.describe 'api/v1/admin/challenge_submissions', type: :request do
 
       response(200, 'successful') do
         before do
-          create_list(:challenge_submission, 3)
+          create_list(:submission, 3)
         end
 
         run_test!
@@ -29,11 +29,11 @@ RSpec.describe 'api/v1/admin/challenge_submissions', type: :request do
     end
   end
 
-  path '/api/v1/admin/challenge_submissions/{id}' do
+  path '/api/v1/admin/submissions/{id}' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
-    get('show challenge submissions') do
-      tags 'Admin Challenge Submissions'
+    get('show submissions') do
+      tags 'Admin Submissions'
       produces 'application/json'
       security [{ bearerAuth: nil }]
 

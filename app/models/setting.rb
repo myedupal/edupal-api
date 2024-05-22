@@ -2,7 +2,7 @@
 class Setting < RailsSettings::Base
   cache_prefix { "v1" }
 
-  field :daily_challenge_points, type: :integer, default: 10
-  field :answered_question_points, type: :integer, default: 5
-  field :daily_check_in_points, type: :integer, default: 5
+  field :daily_challenge_points, type: :integer, default: 1
+  field :answered_question_points, type: :integer, default: 1
+  field :daily_check_in_points, type: :integer, default: 1
 end

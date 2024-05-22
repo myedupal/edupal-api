@@ -9,7 +9,7 @@ class PointActivity < ApplicationRecord
     answered_question: 'AnsweredQuestion'
   }, _default: :answered_question
 
-  validates :points, numericality: { other_than: 0, only_integer: true }
+  validates :points, numericality: { only_integer: true }
 
   after_commit :update_account_points, on: :create
 

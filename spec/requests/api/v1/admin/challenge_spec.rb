@@ -170,7 +170,7 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
         let(:id) { create(:challenge, :with_questions, start_at: 1.day.ago).id }
 
         before do
-          create(:challenge_submission, challenge_id: id)
+          create(:submission, challenge_id: id)
         end
 
         run_test!

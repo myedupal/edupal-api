@@ -4,11 +4,11 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
 
   def index
     @pagy, @submission_answers = pagy(@submission_answers)
-    render json: @submission_answers, include: ['*', 'challenge_submission.challenge.subject.curriculum', 'question.subject.curriculum']
+    render json: @submission_answers, include: ['*', 'submission.challenge.subject.curriculum', 'question.subject.curriculum']
   end
 
   def show
-    render json: @submission_answer, include: ['*', 'challenge_submission.challenge.subject.curriculum', 'question.subject.curriculum', 'question.*']
+    render json: @submission_answer, include: ['*', 'submission.challenge.subject.curriculum', 'question.subject.curriculum', 'question.*']
   end
 
   def create
@@ -17,7 +17,7 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
     pundit_authorize(@submission_answer)
 
     if @submission_answer.save
-      render json: @submission_answer, include: ['*', 'challenge_submission.challenge.subject.curriculum', 'question.subject.curriculum', 'question.*']
+      render json: @submission_answer, include: ['*', 'submission.challenge.subject.curriculum', 'question.subject.curriculum', 'question.*']
     else
       render json: ErrorResponse.new(@submission_answer), status: :unprocessable_entity
     end
@@ -25,7 +25,7 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
 
   def update
     if @submission_answer.update(submission_answer_params)
-      render json: @submission_answer, include: ['*', 'challenge_submission.challenge.subject.curriculum', 'question.subject.curriculum', 'question.*']
+      render json: @submission_answer, include: ['*', 'submission.challenge.subject.curriculum', 'question.subject.curriculum', 'question.*']
     else
       render json: ErrorResponse.new(@submission_answer), status: :unprocessable_entity
     end
@@ -48,8 +48,8 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
 
     def set_submission_answers
       pundit_authorize(SubmissionAnswer)
-      @submission_answers = pundit_scope(SubmissionAnswer.all).preload({ challenge_submission: { challenge: { subject: :curriculum } } }, { question: { subject: :curriculum } })
-      @submission_answers = @submission_answers.where(challenge_submission_id: params[:challenge_submission_id]) if params[:challenge_submission_id].present?
+      @submission_answers = pundit_scope(SubmissionAnswer.all).preload({ submission: { challenge: { subject: :curriculum } } }, { question: { subject: :curriculum } })
+      @submission_answers = @submission_answers.where(submission_id: params[:submission_id]) if params[:submission_id].present?
       @submission_answers = @submission_answers.where(question_id: params[:question_id]) if params[:question_id].present?
       @submission_answers = attribute_sortable(@submission_answers)
     end
@@ -63,6 +63,6 @@ class Api::V1::User::SubmissionAnswersController < Api::V1::User::ApplicationCon
     end
 
     def submission_answer_params
-      params.require(:submission_answer).permit(:challenge_submission_id, :question_id, :answer, :recorded_time)
+      params.require(:submission_answer).permit(:submission_id, :question_id, :answer, :recorded_time)
     end
 end

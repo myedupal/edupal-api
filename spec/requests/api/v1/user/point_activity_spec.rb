@@ -24,9 +24,11 @@ RSpec.describe 'api/v1/user/point_activities', type: :request do
         before do
           daily_check_in = create(:daily_check_in, user: user)
           create(:point_activity, action_type: PointActivity.action_types[:daily_check_in], account: user, points: Setting.daily_check_in_points, activity: daily_check_in)
-          create(:submission_answer, :correct_answer, user: user, challenge_submission: nil)
-          submission = create(:challenge_submission, :with_submission_answers, user: user)
+          challenge = create(:challenge, :daily, start_at: Time.current)
+          submission = create(:submission, :with_submission_answers, user: user, challenge: challenge)
           submission.submit!
+          mcq_submission = create(:submission, :with_submission_answers, user: user, challenge: nil)
+          mcq_submission.submit!
         end
 
         run_test!

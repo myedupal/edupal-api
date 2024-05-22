@@ -1,4 +1,4 @@
-class Api::V1::User::ChallengeSubmissionPolicy < ApplicationPolicy
+class Api::V1::User::SubmissionPolicy < ApplicationPolicy
   def update?
     record.user_id == user.id && record.pending?
   end

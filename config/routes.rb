@@ -35,7 +35,7 @@ Rails.application.routes.draw do
         resources :answers
         resources :question_images
         resources :challenges
-        resources :challenge_submissions, only: [:index, :show]
+        resources :submissions, only: [:index, :show]
         resources :submission_answers, only: [:index]
       end
 
@@ -67,7 +67,7 @@ Rails.application.routes.draw do
 
         resources :questions, only: [:index, :show]
         resources :daily_challenges, only: [:index, :show]
-        resources :challenge_submissions do
+        resources :submissions do
           put :submit, on: :member
           post :direct_submit, on: :collection
         end

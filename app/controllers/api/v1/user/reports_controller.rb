@@ -1,8 +1,8 @@
 class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
   def daily_challenge
     submission_answers = current_user.submission_answers
-                                     .joins({ challenge_submission: :challenge }, { question: :subject })
-                                     .where(challenge_submission: { challenges: { challenge_type: Challenge.challenge_types[:daily] } })
+                                     .joins({ submission: :challenge }, { question: :subject })
+                                     .where(submission: { challenges: { challenge_type: Challenge.challenge_types[:daily] } })
                                      .where.not(evaluated_at: nil)
     total_correct_questions = submission_answers.where(is_correct: true).count
     total_questions_attempted = submission_answers.count
@@ -33,12 +33,11 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
 
   def mcq
     submission_answers = current_user.submission_answers
-                                     .joins({ question: :subject })
-                                     .where(challenge_submission_id: nil)
-                                     .where.not(evaluated_at: nil)
+                                     .joins({ question: :subject }, :submission)
+                                     .where(submission: { challenge_id: nil, status: :submitted })
                                      .where(question: { question_type: Question.question_types[:mcq] })
 
-    average_time = submission_answers.average(:recorded_time)
+    average_time = submission_answers.distinct(:submission_id).average('submission.completion_seconds').to_f
     total_correct_questions = submission_answers.where(is_correct: true).count
     total_questions_attempted = submission_answers.count
     stats = submission_answers.group("subjects.name")

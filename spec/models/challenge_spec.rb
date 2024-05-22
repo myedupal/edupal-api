@@ -5,7 +5,7 @@ RSpec.describe Challenge, type: :model do
     it { is_expected.to belong_to(:subject).optional }
     it { is_expected.to have_many(:challenge_questions).dependent(:destroy) }
     it { is_expected.to have_many(:questions).through(:challenge_questions) }
-    it { is_expected.to have_many(:challenge_submissions).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:submissions).dependent(:restrict_with_error) }
   end
 
   describe 'nested attributes' do
@@ -41,17 +41,17 @@ RSpec.describe Challenge, type: :model do
 
     describe '.with_user_submission_count' do
       let(:user) { create(:user) }
-      let!(:challenge_submission) { create(:challenge_submission, :with_submission_answers, user: user) }
+      let!(:submission) { create(:submission, :with_submission_answers, user: user) }
 
       before do
         create_list(:challenge, 3)
-        challenge_submission.submit!
+        submission.submit!
       end
 
       it 'returns the user submission count' do
         challenges = described_class.with_user_submission_count(user.id)
         challenges.each do |challenge|
-          if challenge.id == challenge_submission.challenge_id
+          if challenge.id == submission.challenge_id
             expect(challenge.user_submission_count).to eq(1)
           else
             expect(challenge.user_submission_count).to eq(0)
@@ -64,19 +64,19 @@ RSpec.describe Challenge, type: :model do
       let(:user) { create(:user) }
       let(:challenge) { create(:challenge, :contest, start_at: 1.hour.ago, end_at: 1.hour.from_now) }
       let(:question) { create(:question, :mcq_with_answer) }
-      let!(:challenge_submission) { create(:challenge_submission, user: user, challenge: challenge) }
+      let!(:submission) { create(:submission, user: user, challenge: challenge) }
 
       before do
         create_list(:challenge, 3)
         create(:challenge_question, challenge: challenge, question: question)
-        challenge_submission.submission_answers.create!(question: question, answer: question.answers.first.text)
-        challenge_submission.submit!
+        submission.submission_answers.create!(question: question, answer: question.answers.first.text)
+        submission.submit!
       end
 
       it 'returns the user success submission count' do
         challenges = described_class.with_user_success_submission_count(user.id)
         challenges.each do |challenge|
-          if challenge.id == challenge_submission.challenge_id
+          if challenge.id == submission.challenge_id
             expect(challenge.user_success_submission_count).to eq(1)
           else
             expect(challenge.user_success_submission_count).to eq(0)

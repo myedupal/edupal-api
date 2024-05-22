@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_21_113634) do
+ActiveRecord::Schema[7.0].define(version: 2024_05_22_041338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -113,21 +113,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_21_113634) do
     t.index ["challenge_id", "question_id"], name: "index_challenge_questions_on_challenge_id_and_question_id", unique: true
     t.index ["challenge_id"], name: "index_challenge_questions_on_challenge_id"
     t.index ["question_id"], name: "index_challenge_questions_on_question_id"
-  end
-
-  create_table "challenge_submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "challenge_id", null: false
-    t.uuid "user_id", null: false
-    t.string "status"
-    t.integer "score"
-    t.integer "total_score"
-    t.integer "completion_seconds"
-    t.integer "penalty_seconds"
-    t.datetime "submitted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["challenge_id"], name: "index_challenge_submissions_on_challenge_id"
-    t.index ["user_id"], name: "index_challenge_submissions_on_user_id"
   end
 
   create_table "challenges", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -303,7 +288,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_21_113634) do
   end
 
   create_table "submission_answers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "challenge_submission_id"
+    t.uuid "submission_id", null: false
     t.uuid "question_id", null: false
     t.uuid "user_id", null: false
     t.string "answer", null: false
@@ -313,9 +298,26 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_21_113634) do
     t.datetime "updated_at", null: false
     t.datetime "evaluated_at"
     t.bigint "recorded_time", default: 0, null: false
-    t.index ["challenge_submission_id"], name: "index_submission_answers_on_challenge_submission_id"
+    t.index ["question_id", "submission_id"], name: "index_submission_answers_on_question_id_and_submission_id", unique: true
     t.index ["question_id"], name: "index_submission_answers_on_question_id"
+    t.index ["submission_id"], name: "index_submission_answers_on_submission_id"
     t.index ["user_id"], name: "index_submission_answers_on_user_id"
+  end
+
+  create_table "submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "challenge_id"
+    t.uuid "user_id", null: false
+    t.string "status"
+    t.integer "score"
+    t.integer "total_score"
+    t.integer "completion_seconds"
+    t.integer "penalty_seconds"
+    t.datetime "submitted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "title"
+    t.index ["challenge_id"], name: "index_submissions_on_challenge_id"
+    t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -387,8 +389,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_21_113634) do
   add_foreign_key "answers", "questions"
   add_foreign_key "challenge_questions", "challenges"
   add_foreign_key "challenge_questions", "questions"
-  add_foreign_key "challenge_submissions", "accounts", column: "user_id"
-  add_foreign_key "challenge_submissions", "challenges"
   add_foreign_key "challenges", "subjects"
   add_foreign_key "daily_check_ins", "accounts", column: "user_id"
   add_foreign_key "exams", "papers"
@@ -406,8 +406,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_21_113634) do
   add_foreign_key "stripe_profiles", "accounts", column: "user_id"
   add_foreign_key "subjects", "curriculums"
   add_foreign_key "submission_answers", "accounts", column: "user_id"
-  add_foreign_key "submission_answers", "challenge_submissions"
   add_foreign_key "submission_answers", "questions"
+  add_foreign_key "submission_answers", "submissions"
+  add_foreign_key "submissions", "accounts", column: "user_id"
+  add_foreign_key "submissions", "challenges"
   add_foreign_key "subscriptions", "accounts", column: "created_by_id"
   add_foreign_key "subscriptions", "accounts", column: "user_id"
   add_foreign_key "subscriptions", "plans"

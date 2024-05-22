@@ -2,22 +2,25 @@ require 'rails_helper'
 
 RSpec.describe SubmissionAnswer, type: :model do
   describe 'associations' do
-    it { is_expected.to belong_to(:challenge_submission).optional }
+    it { is_expected.to belong_to(:submission) }
     it { is_expected.to belong_to(:question) }
     it { is_expected.to belong_to(:user) }
   end
 
   describe 'validations' do
+    subject { create(:submission_answer) }
+
     it { is_expected.to validate_presence_of(:answer) }
     it { is_expected.to validate_presence_of(:recorded_time) }
+    it { is_expected.to validate_uniqueness_of(:question_id).scoped_to(:submission_id).case_insensitive }
 
-    context 'when challenge_submission is present' do
+    context 'when submission is present' do
       let!(:challenge) { create(:challenge) }
       let!(:question) { create(:question, :mcq_with_answer) }
       let!(:challenge_question) { create(:challenge_question, challenge: challenge, question: question) }
-      let!(:challenge_submission) { create(:challenge_submission, challenge: challenge) }
-      let!(:submission_answer) { build(:submission_answer, challenge_submission: challenge_submission, question: question) }
-      let!(:other_submission_answer) { build(:submission_answer, challenge_submission: challenge_submission) }
+      let!(:submission) { create(:submission, challenge: challenge) }
+      let!(:submission_answer) { build(:submission_answer, submission: submission, question: question) }
+      let!(:other_submission_answer) { build(:submission_answer, submission: submission, skip_challenge_question: true) }
 
       it { expect(submission_answer).to be_valid }
       it { expect(other_submission_answer).not_to be_valid }
@@ -30,8 +33,8 @@ RSpec.describe SubmissionAnswer, type: :model do
       let!(:question) { create(:question, :mcq_with_answer) }
       let!(:expected_score) { 101 }
       let!(:challenge_question) { create(:challenge_question, challenge: challenge, question: question, score: expected_score) }
-      let!(:challenge_submission) { create(:challenge_submission, challenge: challenge) }
-      let!(:submission_answer) { create(:submission_answer, challenge_submission: challenge_submission, question: question, answer: 'X') }
+      let!(:submission) { create(:submission, challenge: challenge) }
+      let!(:submission_answer) { create(:submission_answer, submission: submission, question: question, answer: 'X') }
       let(:correct_answer) { question.answers.first.text }
       let(:incorrect_answer) { 'E' }
 
@@ -55,7 +58,7 @@ RSpec.describe SubmissionAnswer, type: :model do
 
       context 'when question is not mcq' do
         let!(:question) { create(:question, :open_ended) }
-        let!(:submission_answer) { create(:submission_answer, challenge_submission: challenge_submission, question: question, answer: 'X') }
+        let!(:submission_answer) { create(:submission_answer, submission: submission, question: question, answer: 'X') }
 
         it 'does not update is_correct and score' do
           expect do
@@ -67,7 +70,7 @@ RSpec.describe SubmissionAnswer, type: :model do
       end
 
       context 'when evaluated_at is present' do
-        let!(:submission_answer) { create(:submission_answer, challenge_submission: challenge_submission, question: question, answer: correct_answer, evaluated_at: Time.current) }
+        let!(:submission_answer) { create(:submission_answer, submission: submission, question: question, answer: correct_answer, evaluated_at: Time.current) }
 
         it 'does not update evaluated_at' do
           expect do
@@ -85,58 +88,25 @@ RSpec.describe SubmissionAnswer, type: :model do
   end
 
   describe 'callbacks' do
-    describe 'before_commit #evaluate' do
-      context 'when challenge_submission is blank' do
-        let!(:question) { create(:question, :mcq_with_answer) }
-        let!(:correct_answer) { question.answers.first.text }
-        let!(:submission_answer) { create(:submission_answer, challenge_submission: nil, question: question, answer: correct_answer) }
+    describe '#set_user_id' do
+      it 'sets user_id to submission user_id' do
+        submission = create(:submission)
+        submission_answer = build(:submission_answer, submission: submission, user: nil)
 
-        it { expect(submission_answer.is_correct).to be_truthy }
+        expect do
+          submission_answer.valid?
+        end.to change(submission_answer, :user_id).from(nil).to(submission.user_id)
       end
     end
 
-    describe '#create_answered_question_point_activity' do
-      it 'creates point activity for answered question if it is correct' do
-        user = create(:user)
-        question = create(:question, :mcq_with_answer)
-        submission_answer = build(:submission_answer, challenge_submission: nil,
-                                                      question: question,
-                                                      user: user,
-                                                      answer: question.answers.first.text)
+    # describe 'before_commit #evaluate' do
+    #   context 'when submission is blank' do
+    #     let!(:question) { create(:question, :mcq_with_answer) }
+    #     let!(:correct_answer) { question.answers.first.text }
+    #     let!(:submission_answer) { create(:submission_answer, submission: nil, question: question, answer: correct_answer) }
 
-        expect do
-          submission_answer.save
-        end.to change { user.point_activities.count }.by(1)
-      end
-
-      it 'does not create point activity for answered question if it is incorrect' do
-        user = create(:user)
-        question = create(:question, :mcq_with_answer)
-        submission_answer = build(:submission_answer, challenge_submission: nil,
-                                                      question: question,
-                                                      user: user,
-                                                      answer: 'X')
-
-        expect do
-          submission_answer.save
-        end.not_to(change { user.point_activities.count })
-      end
-
-      it 'does not create point activity for answered question if previous submission answer is present' do
-        user = create(:user)
-        question = create(:question, :mcq_with_answer)
-        create(:submission_answer, challenge_submission: nil,
-                                   question: question,
-                                   user: user,
-                                   answer: question.answers.first.text)
-        submission_answer = build(:submission_answer, challenge_submission: nil,
-                                                      question: question,
-                                                      user: user,
-                                                      answer: question.answers.first.text)
-        expect do
-          submission_answer.save
-        end.not_to(change { user.point_activities.count })
-      end
-    end
+    #     it { expect(submission_answer.is_correct).to be_truthy }
+    #   end
+    # end
   end
 end

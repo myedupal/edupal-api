@@ -1,17 +1,17 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
+RSpec.describe 'api/v1/user/submissions', type: :request do
   # change the create(:user) to respective user model name
   let(:user) { create(:user) }
   let(:Authorization) { bearer_token_for(user) }
   let(:challenge) { create(:challenge, :published, :daily, start_at: Time.current) }
   let(:question) { create(:question, :mcq_with_answer) }
   let!(:challenge_question) { create(:challenge_question, challenge: challenge, question: question, score: 10) }
-  let(:id) { create(:challenge_submission, user: user, challenge: challenge).id }
+  let(:id) { create(:submission, user: user, challenge: challenge).id }
 
-  path '/api/v1/user/challenge_submissions' do
-    get('list challenge submissions') do
-      tags 'User Challenge Submissions'
+  path '/api/v1/user/submissions' do
+    get('list submissions') do
+      tags 'User Submissions'
       security [{ bearerAuth: nil }]
       produces 'application/json'
 
@@ -30,21 +30,21 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
             challenge = create(:challenge, :published, :daily, start_at: Time.current)
             question = create(:question, :mcq_with_answer)
             create(:challenge_question, challenge: challenge, question: question, score: 10)
-            submission = create(:challenge_submission, user: user, challenge: challenge)
-            create(:submission_answer, challenge_submission: submission, question: question)
+            submission = create(:submission, user: user, challenge: challenge)
+            create(:submission_answer, submission: submission, question: question)
             submission.submit!
           end
         end
 
         run_test! do |response|
           parsed_response = JSON.parse(response.body)
-          expect(parsed_response['challenge_submissions'].size).to eq(3)
+          expect(parsed_response['submissions'].size).to eq(3)
         end
       end
     end
 
-    post('create challenge submissions') do
-      tags 'User Challenge Submissions'
+    post('create submissions') do
+      tags 'User Submissions'
       produces 'application/json'
       consumes 'application/json'
       security [{ bearerAuth: nil }]
@@ -52,7 +52,7 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       parameter name: :data, in: :body, schema: {
         type: :object,
         properties: {
-          challenge_submission: {
+          submission: {
             type: :object,
             properties: {
               challenge_id: { type: :string },
@@ -74,7 +74,7 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       response(200, 'successful', save_request_example: :data) do
         let(:data) do
           {
-            challenge_submission: {
+            submission: {
               challenge_id: challenge.id,
               submission_answers_attributes: [{ question_id: question.id, answer: question.answers.first.text }]
             }
@@ -86,11 +86,11 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
     end
   end
 
-  path '/api/v1/user/challenge_submissions/{id}' do
+  path '/api/v1/user/submissions/{id}' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
-    get('show challenge submissions') do
-      tags 'User Challenge Submissions'
+    get('show submissions') do
+      tags 'User Submissions'
       produces 'application/json'
       security [{ bearerAuth: nil }]
 
@@ -99,8 +99,8 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       end
     end
 
-    put('update challenge submissions') do
-      tags 'User Challenge Submissions'
+    put('update submissions') do
+      tags 'User Submissions'
       produces 'application/json'
       consumes 'application/json'
       security [{ bearerAuth: nil }]
@@ -108,7 +108,7 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       parameter name: :data, in: :body, schema: {
         type: :object,
         properties: {
-          challenge_submission: {
+          submission: {
             type: :object,
             properties: {
               challenge_id: { type: :string },
@@ -129,21 +129,21 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
         }
       }
 
-      let(:data) { { challenge_submission: { submission_answers_attributes: [{ question_id: question.id, answer: question.answers.first.text }] } } }
+      let(:data) { { submission: { submission_answers_attributes: [{ question_id: question.id, answer: question.answers.first.text }] } } }
 
       response(200, 'successful', save_request_example: :data) do
         run_test!
       end
 
       response(403, 'forbidden') do
-        let(:id) { create(:challenge_submission, user: user, challenge: challenge, status: 'failed').id }
+        let(:id) { create(:submission, user: user, challenge: challenge, status: 'failed').id }
 
         run_test!
       end
     end
 
-    delete('delete challenge submissions') do
-      tags 'User Challenge Submissions'
+    delete('delete submissions') do
+      tags 'User Submissions'
       security [{ bearerAuth: nil }]
 
       response(204, 'successful') do
@@ -151,24 +151,24 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       end
 
       response(403, 'forbidden') do
-        let(:id) { create(:challenge_submission, user: user, challenge: challenge, status: 'failed').id }
+        let(:id) { create(:submission, user: user, challenge: challenge, status: 'failed').id }
 
         run_test!
       end
     end
   end
 
-  path '/api/v1/user/challenge_submissions/{id}/submit' do
+  path '/api/v1/user/submissions/{id}/submit' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
-    put('submit challenge submissions') do
-      tags 'User Challenge Submissions'
+    put('submit submissions') do
+      tags 'User Submissions'
       produces 'application/json'
       consumes 'application/json'
       security [{ bearerAuth: nil }]
 
       before do
-        create(:submission_answer, challenge_submission_id: id, question: question)
+        create(:submission_answer, submission_id: id, question: question)
       end
 
       response(200, 'successful', save_request_example: :data) do
@@ -177,11 +177,11 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
     end
   end
 
-  path '/api/v1/user/challenge_submissions/direct_submit' do
+  path '/api/v1/user/submissions/direct_submit' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
-    post('direct submit challenge submissions') do
-      tags 'User Challenge Submissions'
+    post('direct submit submissions') do
+      tags 'User Submissions'
       produces 'application/json'
       consumes 'application/json'
       security [{ bearerAuth: nil }]
@@ -191,7 +191,7 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       parameter name: :data, in: :body, schema: {
         type: :object,
         properties: {
-          challenge_submission: {
+          submission: {
             type: :object,
             properties: {
               challenge_id: { type: :string },
@@ -213,7 +213,7 @@ RSpec.describe 'api/v1/user/challenge_submissions', type: :request do
       response(200, 'successful', save_request_example: :data) do
         let(:data) do
           {
-            challenge_submission: {
+            submission: {
               challenge_id: challenge.id,
               submission_answers_attributes: [{ question_id: question.id, answer: question.answers.first.text }]
             }

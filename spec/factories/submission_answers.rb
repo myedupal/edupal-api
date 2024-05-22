@@ -4,16 +4,26 @@ FactoryBot.define do
       user { create(:user) }
       challenge { create(:challenge) }
       question { create(:question, :mcq_with_answer) }
-      challenge_submission { create(:challenge_submission, user: user, challenge: challenge) }
+      submission { create(:submission, user: user, challenge: challenge) }
+      skip_challenge_question { false }
     end
-    challenge_submission_id { challenge_submission&.id }
-    question_id { question.id }
-    user_id { user.id }
+    submission_id { submission&.id }
+    question_id { question&.id }
+    user_id { user&.id }
     answer { %w[A B C D].sample }
     recorded_time { rand(5..45).minutes.seconds.to_i }
 
-    after(:build) do |_submission_answer, evaluator|
-      create(:challenge_question, question: evaluator.question, challenge: evaluator.challenge) if evaluator.challenge
+    after(:build) do |submission_answer, evaluator|
+      if submission_answer.submission&.challenge && !evaluator.skip_challenge_question
+        ChallengeQuestion.find_or_create_by!(
+          challenge_id: submission_answer.submission.challenge_id,
+          question_id: submission_answer.question_id
+        ) do |challenge_question|
+          attributes = attributes_for(:challenge_question)
+          challenge_question.score = attributes[:score]
+          challenge_question.display_order = attributes[:display_order]
+        end
+      end
     end
 
     trait :correct_answer do

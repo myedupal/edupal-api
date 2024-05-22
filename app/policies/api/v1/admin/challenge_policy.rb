@@ -4,7 +4,7 @@ class Api::V1::Admin::ChallengePolicy < ApplicationPolicy
   end
 
   def destroy?
-    @record.start_at > Time.current || @record.challenge_submissions.empty?
+    @record.start_at > Time.current || @record.submissions.empty?
   end
 
   class Scope < Scope

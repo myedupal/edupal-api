@@ -8,7 +8,7 @@ RSpec.describe ResetUsersDailyStreakJob, type: :job do
 
     before do
       travel_to Time.zone.parse('2024-05-10 17:00:00') do
-        create(:challenge_submission, :with_submission_answers, :submitted, user: user)
+        create(:submission, :with_submission_answers, :submitted, user: user)
       end
     end
 

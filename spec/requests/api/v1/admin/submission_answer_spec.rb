@@ -16,7 +16,7 @@ RSpec.describe 'api/v1/admin/submission_answers', type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
-      parameter name: :challenge_submission_id, in: :query, type: :string, required: false, description: 'Filter by challenge submission id'
+      parameter name: :submission_id, in: :query, type: :string, required: false, description: 'Filter by submission id'
       parameter name: :question_id, in: :query, type: :string, required: false, description: 'Filter by question id'
       parameter name: :user_id, in: :query, type: :string, required: false, description: 'Filter by user id'
 
