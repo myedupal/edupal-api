@@ -167,7 +167,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_22_073609) do
     t.uuid "subject_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_papers_on_name", unique: true
+    t.index ["subject_id", "name"], name: "index_papers_on_subject_id_and_name", unique: true
     t.index ["subject_id"], name: "index_papers_on_subject_id"
   end
 
