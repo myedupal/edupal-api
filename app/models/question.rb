@@ -39,9 +39,15 @@ class Question < ApplicationRecord
 
   before_validation :set_subject_id, if: -> { exam.present? }
 
+  after_commit :flush_cache
+
   private
 
     def set_subject_id
       self.subject_id = exam.paper.subject_id
+    end
+
+    def flush_cache
+      Rails.cache.delete("#{exam.paper.subject}:exams_filtering")
     end
 end

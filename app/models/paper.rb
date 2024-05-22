@@ -9,4 +9,6 @@ class Paper < ApplicationRecord
   has_many :activity_papers, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { scope: :subject_id, case_sensitive: false }
+
+  scope :has_mcq_questions, -> { joins(exams: :questions).where(questions: { question_type: 'mcq' }).distinct }
 end

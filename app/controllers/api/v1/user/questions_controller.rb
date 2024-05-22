@@ -23,6 +23,7 @@ class Api::V1::User::QuestionsController < Api::V1::User::ApplicationController
       @questions = pundit_scope(Question.includes(:subject, :exam, :answers, :question_images, :question_topics, :topics))
       @questions = @questions.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @questions = @questions.joins(:exam).where(exam: { paper_id: params[:paper_id] }) if params[:paper_id].present?
+      @questions = @questions.joins(exam: :paper).where(exam: { papers: { name: params[:paper_name] } }) if params[:paper_name].present?
       @questions = @questions.joins(:topics).where(topics: { id: params[:topic_id] }) if params[:topic_id].present?
       @questions = @questions.where(exam_id: params[:exam_id]) if params[:exam_id].present?
       @questions = @questions.where(number: params[:number]) if params[:number].present?

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_22_041338) do
+ActiveRecord::Schema[7.0].define(version: 2024_05_22_073609) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -159,6 +159,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_22_041338) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["paper_id"], name: "index_exams_on_paper_id"
+    t.index ["zone", "season", "year", "level"], name: "index_exams_on_zone_and_season_and_year_and_level", unique: true
   end
 
   create_table "papers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -166,6 +167,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_22_041338) do
     t.uuid "subject_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_papers_on_name", unique: true
     t.index ["subject_id"], name: "index_papers_on_subject_id"
   end
 

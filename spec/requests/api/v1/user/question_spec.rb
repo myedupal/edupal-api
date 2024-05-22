@@ -20,6 +20,7 @@ RSpec.describe 'api/v1/user/questions', type: :request do
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :paper_id, in: :query, type: :string, required: false, description: 'Filter by paper id'
+      parameter name: :paper_name, in: :query, type: :string, required: false, description: 'Filter by paper name'
       parameter name: :topic_id, in: :query, type: :string, required: false, description: 'Filter by topic id'
       parameter name: :exam_id, in: :query, type: :string, required: false, description: 'Filter by exam id'
       parameter name: :number, in: :query, type: :string, required: false, description: 'Filter by number'

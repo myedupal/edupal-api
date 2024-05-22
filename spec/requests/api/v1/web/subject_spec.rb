@@ -16,6 +16,7 @@ RSpec.describe 'api/v1/web/subjects', type: :request do
       parameter name: :code, in: :query, type: :string, required: false, description: 'Filter by code'
       parameter name: :name, in: :query, type: :string, required: false, description: 'Filter by name'
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search by name or code'
+      parameter name: :has_mcq_questions, in: :query, type: :boolean, required: false, description: 'Filter by has mcq questions'
 
       response(200, 'successful') do
         before do

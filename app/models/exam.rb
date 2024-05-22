@@ -10,4 +10,14 @@ class Exam < ApplicationRecord
 
   mount_base64_uploader :file, DocumentUploader
   mount_base64_uploader :marking_scheme, DocumentUploader
+
+  scope :has_mcq_questions, -> { joins(:questions).where(questions: { question_type: 'mcq' }) }
+
+  after_commit :flush_cache
+
+  private
+
+    def flush_cache
+      Rails.cache.delete("#{paper.subject}:exams_filtering")
+    end
 end

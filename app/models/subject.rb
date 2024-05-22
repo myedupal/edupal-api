@@ -16,4 +16,5 @@ class Subject < ApplicationRecord
 
   scope :query, ->(keyword) { where('name ILIKE :keyword OR code ILIKE :keyword', keyword: "%#{keyword}%") }
   scope :published, -> { where(is_published: true) }
+  scope :has_mcq_questions, -> { joins(:questions).where(questions: { question_type: 'mcq' }).distinct }
 end

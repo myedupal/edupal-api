@@ -22,6 +22,7 @@ class Api::V1::Web::SubjectsController < Api::V1::Web::ApplicationController
       @subjects = @subjects.where(curriculum_id: params[:curriculum_id]) if params[:curriculum_id].present?
       @subjects = @subjects.where(code: params[:code]) if params[:code].present?
       @subjects = @subjects.where(name: params[:name]) if params[:name].present?
+      @subjects = @subjects.has_mcq_questions if params[:has_mcq_questions].present? && ActiveModel::Type::Boolean.new.cast(params[:has_mcq_questions])
       @subjects = keyword_queryable(@subjects)
       @subjects = attribute_sortable(@subjects)
     end
