@@ -88,6 +88,6 @@ class Api::V1::User::SubmissionsController < Api::V1::User::ApplicationControlle
     end
 
     def submission_params
-      params.require(:submission).permit(:challenge_id, submission_answers_attributes: [:id, :_destroy, :question_id, :answer])
+      params.require(:submission).permit(:challenge_id, :title, submission_answers_attributes: [:id, :_destroy, :question_id, :answer])
     end
 end

@@ -56,6 +56,7 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
             type: :object,
             properties: {
               challenge_id: { type: :string },
+              title: { type: :string },
               submission_answers_attributes: {
                 type: :array,
                 items: {
@@ -112,6 +113,7 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
             type: :object,
             properties: {
               challenge_id: { type: :string },
+              title: { type: :string },
               submission_answers_attributes: {
                 type: :array,
                 items: {
@@ -195,6 +197,7 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
             type: :object,
             properties: {
               challenge_id: { type: :string },
+              title: { type: :string },
               submission_answers_attributes: {
                 type: :array,
                 items: {
