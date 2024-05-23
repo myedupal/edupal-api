@@ -41,6 +41,17 @@ class Challenge < ApplicationRecord
     SQL
     joins(sql).select('challenges.*, COALESCE(user_success_submission_count.success_submission_count, 0) AS user_success_submission_count')
   }
+  scope :with_challenge_questions_count, lambda {
+    sql = <<-SQL.squish
+      LEFT JOIN (
+        SELECT challenge_questions.challenge_id,
+                COUNT(challenge_questions.id) AS challenge_questions_count
+        FROM challenge_questions
+        GROUP BY challenge_questions.challenge_id
+      ) AS challenge_questions_count ON challenge_questions_count.challenge_id = challenges.id
+    SQL
+    joins(sql).select('challenges.*, COALESCE(challenge_questions_count.challenge_questions_count, 0) AS challenge_questions_count')
+  }
 
   # validates :title, presence: true
   validates :reward_points, presence: true

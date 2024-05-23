@@ -23,6 +23,7 @@ class Api::V1::User::DailyChallengesController < Api::V1::User::ApplicationContr
       @challenge = pundit_scope(
         Challenge.with_user_submission_count(current_user.id)
                  .with_user_success_submission_count(current_user.id)
+                 .with_challenge_questions_count
       ).preload({ subject: :curriculum },
                 { questions: [:question_images, :topics] },
                 :challenge_questions)
@@ -35,6 +36,7 @@ class Api::V1::User::DailyChallengesController < Api::V1::User::ApplicationContr
       @challenges = pundit_scope(
         Challenge.with_user_submission_count(current_user.id)
                  .with_user_success_submission_count(current_user.id)
+                 .with_challenge_questions_count
       ).preload({ subject: :curriculum })
       @challenges = challenge_time_filterable(@challenges)
       @challenges = attribute_sortable(@challenges)
