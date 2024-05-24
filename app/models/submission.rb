@@ -10,6 +10,9 @@ class Submission < ApplicationRecord
 
   validates :title, presence: true, if: -> { challenge.blank? }
 
+  scope :daily_challenge, -> { joins(:challenge).where(challenges: { challenge_type: Challenge.challenge_types[:daily] }) }
+  scope :mcq, -> { where(challenge_id: nil) }
+
   before_save :evaluate_answers, :calculate_score, :calculate_completion_seconds, if: -> { submitted? }
   after_commit :update_user_streaks, if: -> { saved_change_to_status? && submitted? && challenge&.daily? }
   after_commit :create_or_update_daily_challenge_point_activity, if: -> { saved_change_to_status? && submitted? && challenge&.daily? }

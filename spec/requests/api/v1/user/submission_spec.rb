@@ -23,6 +23,8 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :status, in: :query, type: :string, required: false, description: 'Filter by status'
       parameter name: :challenge_type, in: :query, type: :string, required: false, description: 'Filter by challenge type'
+      parameter name: :daily_challenge, in: :query, type: :boolean, required: false, description: 'Filter by daily challenge'
+      parameter name: :mcq, in: :query, type: :boolean, required: false, description: 'Filter by mcq'
 
       response(200, 'successful') do
         before do

@@ -20,6 +20,29 @@ RSpec.describe Submission, type: :model do
     end
   end
 
+  describe 'scopes' do
+    describe '.daily_challenge' do
+      it 'returns daily challenge submissions' do
+        challenge = create(:challenge, challenge_type: :daily)
+        submission = create(:submission, challenge: challenge)
+        non_challenge_submission = create(:submission, challenge: nil)
+
+        expect(described_class.daily_challenge).to include(submission)
+        expect(described_class.daily_challenge).not_to include(non_challenge_submission)
+      end
+    end
+
+    describe '.mcq' do
+      it 'returns mcq submissions' do
+        submission = create(:submission, challenge: nil)
+        daily_challenge_submission = create(:submission, challenge: create(:challenge, challenge_type: :daily))
+
+        expect(described_class.mcq).to include(submission)
+        expect(described_class.mcq).not_to include(daily_challenge_submission)
+      end
+    end
+  end
+
   describe 'aasm' do
     describe 'default state' do
       it { is_expected.to have_state(:pending) }

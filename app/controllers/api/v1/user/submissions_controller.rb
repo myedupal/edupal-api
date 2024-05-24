@@ -76,6 +76,8 @@ class Api::V1::User::SubmissionsController < Api::V1::User::ApplicationControlle
       @submissions = @submissions.joins(:challenge).where(challenge: { subject_id: params[:subject_id] }) if params[:subject_id].present?
       @submissions = @submissions.where(status: params[:status]) if params[:status].present?
       @submissions = @submissions.joins(:challenge).where(challenge: { challenge_type: params[:challenge_type] }) if params[:challenge_type].present?
+      @submissions = @submissions.daily_challenge if params[:daily_challenge].present? && ActiveModel::Type::Boolean.new.cast(params[:daily_challenge])
+      @submissions = @submissions.mcq if params[:mcq].present? && ActiveModel::Type::Boolean.new.cast(params[:mcq])
       @submissions = attribute_sortable(@submissions)
     end
 
