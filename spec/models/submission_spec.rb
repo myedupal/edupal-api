@@ -98,6 +98,23 @@ RSpec.describe Submission, type: :model do
       end
     end
 
+    describe '#calculate_total_submission_answers' do
+      it 'calculates total submission answers' do
+        submission = create(:submission, challenge: nil)
+        create(:submission_answer, :correct_answer, submission: submission, skip_challenge_question: true)
+        create(:submission_answer, :correct_answer, submission: submission, skip_challenge_question: true)
+        create(:submission_answer, :correct_answer, submission: submission, skip_challenge_question: true)
+        create(:submission_answer, :incorrect_answer, submission: submission, skip_challenge_question: true)
+        create(:submission_answer, :incorrect_answer, submission: submission, skip_challenge_question: true)
+
+        submission.submit!
+        submission.reload
+
+        expect(submission.total_submitted_answers).to eq(5)
+        expect(submission.total_correct_answers).to eq(3)
+      end
+    end
+
     describe '#calculate_score' do
       it 'calculates score' do
         submission = create(:submission, :with_submission_answers, challenge: nil)

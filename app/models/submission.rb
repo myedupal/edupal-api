@@ -13,7 +13,7 @@ class Submission < ApplicationRecord
   scope :daily_challenge, -> { joins(:challenge).where(challenges: { challenge_type: Challenge.challenge_types[:daily] }) }
   scope :mcq, -> { where(challenge_id: nil) }
 
-  before_save :evaluate_answers, :calculate_score, :calculate_completion_seconds, if: -> { submitted? }
+  before_save :evaluate_answers, :calculate_total_submission_answers, :calculate_score, :calculate_completion_seconds, if: -> { submitted? }
   after_commit :update_user_streaks, if: -> { saved_change_to_status? && submitted? && challenge&.daily? }
   after_commit :create_or_update_daily_challenge_point_activity, if: -> { saved_change_to_status? && submitted? && challenge&.daily? }
   after_commit :create_answered_question_point_activity, if: -> { submitted? && challenge.blank? }
@@ -45,6 +45,11 @@ class Submission < ApplicationRecord
 
     def evaluate_answers
       submission_answers.each(&:evaluate)
+    end
+
+    def calculate_total_submission_answers
+      self.total_submitted_answers = submission_answers.size
+      self.total_correct_answers = submission_answers.select(&:is_correct?).size
     end
 
     def calculate_score
