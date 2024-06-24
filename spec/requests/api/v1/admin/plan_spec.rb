@@ -41,6 +41,7 @@ RSpec.describe 'api/v1/admin/plans', type: :request do
               name: { type: :string },
               is_published: { type: :string },
               limits: { type: :object },
+              plan_type: { type: :string },
               prices_attributes: {
                 type: :array,
                 items: {
@@ -97,6 +98,7 @@ RSpec.describe 'api/v1/admin/plans', type: :request do
               name: { type: :string },
               is_published: { type: :string },
               limits: { type: :object },
+              plan_type: { type: :string },
               prices_attributes: {
                 type: :array,
                 items: {
