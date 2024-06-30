@@ -1,6 +1,8 @@
 class User < Account
   devise :database_authenticatable, :validatable, :registerable
 
+  belongs_to :selected_curriculum, class_name: 'Curriculum', optional: true
+
   has_one :stripe_profile, dependent: :restrict_with_error
   has_many :subscriptions, dependent: :restrict_with_error
   has_many :submissions, dependent: :destroy

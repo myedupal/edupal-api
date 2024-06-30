@@ -2,9 +2,10 @@ require 'swagger_helper'
 
 RSpec.describe 'api/v1/user/daily_challenges', type: :request do
   # change the create(:user) to respective user model name
-  let(:user) { create(:user) }
+  let(:curriculum) { create(:curriculum, name: 'IGCSE') }
+  let(:user) { create(:user, selected_curriculum: curriculum) }
   let(:Authorization) { bearer_token_for(user) }
-  let(:id) { create(:challenge, :published, :daily, :with_questions, start_at: Time.current).id }
+  let(:id) { create(:challenge, :published, :daily, :with_questions, subject: create(:subject, curriculum: curriculum), start_at: Time.current).id }
 
   path '/api/v1/user/daily_challenges' do
     get('list daily challenges') do
@@ -31,7 +32,9 @@ RSpec.describe 'api/v1/user/daily_challenges', type: :request do
 
       response(200, 'successful') do
         before do
-          create_list(:challenge, 3, :published, :daily, :with_questions, start_at: Time.current)
+          3.times do
+            create(:challenge, :published, :daily, :with_questions, start_at: Time.current, subject: create(:subject, curriculum: curriculum))
+          end
         end
 
         run_test!

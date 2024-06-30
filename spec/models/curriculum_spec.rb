@@ -10,6 +10,7 @@ RSpec.describe Curriculum, type: :model do
     it { is_expected.to have_many(:answers).through(:questions) }
     it { is_expected.to have_many(:question_images).through(:questions) }
     it { is_expected.to have_many(:question_topics).through(:questions) }
+    it { is_expected.to have_many(:users).with_foreign_key(:selected_curriculum_id).dependent(:nullify) }
   end
 
   describe 'validations' do

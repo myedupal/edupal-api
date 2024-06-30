@@ -2,9 +2,9 @@ require 'swagger_helper'
 
 RSpec.describe 'api/v1/user/reports', type: :request do
   # change the create(:user) to respective user model name
-  let(:user) { create(:user) }
-  let(:Authorization) { bearer_token_for(user) }
   let(:curriculum) { create(:curriculum, name: 'IGCSE') }
+  let(:user) { create(:user, selected_curriculum: curriculum) }
+  let(:Authorization) { bearer_token_for(user) }
   let(:biology) { create(:subject, name: 'Biology', curriculum: curriculum) }
   let(:physics) { create(:subject, name: 'Physics', curriculum: curriculum) }
   let(:chemistry) { create(:subject, name: 'Chemistry', curriculum: curriculum) }

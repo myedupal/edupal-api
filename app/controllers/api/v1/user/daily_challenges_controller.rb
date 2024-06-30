@@ -38,6 +38,7 @@ class Api::V1::User::DailyChallengesController < Api::V1::User::ApplicationContr
                  .with_user_success_submission_count(current_user.id)
                  .with_challenge_questions_count
       ).preload({ subject: :curriculum })
+      @challenges = @challenges.joins(:subject).where(subject: { curriculum_id: current_user.selected_curriculum_id })
       @challenges = challenge_time_filterable(@challenges)
       @challenges = attribute_sortable(@challenges)
     end

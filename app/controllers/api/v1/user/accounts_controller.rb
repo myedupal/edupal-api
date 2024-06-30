@@ -28,7 +28,7 @@ class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
   private
 
     def account_params
-      params.require(:account).permit(:name, :phone_number)
+      params.require(:account).permit(:name, :phone_number, :selected_curriculum_id)
     end
 
     def password_params

@@ -7,6 +7,7 @@ class Curriculum < ApplicationRecord
   has_many :answers, through: :questions
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
+  has_many :users, foreign_key: :selected_curriculum_id, dependent: :nullify
 
   validates :name, presence: true, uniqueness: { scope: :board, case_sensitive: false }
   validates :board, presence: true

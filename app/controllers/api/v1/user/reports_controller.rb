@@ -1,8 +1,15 @@
 class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
   def daily_challenge
     submission_answers = current_user.submission_answers
-                                     .joins({ submission: :challenge }, { question: :subject })
-                                     .where(submission: { challenges: { challenge_type: Challenge.challenge_types[:daily] } })
+                                     .joins({ submission: { challenge: :subject } }, { question: :subject })
+                                     .where(submission: {
+                                              challenges: {
+                                                challenge_type: Challenge.challenge_types[:daily],
+                                                subjects: {
+                                                  curriculum_id: current_user.selected_curriculum_id
+                                                }
+                                              }
+                                            })
                                      .where.not(evaluated_at: nil)
     total_correct_questions = submission_answers.where(is_correct: true).count
     total_questions_attempted = submission_answers.count
@@ -35,7 +42,10 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
     submission_answers = current_user.submission_answers
                                      .joins({ question: :subject }, :submission)
                                      .where(submission: { challenge_id: nil, status: :submitted })
-                                     .where(question: { question_type: Question.question_types[:mcq] })
+                                     .where(question: {
+                                              question_type: Question.question_types[:mcq],
+                                              subjects: { curriculum_id: current_user.selected_curriculum_id }
+                                            })
 
     average_time = submission_answers.distinct(:submission_id).average('submission.completion_seconds').to_f
     total_correct_questions = submission_answers.where(is_correct: true).count

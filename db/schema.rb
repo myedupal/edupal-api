@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_06_20_151755) do
+ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -33,9 +33,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_20_151755) do
     t.string "oauth2_profile_picture_url"
     t.integer "daily_streak", default: 0, null: false
     t.integer "maximum_streak", default: 0, null: false
+    t.uuid "selected_curriculum_id"
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
+    t.index ["selected_curriculum_id"], name: "index_accounts_on_selected_curriculum_id"
   end
 
   create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -381,6 +383,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_20_151755) do
     t.index ["subject_id"], name: "index_user_exams_on_subject_id"
   end
 
+  add_foreign_key "accounts", "curriculums", column: "selected_curriculum_id"
   add_foreign_key "activities", "accounts", column: "user_id"
   add_foreign_key "activities", "exams"
   add_foreign_key "activities", "subjects"

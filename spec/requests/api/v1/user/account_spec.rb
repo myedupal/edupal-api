@@ -31,7 +31,8 @@ RSpec.describe 'api/v1/user/account', type: :request do
             type: :object,
             properties: {
               name: { type: :string },
-              phone_number: { type: :string }
+              phone_number: { type: :string },
+              selected_curriculum_id: { type: :string }
             }
           }
         }
