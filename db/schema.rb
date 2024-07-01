@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_01_142231) do
+ActiveRecord::Schema[7.0].define(version: 2024_07_01_143056) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -162,6 +162,21 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_01_142231) do
     t.datetime "updated_at", null: false
     t.index ["paper_id", "zone", "season", "year", "level"], name: "index_exams_unique", unique: true
     t.index ["paper_id"], name: "index_exams_on_paper_id"
+  end
+
+  create_table "gift_cards", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name"
+    t.string "remark"
+    t.uuid "plan_id", null: false
+    t.uuid "created_by_id", null: false
+    t.integer "redemption_limit", default: 1, null: false
+    t.integer "redemption_count", default: 0, null: false
+    t.datetime "expires_at"
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_gift_cards_on_created_by_id"
+    t.index ["plan_id"], name: "index_gift_cards_on_plan_id"
   end
 
   create_table "papers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -400,6 +415,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_01_142231) do
   add_foreign_key "challenges", "subjects"
   add_foreign_key "daily_check_ins", "accounts", column: "user_id"
   add_foreign_key "exams", "papers"
+  add_foreign_key "gift_cards", "accounts", column: "created_by_id"
+  add_foreign_key "gift_cards", "plans"
   add_foreign_key "papers", "subjects"
   add_foreign_key "point_activities", "accounts"
   add_foreign_key "prices", "plans"

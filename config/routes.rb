@@ -37,6 +37,7 @@ Rails.application.routes.draw do
         resources :challenges
         resources :submissions, only: [:index, :show]
         resources :submission_answers, only: [:index]
+        resources :gift_cards
       end
 
       namespace :user do
