@@ -61,7 +61,8 @@ class Api::V1::Admin::PlansController < Api::V1::Admin::ApplicationController
 
     def plan_params
       params.require(:plan).permit(
-        :name, :is_published, :plan_type, prices_attributes: [:id, :amount, :amount_currency, :billing_cycle, :_destroy]
+        :name, :is_published, :plan_type, :referral_fee_percentage,
+        prices_attributes: [:id, :amount, :amount_currency, :billing_cycle, :_destroy]
       ).tap do |whitelisted|
         all_permitted = params.require(:plan).permit!
         whitelisted[:limits] = all_permitted[:limits] if all_permitted[:limits]

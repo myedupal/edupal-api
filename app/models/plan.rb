@@ -7,6 +7,7 @@ class Plan < ApplicationRecord
   accepts_nested_attributes_for :prices, allow_destroy: true
 
   validates :name, presence: true
+  validates :referral_fee_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
 
   before_create :create_stripe_product, if: -> { stripe? }
   after_update :update_stripe_product, if: -> { stripe? }

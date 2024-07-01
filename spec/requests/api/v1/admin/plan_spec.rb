@@ -42,6 +42,7 @@ RSpec.describe 'api/v1/admin/plans', type: :request do
               is_published: { type: :string },
               limits: { type: :object },
               plan_type: { type: :string },
+              referral_fee_percentage: { type: :number },
               prices_attributes: {
                 type: :array,
                 items: {
@@ -99,6 +100,7 @@ RSpec.describe 'api/v1/admin/plans', type: :request do
               is_published: { type: :string },
               limits: { type: :object },
               plan_type: { type: :string },
+              referral_fee_percentage: { type: :number },
               prices_attributes: {
                 type: :array,
                 items: {
