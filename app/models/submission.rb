@@ -12,8 +12,8 @@ class Submission < ApplicationRecord
   enum mcq_type: { yearly: 'yearly', topical: 'topical' }
 
   validates :title, presence: true, if: -> { challenge.blank? }
-  validates :mcq_type, presence: true, if: -> { challenge.blank? }
-  validates :mcq_type, absence: true, if: -> { challenge.present? }
+  validates :mcq_type, presence: true, if: -> { challenge.blank? && user_exam.blank? }
+  validates :mcq_type, absence: true, if: -> { challenge.present? || user_exam.present? }
 
   scope :daily_challenge, -> { joins(:challenge).where(challenges: { challenge_type: Challenge.challenge_types[:daily] }) }
   scope :mcq, -> { where(challenge_id: nil).where(user_exam_id: nil) }

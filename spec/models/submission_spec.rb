@@ -30,6 +30,12 @@ RSpec.describe Submission, type: :model do
 
       it { is_expected.to validate_absence_of(:mcq_type) }
     end
+
+    context 'when user exam is present' do
+      subject { build(:submission, user_exam: create(:user_exam), mcq_type: :yearly) }
+
+      it { is_expected.to validate_absence_of(:mcq_type) }
+    end
   end
 
   describe 'scopes' do
