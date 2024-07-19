@@ -17,6 +17,13 @@ class Submission < ApplicationRecord
 
   scope :daily_challenge, -> { joins(:challenge).where(challenges: { challenge_type: Challenge.challenge_types[:daily] }) }
   scope :mcq, -> { where(challenge_id: nil).where(user_exam_id: nil) }
+  scope :is_user_exam, lambda { |bool|
+    if bool
+      where.not(user_exam_id: nil)
+    else
+      where(user_exam_id: nil)
+    end
+  }
 
   before_save :evaluate_answers, :calculate_total_submission_answers, :calculate_score, :calculate_completion_seconds, if: -> { submitted? }
   after_commit :update_user_streaks, if: -> { saved_change_to_status? && submitted? && challenge&.daily? }

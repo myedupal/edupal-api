@@ -53,6 +53,23 @@ RSpec.describe Submission, type: :model do
         expect(described_class.mcq).not_to include(daily_challenge_submission)
       end
     end
+
+    describe '.is_user_exam' do
+      let(:user_exam_submission) { create(:submission, user_exam: create(:user_exam)) }
+      let(:non_user_exam_submission) { create(:submission, user_exam: nil) }
+
+      context 'when true' do
+        it 'returns user exam submissions' do
+          expect(described_class.is_user_exam(true)).to contain_exactly(user_exam_submission)
+        end
+      end
+
+      context 'when false' do
+        it 'returns non user exam submissions' do
+          expect(described_class.is_user_exam(false)).to contain_exactly(non_user_exam_submission)
+        end
+      end
+    end
   end
 
   describe 'aasm' do
