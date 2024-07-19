@@ -1,6 +1,7 @@
 class Submission < ApplicationRecord
   include AASM
   belongs_to :challenge, optional: true
+  belongs_to :user_exam, optional: true
   belongs_to :user
 
   has_many :submission_answers, dependent: :destroy
@@ -8,10 +9,14 @@ class Submission < ApplicationRecord
 
   accepts_nested_attributes_for :submission_answers, allow_destroy: true, reject_if: :reject_submission_answer_attributes?
 
+  enum mcq_type: { yearly: 'yearly', topical: 'topical' }
+
   validates :title, presence: true, if: -> { challenge.blank? }
+  validates :mcq_type, presence: true, if: -> { challenge.blank? }
+  validates :mcq_type, absence: true, if: -> { challenge.present? }
 
   scope :daily_challenge, -> { joins(:challenge).where(challenges: { challenge_type: Challenge.challenge_types[:daily] }) }
-  scope :mcq, -> { where(challenge_id: nil) }
+  scope :mcq, -> { where(challenge_id: nil).where(user_exam_id: nil) }
 
   before_save :evaluate_answers, :calculate_total_submission_answers, :calculate_score, :calculate_completion_seconds, if: -> { submitted? }
   after_commit :update_user_streaks, if: -> { saved_change_to_status? && submitted? && challenge&.daily? }

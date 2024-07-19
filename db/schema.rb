@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_01_143056) do
+ActiveRecord::Schema[7.0].define(version: 2024_07_19_050823) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -338,7 +338,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_01_143056) do
     t.string "title"
     t.integer "total_submitted_answers", default: 0
     t.integer "total_correct_answers", default: 0
+    t.uuid "user_exam_id"
+    t.string "mcq_type"
     t.index ["challenge_id"], name: "index_submissions_on_challenge_id"
+    t.index ["user_exam_id"], name: "index_submissions_on_user_exam_id"
     t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 
@@ -435,6 +438,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_01_143056) do
   add_foreign_key "submission_answers", "submissions"
   add_foreign_key "submissions", "accounts", column: "user_id"
   add_foreign_key "submissions", "challenges"
+  add_foreign_key "submissions", "user_exams"
   add_foreign_key "subscriptions", "accounts", column: "created_by_id"
   add_foreign_key "subscriptions", "accounts", column: "user_id"
   add_foreign_key "subscriptions", "plans"
