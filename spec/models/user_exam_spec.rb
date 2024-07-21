@@ -7,6 +7,7 @@ RSpec.describe UserExam, type: :model do
     it { is_expected.to have_many(:user_exam_questions).dependent(:destroy) }
     it { is_expected.to have_many(:questions).through(:user_exam_questions) }
     it { is_expected.to have_many(:saved_user_exams).dependent(:destroy) }
+    it { is_expected.to have_many(:submissions).dependent(:destroy) }
   end
 
   describe 'validations' do
