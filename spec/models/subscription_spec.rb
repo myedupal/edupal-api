@@ -4,7 +4,7 @@ RSpec.describe Subscription, type: :model do
   describe 'associations' do
     it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:plan) }
-    it { is_expected.to belong_to(:price) }
+    it { is_expected.to belong_to(:price).optional }
     it { is_expected.to belong_to(:created_by) }
   end
 

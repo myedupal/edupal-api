@@ -1,6 +1,6 @@
 class Subscription < ApplicationRecord
   belongs_to :plan
-  belongs_to :price
+  belongs_to :price, optional: true
   belongs_to :user
   belongs_to :created_by, class_name: 'Account'
 

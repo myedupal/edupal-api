@@ -4,11 +4,11 @@ class Api::V1::Admin::GiftCardsController < Api::V1::Admin::ApplicationControlle
 
   def index
     @pagy, @gift_cards = pagy(@gift_cards)
-    render json: @gift_cards
+    render json: @gift_card, include: %w[plan created_by]
   end
 
   def show
-    render json: @gift_card
+    render json: @gift_card, include: %w[plan created_by]
   end
 
   def create
@@ -17,7 +17,7 @@ class Api::V1::Admin::GiftCardsController < Api::V1::Admin::ApplicationControlle
     pundit_authorize(@gift_card)
 
     if @gift_card.save
-      render json: @gift_card
+      render json: @gift_card, include: %w[plan created_by]
     else
       render json: ErrorResponse.new(@gift_card), status: :unprocessable_entity
     end
@@ -25,7 +25,7 @@ class Api::V1::Admin::GiftCardsController < Api::V1::Admin::ApplicationControlle
 
   def update
     if @gift_card.update(gift_card_params)
-      render json: @gift_card
+      render json: @gift_card, include: %w[plan created_by]
     else
       render json: ErrorResponse.new(@gift_card), status: :unprocessable_entity
     end
@@ -63,6 +63,6 @@ class Api::V1::Admin::GiftCardsController < Api::V1::Admin::ApplicationControlle
     end
 
     def gift_card_params
-      params.require(:gift_card).permit(:name, :remark, :plan_id, :redemption_limit, :expires_at)
+      params.require(:gift_card).permit(:name, :remark, :plan_id, :redemption_limit, :expires_at, :duration)
     end
 end

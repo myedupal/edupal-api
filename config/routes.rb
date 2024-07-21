@@ -64,6 +64,7 @@ Rails.application.routes.draw do
         end
         resources :subscriptions, only: [:index, :show, :create, :update] do
           put :cancel, on: :member
+          post :redeem, on: :collection
         end
 
         resources :questions, only: [:index, :show]

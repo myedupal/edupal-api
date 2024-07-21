@@ -1,6 +1,7 @@
 class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationController
   before_action :set_subscription, only: [:show, :update, :cancel]
   before_action :set_subscriptions, only: [:index]
+  before_action :check_user_active_subscription, only: [:redeem]
 
   def index
     @pagy, @subscriptions = pagy(@subscriptions)
@@ -65,6 +66,37 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
     end
   end
 
+  def redeem
+    @gift_card = GiftCard.find_by(code: redeem_subscription_params[:redeem_code])
+
+    return render json: ErrorResponse.new('Invalid gift card code'), status: :bad_request unless @gift_card
+
+    return render json: ErrorResponse.new('Gift card has already been redeemed'), status: :bad_request unless @gift_card.redeemable?
+
+    return render json: ErrorResponse.new('Gift card has expired'), status: :bad_request if @gift_card.expired?
+
+    return render json: ErrorResponse.new('You cannot redeem the same gift card twice'), status: :bad_request if current_user.subscriptions.exists?(redeem_code: @gift_card.code)
+
+    ActiveRecord::Base.transaction do
+      @subscription = Subscription.create!(
+        plan: @gift_card.plan,
+        status: 'active',
+        user: current_user,
+        created_by: current_user,
+        start_at: Time.zone.now,
+        end_at: (@gift_card.duration || 0).days.from_now,
+        auto_renew: false,
+        redeem_code: @gift_card.code
+      )
+
+      @gift_card.redeem!
+    end
+
+    render json: @subscription
+  rescue ActiveRecord::RecordInvalid => e
+    render json: ErrorResponse.new(e.record), status: :unprocessable_entity
+  end
+
   private
 
     def set_subscription
@@ -90,7 +122,17 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
       params.require(:subscription).permit(:price_id)
     end
 
+    def redeem_subscription_params
+      params.require(:subscription).permit(:redeem_code)
+    end
+
     def cancel_params
       params.require(:subscription).permit(:cancel_reason, :cancel_at_period_end)
+    end
+
+    def check_user_active_subscription
+      return if current_user.active_subscription.blank?
+
+      render json: ErrorResponse.new('User already has an active subscription'), status: :bad_request
     end
 end

@@ -8,6 +8,18 @@ class GiftCard < ApplicationRecord
 
   scope :query, ->(keyword) { where('name ILIKE ?', "%#{keyword}%") }
 
+  def redeemable?
+    redemption_limit.positive?
+  end
+
+  def redeem!
+    increment!(:redemption_count)
+  end
+
+  def expired?
+    expires_at.present? && expires_at < Time.zone.now
+  end
+
   private
 
     def generate_code

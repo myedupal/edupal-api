@@ -271,4 +271,52 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
       end
     end
   end
+
+  path '/api/v1/user/subscriptions/redeem' do
+    post('redeem subscriptions') do
+      tags 'User Subscriptions'
+      produces 'application/json'
+      consumes 'application/json'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        properties: {
+          subscription: {
+            type: :object,
+            properties: {
+              redeem_code: { type: :string }
+            }
+          }
+        }
+      }
+
+      let(:gift_card) { create(:gift_card) }
+      let(:data) { { subscription: { redeem_code: gift_card.code } } }
+
+      response(200, 'successful', save_request_example: :data) do
+        run_test! do |response|
+          response_body = JSON.parse(response.body)
+          expect(response_body['subscription']['status']).to eq('active')
+          expect(user.reload.active_subscription).to be_present
+        end
+      end
+
+      response(400, 'bad_request', save_request_example: :data) do
+        let(:gift_card) { create(:gift_card, expires_at: 1.day.ago) }
+
+        run_test!
+      end
+
+      context 'when user already has an active subscription' do
+        before do
+          create(:subscription, user: user, status: :active)
+        end
+
+        response(400, 'bad_request', save_request_example: :data) do
+          run_test!
+        end
+      end
+    end
+  end
 end

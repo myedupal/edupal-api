@@ -44,7 +44,8 @@ RSpec.describe 'api/v1/admin/gift_cards', type: :request do
               remark: { type: :string },
               plan_id: { type: :string },
               redemption_limit: { type: :integer },
-              expires_at: { type: :string }
+              expires_at: { type: :string },
+              duration: { type: :integer, description: 'Duration in days' }
             }
           }
         }
@@ -87,7 +88,8 @@ RSpec.describe 'api/v1/admin/gift_cards', type: :request do
               remark: { type: :string },
               plan_id: { type: :string },
               redemption_limit: { type: :integer },
-              expires_at: { type: :string }
+              expires_at: { type: :string },
+              duration: { type: :integer, description: 'Duration in days' }
             }
           }
         }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_19_050823) do
+ActiveRecord::Schema[7.0].define(version: 2024_07_21_073002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -175,6 +175,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_19_050823) do
     t.string "code", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "duration"
+    t.index ["code"], name: "index_gift_cards_on_code", unique: true
     t.index ["created_by_id"], name: "index_gift_cards_on_created_by_id"
     t.index ["plan_id"], name: "index_gift_cards_on_plan_id"
   end
@@ -347,7 +349,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_19_050823) do
 
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "plan_id", null: false
-    t.uuid "price_id", null: false
+    t.uuid "price_id"
     t.uuid "user_id", null: false
     t.uuid "created_by_id", null: false
     t.datetime "start_at"
@@ -364,6 +366,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_19_050823) do
     t.datetime "updated_at", null: false
     t.string "razorpay_subscription_id"
     t.string "razorpay_short_url"
+    t.string "redeem_code"
     t.index ["created_by_id"], name: "index_subscriptions_on_created_by_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["price_id"], name: "index_subscriptions_on_price_id"

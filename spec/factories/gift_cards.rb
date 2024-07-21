@@ -12,5 +12,6 @@ FactoryBot.define do
     # redemption_count { '' }
     expires_at { Faker::Time.between(from: Time.zone.now, to: 30.days.from_now) }
     # code { '' }
+    duration { Faker::Number.between(from: 7, to: 30) }
   end
 end
