@@ -30,6 +30,42 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Login registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull docker image
+        run: |
+          docker pull ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }}
+          docker tag ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }} ${{ env.IMAGE_REPO }}:staging
+
+      - name: Save docker image
+        run: docker save ${{ env.IMAGE_REPO }}:staging > ${{ env.APP_NAME }}.tar
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.DOKKU_BE_HOST }}
+          username: root
+          key: ${{ secrets.DOKKU_BE_SSH_PRIVATE_KEY }}
+          timeout: 90s
+          source: "${{ env.APP_NAME }}.tar"
+          overwrite: true
+          target: "~/"
+
+      - name: Load docker image
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.DOKKU_BE_HOST }}
+          username: root
+          key: ${{ secrets.DOKKU_BE_SSH_PRIVATE_KEY }}
+          script: |
+            docker load -i ${{ env.APP_NAME }}.tar
+            rm ${{ env.APP_NAME }}.tar
+            
       - name: Rebuild Apps
         uses: JimCronqvist/action-ssh@master
         with:
@@ -52,14 +88,14 @@ jobs:
                 dokku redis:create ${{ env.REDIS_APP_NAME }};
                 dokku redis:link ${{ env.REDIS_APP_NAME }} ${{ env.APP_NAME }};
               fi
-              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
+              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}:staging;
               dokku run ${{ env.APP_NAME }} rails db:migrate;
               dokku ps:restart ${{ env.APP_NAME }};
             else 
               dokku apps:create ${{ env.APP_NAME }};
               dokku domains:set ${{ env.APP_NAME }} ${{ env.APP_NAME }}.${{ vars.DOKKU_BE_HOST }};
               dokku letsencrypt:enable ${{ env.APP_NAME }};
-              dokku proxy:ports-set ${{ env.APP_NAME }} http:80:${{ env.EXPOSED_PORT }} https:443:${{ env.EXPOSED_PORT }};
+              dokku ports:add ${{ env.APP_NAME }} http:80:${{ env.EXPOSED_PORT }} https:443:${{ env.EXPOSED_PORT }};
               if dokku postgres:exists ${{ env.POSTGRES_APP_NAME }};
               then
                 dokku postgres:link ${{ env.POSTGRES_APP_NAME }} ${{ env.APP_NAME }};
@@ -74,7 +110,7 @@ jobs:
                 dokku redis:create ${{ env.REDIS_APP_NAME }};
                 dokku redis:link ${{ env.REDIS_APP_NAME }} ${{ env.APP_NAME }};
               fi
-              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
+              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}:staging;
               dokku run ${{ env.APP_NAME }} rails db:migrate;
               dokku ps:restart ${{ env.APP_NAME }};
             fi
