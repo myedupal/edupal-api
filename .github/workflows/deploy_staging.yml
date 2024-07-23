@@ -122,7 +122,7 @@ jobs:
           command: |
             if dokku apps:exists ${{ env.SIDEKIQ_NAME }};
             then
-              dokku git:from-image ${{ env.SIDEKIQ_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
+              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}:staging;
               dokku ps:restart ${{ env.APP_NAME }};
             else 
               dokku apps:create ${{ env.SIDEKIQ_NAME }};
@@ -130,7 +130,7 @@ jobs:
               dokku config:set ${{ env.SIDEKIQ_NAME }} DOKKU_DOCKERFILE_START_CMD="${{ env.SIDEKIQ_COMMAND }}";
               dokku postgres:link ${{ env.POSTGRES_APP_NAME }} ${{ env.SIDEKIQ_NAME }};
               dokku redis:link ${{ env.REDIS_APP_NAME }} ${{ env.SIDEKIQ_NAME }};
-              dokku git:from-image ${{ env.SIDEKIQ_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
+              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}:staging;
               dokku ps:restart ${{ env.APP_NAME }};
             fi
       - name: Comment commit
