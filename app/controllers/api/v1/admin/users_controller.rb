@@ -1,6 +1,6 @@
 class Api::V1::Admin::UsersController < Api::V1::Admin::ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
-  before_action :set_users, only: [:index]
+  before_action :set_users, only: [:index, :count]
 
   def index
     @pagy, @users = pagy(@users)
@@ -36,6 +36,10 @@ class Api::V1::Admin::UsersController < Api::V1::Admin::ApplicationController
     else
       render json: ErrorResponse.new(@user), status: :unprocessable_entity
     end
+  end
+
+  def count
+    render json: { count: @users.count }
   end
 
   private

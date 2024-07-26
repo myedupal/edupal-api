@@ -22,7 +22,9 @@ Rails.application.routes.draw do
           put :password, on: :collection
         end
         resources :admins
-        resources :users
+        resources :users do
+          get :count, on: :collection
+        end
         resources :plans
         resources :subscriptions, only: [:index]
 

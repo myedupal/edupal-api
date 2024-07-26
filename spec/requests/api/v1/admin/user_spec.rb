@@ -56,6 +56,25 @@ RSpec.describe 'api/v1/admin/user', type: :request do
     end
   end
 
+  path '/api/v1/admin/users/count' do
+    get('count user') do
+      tags 'Admin Users'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      response(200, 'successful') do
+        before do
+          create_list(:user, 4)
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['count']).to eq(4)
+        end
+      end
+    end
+  end
+
   path '/api/v1/admin/users/{id}' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
