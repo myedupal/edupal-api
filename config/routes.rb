@@ -27,6 +27,14 @@ Rails.application.routes.draw do
         end
         resources :plans
         resources :subscriptions, only: [:index]
+        resources :reports, only: [] do
+          get :user_current_streaks_count, on: :collection
+          get :user_max_streaks_count, on: :collection
+          get :user_recent_check_in_count, on: :collection
+          get :user_recent_submission_count, on: :collection
+          get :submission_recent_count, on: :collection
+          get :point_activity_recent_count, on: :collection
+        end
 
         resources :curriculums
         resources :subjects
