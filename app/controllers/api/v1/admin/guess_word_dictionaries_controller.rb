@@ -38,6 +38,28 @@ class Api::V1::Admin::GuessWordDictionariesController < Api::V1::Admin::Applicat
     end
   end
 
+  def import
+    read = 0
+    imported = 0
+
+    GuessWordDictionary.transaction do
+      uploaded_file = params.permit(:file)[:file]
+      filename = uploaded_file.tempfile.path
+
+      File.foreach(filename) do |word|
+        word = word.strip
+        if word.length.positive?
+          read += 1
+
+          entry = GuessWordDictionary.create(word: word)
+          imported += 1 if entry.persisted?
+        end
+      end
+    end
+
+    render json: { read: read, imported: imported }
+  end
+
   private
 
     def set_guess_word_dictionary

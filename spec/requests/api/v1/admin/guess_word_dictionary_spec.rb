@@ -53,6 +53,48 @@ RSpec.describe "api/v1/admin/guess_word_dictionaries", type: :request do
     end
   end
 
+  path '/api/v1/admin/guess_word_dictionaries/import' do
+    post('import guess word dictionaries') do
+      tags 'Admin Guess Word Dictionaries'
+      produces 'application/json'
+      consumes 'multipart/form-data'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :file, in: :formData, type: :file, required: true, description: 'newline delimited file'
+
+      let(:file) { fixture_file_upload(file_fixture('dictionary.txt')) }
+
+      response(200, 'successful', save_request_example: :data) do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+
+          expect(data['read']).to eq 3
+          expect(data['imported']).to eq 3
+          expect(GuessWordDictionary.count).to eq 3
+          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3')
+        end
+      end
+
+      context 'with existing words' do
+        before do
+          create(:guess_word_dictionary, word: 'word1')
+        end
+
+        it 'imports new words' do
+          post '/api/v1/admin/guess_word_dictionaries/import', params: { file: file }, headers: { Authorization: bearer_token_for(user) }
+
+          expect(response).to have_http_status(:ok)
+          data = JSON.parse(response.body)
+
+          expect(data['read']).to eq 3
+          expect(data['imported']).to eq 2
+          expect(GuessWordDictionary.count).to eq 3
+          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3')
+        end
+      end
+    end
+  end
+
   path '/api/v1/admin/guess_word_dictionaries/{id}' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
