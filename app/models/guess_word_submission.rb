@@ -12,7 +12,7 @@ class GuessWordSubmission < ApplicationRecord
     state :in_progress, initial: true
     state :success, :failed, :expired
 
-    event :guess, guard: [:game_started?, :guess_is_same_length?, :guess_is_word?], after: [:update_game_status] do
+    event :guess, guard: [:game_started?, :guess_is_same_length?, :guess_is_word?], after: [:update_game_status, :update_user_streak] do
       transitions from: :in_progress, to: :expired,
                   guard: [:game_ended?],
                   after: :set_completed_at
@@ -47,6 +47,16 @@ class GuessWordSubmission < ApplicationRecord
       return success! if guess == guess_word.answer
 
       fail! unless within_attempts?
+    end
+
+    def update_user_streak(_guess)
+      return if status == 'in_progress'
+
+      return if GuessWordSubmission
+                  .where(user: user, completed_at: Time.zone.today.beginning_of_day..Time.zone.today.end_of_day)
+                  .where.not(id: id).exists?
+
+      user.increment!(:guess_word_daily_streak)
     end
 
     def create_guess_word_point_activity

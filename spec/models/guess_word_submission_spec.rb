@@ -307,6 +307,57 @@ RSpec.describe GuessWordSubmission, type: :model do
           end
         end
       end
+
+      describe '#update_user_streak' do
+        let(:guess_word) { create(:guess_word, answer: answer, attempts: 3) }
+        let(:guess_word_submission) { create(:guess_word_submission, guess_word: guess_word) }
+
+        context 'with first submission  of the day' do
+          context 'with first attempt' do
+            context 'with correct guess' do
+              it 'increments user streak' do
+                expect { guess_word_submission.guess!(answer) }.to change { guess_word_submission.user.guess_word_daily_streak }.by(1)
+              end
+            end
+
+            context 'with incorrect guess' do
+              it 'increments user streak' do
+                expect { guess_word_submission.guess!(test_word) }.not_to(change { guess_word_submission.user.guess_word_daily_streak })
+              end
+            end
+          end
+
+          context 'with final attempt' do
+            before do
+              create_list(:guess_word_submission_guess, 2, guess_word_submission: guess_word_submission)
+            end
+
+            context 'with correct guess' do
+              it 'increments user streak' do
+                expect { guess_word_submission.guess!(answer) }.to change { guess_word_submission.user.guess_word_daily_streak }.by(1)
+              end
+            end
+
+            context 'with incorrect guess' do
+              it 'increments user streak' do
+                expect { guess_word_submission.guess!(answer) }.to change { guess_word_submission.user.guess_word_daily_streak }.by(1)
+              end
+            end
+          end
+        end
+
+        context 'with second submission of the day' do
+          before do
+            create(:guess_word_submission, user: guess_word_submission.user, completed_at: Time.zone.today.beginning_of_day)
+          end
+
+          context 'with correct guess' do
+            it 'does not increment user streak' do
+              expect { guess_word_submission.guess!(test_word) }.not_to(change { guess_word_submission.user.guess_word_daily_streak })
+            end
+          end
+        end
+      end
     end
   end
 end

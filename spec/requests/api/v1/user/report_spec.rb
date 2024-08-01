@@ -100,15 +100,43 @@ RSpec.describe 'api/v1/user/reports', type: :request do
         create(:point_activity, account: user, points: 50, action_type: PointActivity.action_types[:daily_challenge])
         create(:point_activity, account: user, points: 10, action_type: PointActivity.action_types[:daily_check_in])
         create(:point_activity, account: user, points: 5, action_type: PointActivity.action_types[:answered_question])
+        create(:point_activity, account: user, points: 3, action_type: PointActivity.action_types[:completed_guess_word])
       end
 
       response(200, 'successful') do
         run_test! do |response|
           json_response = JSON.parse(response.body)
-          expect(json_response['total_points']).to eq(165)
+          expect(json_response['total_points']).to eq(168)
           expect(json_response['mcq_points']).to eq(5)
           expect(json_response['daily_challenge_points']).to eq(50)
           expect(json_response['daily_check_in_points']).to eq(10)
+          expect(json_response['guess_word_points']).to eq(3)
+        end
+      end
+    end
+  end
+
+  path '/api/v1/user/reports/guess_word' do
+    get('Guess word report') do
+      tags 'User Reports'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      before do
+        create_list(:guess_word_submission, 3, user: user, status: :in_progress)
+        create_list(:guess_word_submission, 5, user: user, status: :success, completed_at: 1.day.ago)
+        create(:guess_word_submission, user: user, status: :failed, completed_at: 1.day.ago)
+        create(:guess_word_submission, user: user, status: :expired, completed_at: 1.day.ago)
+      end
+
+      response(200, 'successful') do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+
+          expect(data['submission_count']).to eq(10)
+          expect(data['completed_count']).to eq(7)
+          expect(data['status_count']).to eq("expired" => 1, "failed" => 1, "in_progress" => 3, "success" => 5)
+          expect(data['daily_streak']).to eq(0)
         end
       end
     end

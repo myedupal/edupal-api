@@ -104,7 +104,16 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
                     ELSE 0
                     END
                   ) AS bigint
-                )  as daily_check_in_points
+                )  as daily_check_in_points,
+                CAST(
+                  SUM(
+                    CASE
+                    WHEN action_type = '#{PointActivity.action_types[:completed_guess_word]}'
+                    THEN points
+                    ELSE 0
+                    END
+                  ) AS bigint
+                )  as guess_word_points
         FROM point_activities
         WHERE account_id = '#{current_user.id}'
       SQL
@@ -113,7 +122,20 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
       total_points: stats[0]['total_points'],
       mcq_points: stats[0]['mcq_points'],
       daily_challenge_points: stats[0]['daily_challenge_points'],
-      daily_check_in_points: stats[0]['daily_check_in_points']
+      daily_check_in_points: stats[0]['daily_check_in_points'],
+      guess_word_points: stats[0]['guess_word_points']
+    }
+  end
+
+  def guess_word
+    guess_word_submission = GuessWordSubmission.where(user: current_user)
+    status = guess_word_submission.group('status').count
+
+    render json: {
+      submission_count: guess_word_submission.count,
+      completed_count: guess_word_submission.where.not(completed_at: nil).count,
+      status_count: status,
+      daily_streak: current_user.guess_word_daily_streak
     }
   end
 end
