@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_21_073002) do
+ActiveRecord::Schema[7.0].define(version: 2024_07_23_044606) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -176,9 +176,51 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_21_073002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "duration"
-    t.index ["code"], name: "index_gift_cards_on_code", unique: true
     t.index ["created_by_id"], name: "index_gift_cards_on_created_by_id"
     t.index ["plan_id"], name: "index_gift_cards_on_plan_id"
+  end
+
+  create_table "guess_word_dictionaries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "word", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["word"], name: "index_guess_word_dictionaries_on_word", unique: true
+  end
+
+  create_table "guess_word_submission_guesses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "guess_word_submission_id", null: false
+    t.string "guess"
+    t.text "result", default: [], array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guess_word_submission_id"], name: "index_guess_word_submission_guesses_on_guess_word_submission_id"
+  end
+
+  create_table "guess_word_submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "guess_word_id", null: false
+    t.uuid "user_id", null: false
+    t.integer "guesses_count", default: 0
+    t.string "status"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guess_word_id", "user_id"], name: "index_guess_word_submissions_on_guess_word_id_and_user_id", unique: true
+    t.index ["guess_word_id"], name: "index_guess_word_submissions_on_guess_word_id"
+    t.index ["user_id"], name: "index_guess_word_submissions_on_user_id"
+  end
+
+  create_table "guess_words", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "subject_id", null: false
+    t.integer "guess_word_submissions_count", default: 0
+    t.string "answer", null: false
+    t.string "description"
+    t.integer "attempts", default: 6, null: false
+    t.integer "reward_points", default: 0, null: false
+    t.datetime "start_at"
+    t.datetime "end_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subject_id"], name: "index_guess_words_on_subject_id"
   end
 
   create_table "papers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -423,6 +465,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_21_073002) do
   add_foreign_key "exams", "papers"
   add_foreign_key "gift_cards", "accounts", column: "created_by_id"
   add_foreign_key "gift_cards", "plans"
+  add_foreign_key "guess_word_submission_guesses", "guess_word_submissions"
+  add_foreign_key "guess_word_submissions", "accounts", column: "user_id"
+  add_foreign_key "guess_word_submissions", "guess_words"
+  add_foreign_key "guess_words", "subjects"
   add_foreign_key "papers", "subjects"
   add_foreign_key "point_activities", "accounts"
   add_foreign_key "prices", "plans"

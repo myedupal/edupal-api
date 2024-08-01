@@ -6,7 +6,8 @@ class PointActivity < ApplicationRecord
     redeem: 'Redeem',
     daily_challenge: 'DailyChallenge',
     daily_check_in: 'DailyCheckIn',
-    answered_question: 'AnsweredQuestion'
+    answered_question: 'AnsweredQuestion',
+    completed_guess_word: 'CompletedGuessWord'
   }, _default: :answered_question
 
   validates :points, numericality: { only_integer: true }
