@@ -156,7 +156,13 @@ RSpec.describe "api/v1/user/guess_word_submissions", type: :request do
         let(:word) { Faker::Lorem.characters(number: character_length) }
         let(:data) { { guess: word } }
 
+        before do
+          create(:guess_word)
+        end
+
         run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['guess_word_submission']['guess_word_id']).to eq guess_word.id
           expect(guess_word.guess_word_submissions.where(user: user).count).to eq 1
         end
       end
