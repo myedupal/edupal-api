@@ -45,7 +45,8 @@ RSpec.describe "api/v1/user/guess_word_submissions", type: :request do
 
           data['guess_word_submissions'].find { |sub| sub['completed_at'].present? }.tap do |submission|
             expect(submission['guesses'].count).to eq 3
-            expect(submission['guess_word']['answer']).to be_present
+            expect(submission['guess_word_answer']).to be_present
+            expect(submission['guess_word']['answer']).to_not be_present
           end
         end
       end
@@ -194,7 +195,7 @@ RSpec.describe "api/v1/user/guess_word_submissions", type: :request do
           expect(data['guess_word_submission']['guesses'].count).to eq 3
           expect(data['guess_word_submission']['status']).to eq 'success'
           expect(data['guess_word_submission']['completed_at']).to be_present
-          expect(data['guess_word_submission']['guess_word']['answer']).to be_present
+          expect(data['guess_word_submission']['guess_word_answer']).to be_present
         end
       end
 
@@ -209,7 +210,7 @@ RSpec.describe "api/v1/user/guess_word_submissions", type: :request do
           expect(data['guess_word_submission']['guesses'].count).to eq 5
           expect(data['guess_word_submission']['status']).to eq 'failed'
           expect(data['guess_word_submission']['completed_at']).to be_present
-          expect(data['guess_word_submission']['guess_word']['answer']).to be_present
+          expect(data['guess_word_submission']['guess_word_answer']).to be_present
         end
       end
 

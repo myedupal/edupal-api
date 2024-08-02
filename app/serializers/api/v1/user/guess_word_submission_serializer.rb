@@ -8,4 +8,10 @@ class Api::V1::User::GuessWordSubmissionSerializer < ActiveModel::Serializer
   # has_one :user
   has_one :guess_word
   has_many :guesses
+
+  attribute :guess_word_answer, if: -> { object.completed_at.present? }
+
+  def guess_word_answer
+    object.guess_word.answer
+  end
 end

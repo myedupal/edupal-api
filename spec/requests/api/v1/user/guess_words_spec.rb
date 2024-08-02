@@ -16,7 +16,6 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
-      parameter name: :query, in: :query, type: :string, required: false, description: 'Search by answer'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :ongoing, in: :query, type: :string, required: false, description: 'Filter by ongoing'
       parameter name: :ended, in: :query, type: :string, required: false, description: 'Filter by ended'
@@ -57,7 +56,7 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
             .to match_array([guess_word, guess_word_with_others_submission, in_progress_guess_word, completed_guess_word].map(&:id))
 
           data['guess_words'].find { |guess_word| guess_word['id'] == completed_guess_word.id }.tap do |guess_word|
-            expect(guess_word['answer']).to be_present
+            expect(guess_word['answer']).to_not be_present
             expect(guess_word['answer_length']).to be_present
             expect(guess_word['guess_word_submissions']).to_not be_present
           end
@@ -86,7 +85,7 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['guess_word']['answer']).to eq(nil)
+          expect(data['guess_word']['answer']).to_not be_present
           expect(data['guess_word']['answer_length']).to be_present
           expect(data['guess_word']['guess_word_submissions']).to_not be_present
         end
