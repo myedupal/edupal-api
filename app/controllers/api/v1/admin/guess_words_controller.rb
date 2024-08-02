@@ -1,14 +1,14 @@
 class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationController
   before_action :set_guess_word, only: [:show, :update, :destroy]
-  before_action :set_guess_words, only: [:index]
+  before_action :set_guess_words, only: [:index, :export_csv]
 
   def index
     @pagy, @guess_words = pagy(@guess_words)
-    render json: @guess_words, include: ['subject']
+    render json: @guess_words, include: ['subject'], with_reports: params[:with_reports]
   end
 
   def show
-    render json: @guess_word, include: ['subject']
+    render json: @guess_word, include: ['subject'], with_reports: params[:with_reports]
   end
 
   def create
@@ -38,16 +38,46 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
     end
   end
 
+  def export_csv
+    csv_map = {
+      id: 'id',
+      subject: 'subject.name',
+      answer: 'answer',
+      description: 'description',
+      attempts: 'attempts',
+      start_at: 'start_at',
+      end_at: 'end_at',
+      reward_points: 'reward_points',
+      guess_word_submissions_count: 'guess_word_submissions_count',
+      completed_count: 'completed_count',
+      avg_guesses_count: 'avg_guesses_count',
+      in_progress_count: 'in_progress_count',
+      success_count: 'success_count',
+      expired_count: 'expired_count',
+      failed_count: 'failed_count',
+      created_at: 'created_at'
+    }
+
+    csv_headers = csv_map.keys
+    csv_attributes = csv_map.values
+
+    @guess_words = @guess_words.with_reports
+    stream_csv enumerate_csv(@guess_words, csv_headers, csv_attributes), filename: "guess_words_#{Time.zone.now.strftime('%Y%m%d%H%M%S')}.csv"
+  end
+
   private
 
     def set_guess_word
-      @guess_word = pundit_scope(GuessWord).find(params[:id])
+      @guess_word = pundit_scope(GuessWord)
+      @guess_word = @guess_word.with_reports if params[:with_reports]
+      @guess_word = @guess_word.find(params[:id])
       pundit_authorize(@guess_word) if @guess_word
     end
 
     def set_guess_words
       pundit_authorize(GuessWord)
       @guess_words = pundit_scope(GuessWord.includes(:subject))
+      @guess_words = @guess_words.with_reports if params[:with_reports]
       @guess_words = @guess_words.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @guess_words = @guess_words.ongoing if params[:ongoing].present?
       @guess_words = @guess_words.ended if params[:ended].present?
@@ -58,6 +88,7 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
 
       @guess_words = keyword_queryable(@guess_words)
       @guess_words = attribute_sortable(@guess_words)
+      @guess_words = custom_date_scopable(@guess_words, ['start_at', 'end_at', 'created_at', 'updated_at'])
     end
 
     def pundit_scope(scope)

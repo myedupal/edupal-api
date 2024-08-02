@@ -19,6 +19,18 @@ class GuessWord < ApplicationRecord
   scope :only_incomplete_by_user, ->(user) { only_submitted_by_user(user).where(guess_word_submissions: { completed_at: nil }) }
   scope :only_available_for_user, ->(user) { only_unsubmitted_by_user(user).or(GuessWord.where(guess_word_submissions: { user: user, completed_at: nil })) }
 
+  scope :with_reports, lambda {
+    left_joins(:guess_word_submissions)
+      .select('guess_words.*')
+      .select('SUM(CASE WHEN guess_word_submissions.completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed_count')
+      .select('AVG(guess_word_submissions.guesses_count) FILTER (WHERE guess_word_submissions.completed_at IS NOT NULL) as avg_guesses_count')
+      .select('SUM(CASE WHEN guess_word_submissions.status = \'in_progress\' THEN 1 ELSE 0 END) as in_progress_count')
+      .select('SUM(CASE WHEN guess_word_submissions.status = \'success\' THEN 1 ELSE 0 END) as success_count')
+      .select('SUM(CASE WHEN guess_word_submissions.status = \'expired\' THEN 1 ELSE 0 END) as expired_count')
+      .select('SUM(CASE WHEN guess_word_submissions.status = \'failed\' THEN 1 ELSE 0 END) as failed_count')
+      .group('guess_words.id')
+  }
+
   private
 
     def downcase_word

@@ -137,5 +137,53 @@ RSpec.describe GuessWord, type: :model do
         expect(GuessWord.only_incomplete_by_user(user)).to contain_exactly(incomplete_guess_word)
       end
     end
+
+    describe '.with_reports' do
+      let!(:guess_word) { create(:guess_word) }
+
+      context 'with guess word submission' do
+        before do
+          create(:guess_word_submission, :with_guesses, guess_word: guess_word)
+          create_list(:guess_word_submission, 3, :success, :with_guesses, guess_count: 5, guess_word: guess_word)
+          create(:guess_word_submission, :expired, :with_guesses, guess_word: guess_word)
+          create_list(:guess_word_submission, 2, :failed, :with_guesses, guess_word: guess_word)
+        end
+
+        it 'returns guess words with reports' do
+          query = GuessWord.with_reports
+          expect(query).to contain_exactly(guess_word)
+          report = query.first!
+
+          expect(report.guess_word_submissions_count).to eq 7
+          expect(report.attributes['completed_count']).to eq 6
+          expect(report.attributes['avg_guesses_count']).to be_present
+          expect(report.attributes['in_progress_count']).to eq 1
+          expect(report.attributes['success_count']).to eq 3
+          expect(report.attributes['expired_count']).to eq 1
+          expect(report.attributes['failed_count']).to eq 2
+        end
+      end
+
+      context 'with incomplete submission' do
+        before do
+          create(:guess_word_submission, :with_guesses, guess_count: 10, guess_word: guess_word)
+          create_list(:guess_word_submission, 2, :success, :with_guesses, guess_count: 2, guess_word: guess_word)
+        end
+
+        it 'returns average guesses of completed submission' do
+          query = GuessWord.with_reports
+          expect(query).to contain_exactly(guess_word)
+          report = query.first!
+
+          expect(report.guess_word_submissions_count).to eq 3
+          expect(report.attributes['completed_count']).to eq 2
+          expect(report.attributes['avg_guesses_count']).to eq 2
+          expect(report.attributes['in_progress_count']).to eq 1
+          expect(report.attributes['success_count']).to eq 2
+          expect(report.attributes['expired_count']).to eq 0
+          expect(report.attributes['failed_count']).to eq 0
+        end
+      end
+    end
   end
 end
