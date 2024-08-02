@@ -16,7 +16,8 @@ RSpec.describe PointActivity, type: :model do
         .with_values({ redeem: 'Redeem',
                        daily_challenge: 'DailyChallenge',
                        daily_check_in: 'DailyCheckIn',
-                       answered_question: 'AnsweredQuestion' })
+                       answered_question: 'AnsweredQuestion',
+                       completed_guess_word: 'CompletedGuessWord' })
         .backed_by_column_of_type(:string)
     }
   end

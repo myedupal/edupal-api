@@ -113,6 +113,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:sum_times) { 6 }
         let(:months) { 6 }
         before do
+          travel_to Time.zone.parse('2024-07-25 17:00:00')
           user = create(:user)
           create(:daily_check_in, date: 0.day.ago, user: user)
           create(:daily_check_in, date: 1.day.ago, user: user)
@@ -128,6 +129,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
             create(:daily_check_in, date: i.months.ago)
           end
         end
+        after { travel_back }
 
         run_test! do |response|
           data = JSON.parse(response.body)
@@ -164,6 +166,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:sum_times) { 6 }
         let(:months) { 6 }
         before do
+          travel_to Time.zone.parse('2024-07-25 17:00:00')
           user = create(:user)
           create(:submission, submitted_at: 0.day.ago, user: user)
           create(:submission, submitted_at: 1.day.ago, user: user)
@@ -179,6 +182,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
             create(:submission, submitted_at: i.months.ago)
           end
         end
+        after { travel_back }
 
         run_test! do |response|
           data = JSON.parse(response.body)
@@ -212,6 +216,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:sum_prepend) { 3 }
         let(:months) { 3 }
         before do
+          travel_to Time.zone.parse('2024-07-25 17:00:00')
           user = create(:user)
           create(:submission, submitted_at: 0.day.ago, user: user)
           create(:submission, submitted_at: 1.day.ago, user: user)
@@ -229,6 +234,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
             create(:submission, submitted_at: i.months.ago)
           end
         end
+        after { travel_back }
 
         run_test! do |response|
           data = JSON.parse(response.body)
@@ -262,6 +268,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:sum_times) { 1 }
         let(:months) { 2 }
         before do
+          travel_to Time.zone.parse('2024-07-25 17:00:00')
           user = create(:user)
           another_user = create(:user)
           4.times do |i|
@@ -277,6 +284,8 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
           create(:point_activity, action_type: :daily_challenge, created_at: 1.month.ago, user: another_user)
           create(:point_activity, action_type: :answered_question, created_at: 1.month.ago, user: another_user)
         end
+        after { travel_back }
+
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['sum'].keys).to eq(%w[0 1 2 7])
