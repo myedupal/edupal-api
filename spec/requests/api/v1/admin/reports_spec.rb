@@ -4,6 +4,10 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
   let(:user) { create(:admin) }
   let(:Authorization) { bearer_token_for(user) }
 
+  before do
+    travel_to(Time.zone.parse('2024-07-15'))
+  end
+
   path '/api/v1/admin/reports/user_current_streaks_count' do
     get('show current users streak') do
       tags 'Admin Report'
@@ -114,11 +118,11 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:months) { 6 }
         before do
           user = create(:user)
-          create(:daily_check_in, date: 0.day.ago, user: user)
+          create(:daily_check_in, date: 0.days.ago, user: user)
           create(:daily_check_in, date: 1.day.ago, user: user)
-          create(:daily_check_in, date: 2.day.ago, user: user)
+          create(:daily_check_in, date: 2.days.ago, user: user)
           create(:daily_check_in, date: 1.month.ago, user: user)
-          create(:daily_check_in, date: 2.month.ago, user: user)
+          create(:daily_check_in, date: 2.months.ago, user: user)
 
           [1, 2, 3, 7, 8].map do |i|
             create(:daily_check_in, date: i.days.ago)
@@ -165,11 +169,11 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:months) { 6 }
         before do
           user = create(:user)
-          create(:submission, submitted_at: 0.day.ago, user: user)
+          create(:submission, submitted_at: 0.days.ago, user: user)
           create(:submission, submitted_at: 1.day.ago, user: user)
-          create(:submission, submitted_at: 2.day.ago, user: user)
+          create(:submission, submitted_at: 2.days.ago, user: user)
           create(:submission, submitted_at: 1.month.ago, user: user)
-          create(:submission, submitted_at: 2.month.ago, user: user)
+          create(:submission, submitted_at: 2.months.ago, user: user)
 
           [1, 2, 3, 7, 8].map do |i|
             create(:submission, submitted_at: i.days.ago)
@@ -213,13 +217,13 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
         let(:months) { 3 }
         before do
           user = create(:user)
-          create(:submission, submitted_at: 0.day.ago, user: user)
+          create(:submission, submitted_at: 0.days.ago, user: user)
           create(:submission, submitted_at: 1.day.ago, user: user)
-          create(:submission, submitted_at: 2.day.ago, user: user)
-          create(:submission, submitted_at: 3.day.ago, user: user)
+          create(:submission, submitted_at: 2.days.ago, user: user)
+          create(:submission, submitted_at: 3.days.ago, user: user)
 
           create(:submission, submitted_at: 1.month.ago, user: user)
-          create(:submission, submitted_at: 2.month.ago, user: user)
+          create(:submission, submitted_at: 2.months.ago, user: user)
 
           [1, 2].map do |i|
             create(:submission, submitted_at: i.days.ago)
@@ -267,16 +271,17 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
           4.times do |i|
             create(:point_activity, action_type: :daily_check_in, created_at: i.day.ago, user: user)
           end
-          create(:point_activity, action_type: :daily_challenge, created_at: 0.day.ago, user: user)
-          create(:point_activity, action_type: :answered_question, created_at: 0.day.ago, user: another_user)
-          create(:point_activity, action_type: :redeem, created_at: 0.day.ago, user: another_user)
-          create(:point_activity, action_type: :redeem, created_at: 3.day.ago, user: user)
+          create(:point_activity, action_type: :daily_challenge, created_at: 0.days.ago, user: user)
+          create(:point_activity, action_type: :answered_question, created_at: 0.days.ago, user: another_user)
+          create(:point_activity, action_type: :redeem, created_at: 0.days.ago, user: another_user)
+          create(:point_activity, action_type: :redeem, created_at: 3.days.ago, user: user)
 
           create(:point_activity, action_type: :daily_check_in, created_at: 1.month.ago, user: user)
           create(:point_activity, action_type: :daily_check_in, created_at: 1.month.ago, user: another_user)
           create(:point_activity, action_type: :daily_challenge, created_at: 1.month.ago, user: another_user)
           create(:point_activity, action_type: :answered_question, created_at: 1.month.ago, user: another_user)
         end
+
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['sum'].keys).to eq(%w[0 1 2 7])

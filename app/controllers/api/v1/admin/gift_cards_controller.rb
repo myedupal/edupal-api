@@ -4,7 +4,7 @@ class Api::V1::Admin::GiftCardsController < Api::V1::Admin::ApplicationControlle
 
   def index
     @pagy, @gift_cards = pagy(@gift_cards)
-    render json: @gift_card, include: %w[plan created_by]
+    render json: @gift_cards, include: %w[plan created_by]
   end
 
   def show
