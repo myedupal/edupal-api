@@ -48,6 +48,14 @@ Rails.application.routes.draw do
         resources :submissions, only: [:index, :show]
         resources :submission_answers, only: [:index]
         resources :gift_cards
+
+        resources :guess_words do
+          get :export_csv, on: :collection
+        end
+        resources :guess_word_submissions, only: [:index, :show]
+        resources :guess_word_dictionaries do
+          post :import, on: :collection
+        end
       end
 
       namespace :user do
@@ -93,8 +101,18 @@ Rails.application.routes.draw do
           get :daily_challenge, on: :collection
           get :mcq, on: :collection
           get :points, on: :collection
+          get :guess_word, on: :collection
         end
         resources :point_activities, only: [:index]
+
+        resources :guess_words, only: [:index, :show] do
+          resources :guess_word_submissions, only: [:index] do
+            post :guess, on: :collection, action: :direct_guess
+          end
+        end
+        resources :guess_word_submissions, only: [:index, :show, :create] do
+          post :guess, on: :member
+        end
       end
 
       namespace :web do
