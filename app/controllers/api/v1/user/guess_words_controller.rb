@@ -9,7 +9,6 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
   end
 
   def show
-    @guess_words = load_guess_word_submissions(@guess_words) if params[:with_submission]
     render json: @guess_word, include: ['subject', 'guess_word_submissions', 'guess_word_submissions.guesses']
   end
 
@@ -17,6 +16,7 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
 
     def set_guess_word
       @guess_word = pundit_scope(GuessWord.includes(:subject, :guess_word_submissions)).find(params[:id])
+      @guess_word = load_guess_word_submission(@guess_word) if params[:with_submission]
       pundit_authorize(@guess_word) if @guess_word
     end
 
@@ -53,5 +53,13 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
       end
 
       guess_words
+    end
+
+    def load_guess_word_submission(guess_word)
+      guess_word_submissions = GuessWordSubmission.where(user: current_user, guess_word_id: guess_word.id).includes(:guesses)
+
+      guess_word.user_guess_word_submissions = guess_word_submissions.select { |gws| gws.guess_word_id == guess_word.id }
+
+      guess_word
     end
 end

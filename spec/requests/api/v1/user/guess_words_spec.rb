@@ -24,7 +24,7 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
       parameter name: :completed, in: :query, type: :string, required: false, description: 'Filter by guess word with completed user submission'
       parameter name: :incomplete, in: :query, type: :string, required: false, description: 'Filter by guess word with incomplete user submission'
       parameter name: :available, in: :query, type: :string, required: false, description: 'Filter by guess word that are incomplete or unsubmitted by user submission'
-      parameter name: :with_submission, in: :query, type: :string, required: false, description: 'Include current user submissions'
+      parameter name: :with_submission, in: :query, type: :string, required: false, description: 'Include current user submissions in guess word'
 
       response(200, 'successful') do
         let!(:guess_word) { create(:guess_word) }
@@ -75,9 +75,10 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
       produces 'application/json'
       security [{ bearerAuth: nil }]
 
-      parameter name: :include_submissions, in: :query, type: :string, required: false, description: 'Include user submission in guess_words'
+      parameter name: :with_submission, in: :query, type: :string, required: false, description: 'Include current user submissions in guess word'
 
       response(200, 'successful') do
+        let(:with_submission) { true }
         before do
           create(:guess_word_submission, guess_word: guess_word, user: user).tap do |guess_word_submission|
             create_list(:guess_word_submission_guess, 3, guess_word_submission: guess_word_submission)
