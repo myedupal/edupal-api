@@ -46,14 +46,16 @@ class Api::V1::Admin::GuessWordDictionariesController < Api::V1::Admin::Applicat
       uploaded_file = params.permit(:file)[:file]
       filename = uploaded_file.tempfile.path
 
-      File.foreach(filename) do |word|
-        word = word.strip
-        if word.length.positive?
-          read += 1
-
-          entry = GuessWordDictionary.create(word: word)
-          imported += 1 if entry.persisted?
+      File.foreach(filename).each_slice(5000) do |words|
+        read += words.length
+        # insert_all does not instantiate any models nor does it trigger Active Record callbacks or validations.
+        # therefore word formatting has to be made beforehand
+        entries = words.each_with_object([]) do |entry, memo|
+          memo << { word: entry.strip.downcase }
         end
+
+        result = GuessWordDictionary.insert_all(entries, unique_by: :word, returning: :id)
+        imported += result.length
       end
     end
 

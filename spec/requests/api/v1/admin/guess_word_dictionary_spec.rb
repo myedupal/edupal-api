@@ -68,16 +68,17 @@ RSpec.describe "api/v1/admin/guess_word_dictionaries", type: :request do
         run_test! do |response|
           data = JSON.parse(response.body)
 
-          expect(data['read']).to eq 3
-          expect(data['imported']).to eq 3
-          expect(GuessWordDictionary.count).to eq 3
-          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3')
+          expect(data['read']).to eq 6
+          expect(data['imported']).to eq 5
+          expect(GuessWordDictionary.count).to eq 5
+          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3','word4','word5')
         end
       end
 
       context 'with existing words' do
         before do
           create(:guess_word_dictionary, word: 'word1')
+          create(:guess_word_dictionary, word: 'word2')
         end
 
         it 'imports new words' do
@@ -86,10 +87,10 @@ RSpec.describe "api/v1/admin/guess_word_dictionaries", type: :request do
           expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
 
-          expect(data['read']).to eq 3
-          expect(data['imported']).to eq 2
-          expect(GuessWordDictionary.count).to eq 3
-          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3')
+          expect(data['read']).to eq 6
+          expect(data['imported']).to eq 3
+          expect(GuessWordDictionary.count).to eq 5
+          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3','word4','word5')
         end
       end
     end
