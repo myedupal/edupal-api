@@ -24,9 +24,11 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
       parameter name: :completed, in: :query, type: :string, required: false, description: 'Filter by guess word with completed user submission'
       parameter name: :incomplete, in: :query, type: :string, required: false, description: 'Filter by guess word with incomplete user submission'
       parameter name: :available, in: :query, type: :string, required: false, description: 'Filter by guess word that are incomplete or unsubmitted by user submission'
+      parameter name: :with_submission, in: :query, type: :string, required: false, description: 'Include current user submissions'
 
       response(200, 'successful') do
         let!(:guess_word) { create(:guess_word) }
+        let(:with_submission) { true }
         let!(:guess_word_with_others_submission) do
           create(:guess_word).tap do |guess_word|
             create(:guess_word_submission, guess_word: guess_word)
@@ -58,7 +60,7 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
           data['guess_words'].find { |guess_word| guess_word['id'] == completed_guess_word.id }.tap do |guess_word|
             expect(guess_word['answer']).to_not be_present
             expect(guess_word['answer_length']).to be_present
-            expect(guess_word['guess_word_submissions']).to_not be_present
+            expect(guess_word['user_guess_word_submissions']).to be_present
           end
         end
       end

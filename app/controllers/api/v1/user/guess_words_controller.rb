@@ -4,10 +4,12 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
 
   def index
     @pagy, @guess_words = pagy(@guess_words)
+    @guess_words = load_guess_word_submissions(@guess_words) if params[:with_submission]
     render json: @guess_words, include: ['subject']
   end
 
   def show
+    @guess_words = load_guess_word_submissions(@guess_words) if params[:with_submission]
     render json: @guess_word, include: ['subject', 'guess_word_submissions', 'guess_word_submissions.guesses']
   end
 
@@ -40,5 +42,16 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
 
     def pundit_authorize(record)
       authorize(record, policy_class: Api::V1::User::GuessWordPolicy)
+    end
+
+    def load_guess_word_submissions(guess_words)
+      ids = guess_words.pluck(:id)
+      guess_word_submissions = GuessWordSubmission.where(user: current_user, guess_word_id: ids).includes(:guesses)
+
+      guess_words.each do |guess_word|
+        guess_word.user_guess_word_submissions = guess_word_submissions.select { |gws| gws.guess_word_id == guess_word.id }
+      end
+
+      guess_words
     end
 end

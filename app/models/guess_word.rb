@@ -1,6 +1,7 @@
 class GuessWord < ApplicationRecord
   belongs_to :subject
   has_many :guess_word_submissions
+  attr_accessor :user_guess_word_submissions
 
   validates :answer, presence: true
   validates :attempts, presence: true
