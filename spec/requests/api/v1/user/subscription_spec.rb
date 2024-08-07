@@ -101,6 +101,21 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
           run_test!
         end
       end
+
+      context 'with referring user' do
+        let(:referred_by) { create(:user) }
+        let(:user) { create(:user, referred_by: referred_by) }
+        it 'create referral activity' do
+          post '/api/v1/user/subscriptions', headers: { Authorization: bearer_token_for(user) }, params: { subscription: { price_id: price.id } }
+
+          expect(response).to have_http_status(:ok)
+          data = JSON.parse(response.body)
+          expect(referred_by.reload.referral_activities.count).to eq(1)
+          referral_activity = referred_by.referral_activities.first!
+          expect(referral_activity.user).to eq(referred_by)
+          expect(referral_activity.referral_source_id).to eq(data['subscription']['id'])
+        end
+      end
     end
   end
 

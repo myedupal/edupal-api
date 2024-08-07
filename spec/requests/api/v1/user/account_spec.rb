@@ -103,4 +103,34 @@ RSpec.describe 'api/v1/user/account', type: :request do
       end
     end
   end
+
+  path '/api/v1/user/account/update_referral' do
+    post('update account referral') do
+      tags 'User Account'
+      produces 'application/json'
+      consumes 'application/json'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        properties: {
+          referral_code: { type: :string }
+        }
+      }
+
+      let!(:referred_by) { create(:user) }
+
+      response(200, 'successful', save_request_example: :data) do
+        let(:data) { { referral_code: referred_by.nanoid } }
+
+        run_test!
+      end
+
+      response(422, 'successful', save_request_example: :data) do
+        let(:data) { { referral_code: user.nanoid } }
+
+        run_test!
+      end
+    end
+  end
 end

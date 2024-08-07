@@ -25,6 +25,14 @@ class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
     render json: { zklogin_salt: current_user.zklogin_salt }
   end
 
+  def update_referral
+    if current_user.update_referral(params[:referral_code])
+      render json: current_user
+    else
+      render json: ErrorResponse.new(current_user), status: :unprocessable_entity
+    end
+  end
+
   private
 
     def account_params

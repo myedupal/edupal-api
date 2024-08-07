@@ -18,6 +18,7 @@ SimpleCov.start 'rails'
 require "pundit/rspec"
 require 'aasm/rspec'
 require 'bearer_token_helper'
+require "money-rails/test_helpers"
 
 # remember to uncomment webmock gem in Gemfile
 # disable all external connections
