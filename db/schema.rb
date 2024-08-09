@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_01_092132) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -35,6 +35,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_01_092132) do
     t.integer "maximum_streak", default: 0, null: false
     t.uuid "selected_curriculum_id"
     t.integer "guess_word_daily_streak", default: 0, null: false
+    t.string "oauth2_iss"
+    t.string "oauth2_aud"
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
