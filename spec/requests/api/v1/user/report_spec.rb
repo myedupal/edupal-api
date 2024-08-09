@@ -232,6 +232,7 @@ RSpec.describe 'api/v1/user/reports', type: :request do
       response(200, 'successful') do
         run_test! do |response|
           data = JSON.parse(response.body)
+          expect(data['subject_name']).to eq(subject.name)
           expect(data['average_time']).to_not be_nil
           expect(data['total_correct_questions']).to eq(8)
           expect(data['total_questions_attempted']).to eq(17)

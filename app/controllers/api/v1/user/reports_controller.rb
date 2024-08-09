@@ -145,14 +145,15 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
 
   def subject
     render ErrorResponse("Missing subject id") unless params[:subject_id].present?
-    render ErrorResponse("Invalid subject id") unless Subject.find_by(id: params[:subject_id]).present?
+    subject = Subject.find_by(id: params[:subject_id])
+    render ErrorResponse("Invalid subject id") unless subject.present?
 
     submission_answers = current_user.submission_answers
                            .joins({ question: [:subject, :topics] }, :submission)
                            .where(submission: { challenge_id: nil, status: :submitted })
                            .where(question: {
                              question_type: Question.question_types[:mcq],
-                             subject_id: params[:subject_id]
+                             subject_id: subject.id
                            })
 
     average_time = submission_answers.distinct(:submission_id).average('submission.completion_seconds').to_f
@@ -177,6 +178,7 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
                        end
 
     render json: {
+      subject_name: subject.name,
       average_time: average_time,
       total_correct_questions: total_correct_questions,
       total_questions_attempted: total_questions_attempted,
