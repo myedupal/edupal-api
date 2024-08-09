@@ -50,8 +50,11 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
     average_time = submission_answers.distinct(:submission_id).average('submission.completion_seconds').to_f
     total_correct_questions = submission_answers.where(is_correct: true).count
     total_questions_attempted = submission_answers.count
-    stats = submission_answers.group("subjects.name")
+    stats = submission_answers.group("subjects.id")
+                              .select("subjects.id as id")
                               .select("subjects.name as subject_name")
+                              .select('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) as correct_count')
+                              .select('COUNT(*) as total_count')
                               .order(Arel.sql('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) / COUNT(*)::float DESC'))
 
     strength_subject = if stats.length > 1
@@ -69,7 +72,8 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
       total_correct_questions: total_correct_questions,
       total_questions_attempted: total_questions_attempted,
       strength_subject: strength_subject,
-      weakness_subject: weakness_subject
+      weakness_subject: weakness_subject,
+      stats: stats
     }, status: :ok
   end
 
@@ -137,5 +141,48 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
       status_count: status,
       daily_streak: current_user.guess_word_daily_streak
     }
+  end
+
+  def subject
+    render ErrorResponse("Missing subject id") unless params[:subject_id].present?
+    render ErrorResponse("Invalid subject id") unless Subject.find_by(id: params[:subject_id]).present?
+
+    submission_answers = current_user.submission_answers
+                           .joins({ question: [:subject, :topics] }, :submission)
+                           .where(submission: { challenge_id: nil, status: :submitted })
+                           .where(question: {
+                             question_type: Question.question_types[:mcq],
+                             subject_id: params[:subject_id]
+                           })
+
+    average_time = submission_answers.distinct(:submission_id).average('submission.completion_seconds').to_f
+    total_correct_questions = submission_answers.where(is_correct: true).count
+    total_questions_attempted = submission_answers.count
+    stats = submission_answers.group("topics.id")
+              .select("topics.id as id")
+              .select("topics.name as topic_name")
+              .select('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) as correct_count')
+              .select('COUNT(*) as total_count')
+              .order(Arel.sql('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) / COUNT(*)::float DESC'))
+
+    strength_subject = if stats.length > 1
+                         stats.first.topic_name
+                       else
+                         'Not enough data'
+                       end
+    weakness_subject = if stats.length > 1
+                         stats.last.topic_name
+                       else
+                         'Not enough data'
+                       end
+
+    render json: {
+      average_time: average_time,
+      total_correct_questions: total_correct_questions,
+      total_questions_attempted: total_questions_attempted,
+      strength_subject: strength_subject,
+      weakness_subject: weakness_subject,
+      stats: stats
+    }, status: :ok
   end
 end

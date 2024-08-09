@@ -57,8 +57,12 @@ RSpec.describe 'api/v1/user/reports', type: :request do
         current_time = Time.current
         travel_to current_time - Faker::Number.within(range: 1..6).hours
         biology_submission = create(:submission, challenge: nil, user: user)
-        biology_questions.each do |question|
-          create(:submission_answer, submission: biology_submission, question: question)
+        biology_questions.each.with_index do |question, i|
+          if i < 3
+            create(:submission_answer, :correct_answer, submission: biology_submission, question: question)
+          else
+            create(:submission_answer, :incorrect_answer, submission: biology_submission, question: question)
+          end
         end
 
         travel_to current_time + Faker::Number.within(range: 1..30).minutes
@@ -67,7 +71,7 @@ RSpec.describe 'api/v1/user/reports', type: :request do
         travel_to current_time - Faker::Number.within(range: 1..6).hours
         physics_submission = create(:submission, challenge: nil, user: user)
         physics_questions.each do |question|
-          create(:submission_answer, submission: physics_submission, question: question)
+          create(:submission_answer, :correct_answer, submission: physics_submission, question: question)
         end
 
         travel_to current_time + Faker::Number.within(range: 1..30).minutes
@@ -76,7 +80,7 @@ RSpec.describe 'api/v1/user/reports', type: :request do
         travel_to current_time - Faker::Number.within(range: 1..6).hours
         chemistry_submission = create(:submission, challenge: nil, user: user)
         chemistry_questions.each do |question|
-          create(:submission_answer, submission: chemistry_submission, question: question)
+          create(:submission_answer, :incorrect_answer, submission: chemistry_submission, question: question)
         end
 
         travel_to current_time + Faker::Number.within(range: 1..30).minutes
@@ -84,7 +88,24 @@ RSpec.describe 'api/v1/user/reports', type: :request do
       end
 
       response(200, 'successful') do
-        run_test!
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['average_time']).to_not be_nil
+          expect(data['total_correct_questions']).to eq(13)
+          expect(data['total_questions_attempted']).to eq(30)
+          expect(data['strength_subject']).to eq('Physics')
+          expect(data['weakness_subject']).to eq('Chemistry')
+          expect(data['stats'].count).to eq(3)
+          expect(data['stats'].first['id']).to eq(physics.id)
+          expect(data['stats'].first['correct_count']).to eq(10)
+          expect(data['stats'].first['total_count']).to eq(10)
+          expect(data['stats'].second['id']).to eq(biology.id)
+          expect(data['stats'].second['correct_count']).to eq(3)
+          expect(data['stats'].second['total_count']).to eq(10)
+          expect(data['stats'].third['id']).to eq(chemistry.id)
+          expect(data['stats'].third['correct_count']).to eq(0)
+          expect(data['stats'].third['total_count']).to eq(10)
+        end
       end
     end
   end
@@ -137,6 +158,95 @@ RSpec.describe 'api/v1/user/reports', type: :request do
           expect(data['completed_count']).to eq(7)
           expect(data['status_count']).to eq("expired" => 1, "failed" => 1, "in_progress" => 3, "success" => 5)
           expect(data['daily_streak']).to eq(0)
+        end
+      end
+    end
+  end
+
+  path '/api/v1/user/reports/subject' do
+    parameter name: :subject_id, in: :query, type: :string, required: true, description: 'subject id'
+
+    let(:subject) { biology }
+    let(:subject_id) { subject.id }
+    let(:topic_chapter1) { create(:topic, subject: subject, name: 'Biology - Chapter 1') }
+    let(:topic_chapter2) { create(:topic, subject: subject, name: 'Biology - Chapter 2') }
+    let(:topic_chapter3) { create(:topic, subject: subject, name: 'Biology - Chapter 3') }
+
+    let!(:biology_chapter1) do
+      create_list(:question, 7, :mcq_with_answer, subject: subject, question_type: :mcq).each do |question|
+        create(:question_topic, question: question, topic: topic_chapter1)
+      end
+    end
+    let!(:biology_chapter2) do
+      create_list(:question, 5, :mcq_with_answer, subject: subject, question_type: :mcq).each do |question|
+        create(:question_topic, question: question, topic: topic_chapter2)
+      end
+    end
+    let!(:biology_chapter3) do
+      create_list(:question, 5, :mcq_with_answer, subject: subject, question_type: :mcq).each do |question|
+        create(:question_topic, question: question, topic: topic_chapter3)
+      end
+    end
+
+    get('subject report') do
+      tags 'User Reports'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      before do
+        current_time = Time.current
+        travel_to current_time - Faker::Number.within(range: 1..6).hours
+        biology1_submission = create(:submission, challenge: nil, user: user)
+        biology_chapter1.each do |question|
+          create(:submission_answer, :incorrect_answer, submission: biology1_submission, question: question)
+        end
+
+        travel_to current_time + Faker::Number.within(range: 1..30).minutes
+        biology1_submission.submit!
+
+        current_time = Time.current
+        travel_to current_time - Faker::Number.within(range: 1..6).hours
+        biology2_submission = create(:submission, challenge: nil, user: user)
+        biology_chapter2.each do |question|
+          create(:submission_answer, :correct_answer, submission: biology2_submission, question: question)
+        end
+
+        travel_to current_time + Faker::Number.within(range: 1..30).minutes
+        biology2_submission.submit!
+
+        current_time = Time.current
+        travel_to current_time - Faker::Number.within(range: 1..6).hours
+        biology3_submission = create(:submission, challenge: nil, user: user)
+        biology_chapter3.each.with_index do |question, i|
+          if i <= 2
+            create(:submission_answer, :correct_answer, submission: biology3_submission, question: question)
+          else
+            create(:submission_answer, :incorrect_answer, submission: biology3_submission, question: question)
+          end
+        end
+
+        travel_to current_time + Faker::Number.within(range: 1..30).minutes
+        biology3_submission.submit!
+      end
+
+      response(200, 'successful') do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['average_time']).to_not be_nil
+          expect(data['total_correct_questions']).to eq(8)
+          expect(data['total_questions_attempted']).to eq(17)
+          expect(data['strength_subject']).to eq('Biology - Chapter 2')
+          expect(data['weakness_subject']).to eq('Biology - Chapter 1')
+          expect(data['stats'].count).to eq(3)
+          expect(data['stats'].first['id']).to eq(topic_chapter2.id)
+          expect(data['stats'].first['correct_count']).to eq(5)
+          expect(data['stats'].first['total_count']).to eq(5)
+          expect(data['stats'].second['id']).to eq(topic_chapter3.id)
+          expect(data['stats'].second['correct_count']).to eq(3)
+          expect(data['stats'].second['total_count']).to eq(5)
+          expect(data['stats'].third['id']).to eq(topic_chapter1.id)
+          expect(data['stats'].third['correct_count']).to eq(0)
+          expect(data['stats'].third['total_count']).to eq(7)
         end
       end
     end
