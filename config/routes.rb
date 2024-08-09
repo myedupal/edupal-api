@@ -102,6 +102,7 @@ Rails.application.routes.draw do
           get :mcq, on: :collection
           get :points, on: :collection
           get :guess_word, on: :collection
+          get :subject, on: :collection
         end
         resources :point_activities, only: [:index]
 
