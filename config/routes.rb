@@ -56,6 +56,11 @@ Rails.application.routes.draw do
         resources :guess_word_dictionaries do
           post :import, on: :collection
         end
+
+        resources :referral_activities, only: [:index, :show] do
+          post :nullify, on: :member
+          post :revalidate, on: :member
+        end
       end
 
       namespace :user do
@@ -71,6 +76,7 @@ Rails.application.routes.draw do
         resource :account, only: [:show, :update] do
           put :password, on: :collection
           get :zklogin_salt, on: :collection
+          post :update_referral, on: :collection
         end
         resource :stripe, only: [] do
           collection do
@@ -114,6 +120,8 @@ Rails.application.routes.draw do
         resources :guess_word_submissions, only: [:index, :show, :create] do
           post :guess, on: :member
         end
+
+        resources :referral_activities, only: [:index, :show]
       end
 
       namespace :web do
