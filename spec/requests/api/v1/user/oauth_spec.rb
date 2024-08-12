@@ -16,11 +16,14 @@ RSpec.describe 'api/v1/user/oauth', type: :request do
       }
 
       let(:data) { { id_token: 'google_id_token' } }
+      let(:email) { user.email }
       let(:google_payload) do
         {
-          'email' => user.email,
+          'email' => email,
           'name' => user.name,
           'sub' => SecureRandom.uuid,
+          'iss' => SecureRandom.uuid,
+          'aud' => SecureRandom.uuid,
           'picture' => Faker::Internet.url
         }
       end
@@ -37,13 +40,21 @@ RSpec.describe 'api/v1/user/oauth', type: :request do
           run_test! do |response|
             parsed_response = JSON.parse(response.body)
             expect(parsed_response['meta']['zklogin_salt']).to eq('salt')
+            expect(parsed_response['user']['oauth2_sub']).to eq(google_payload['sub'])
+            expect(parsed_response['user']['oauth2_iss']).to eq(google_payload['iss'])
+            expect(parsed_response['user']['oauth2_aud']).to eq(google_payload['aud'])
           end
         end
 
         context 'when user email does not exist' do
+          let(:email) { Faker::Internet.email }
+
           run_test! do |response|
             parsed_response = JSON.parse(response.body)
             expect(parsed_response['meta']['zklogin_salt']).to eq('salt')
+            expect(parsed_response['user']['oauth2_sub']).to eq(google_payload['sub'])
+            expect(parsed_response['user']['oauth2_iss']).to eq(google_payload['iss'])
+            expect(parsed_response['user']['oauth2_aud']).to eq(google_payload['aud'])
           end
         end
       end
