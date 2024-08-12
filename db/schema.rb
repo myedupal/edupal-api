@@ -37,8 +37,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
     t.integer "guess_word_daily_streak", default: 0, null: false
     t.string "oauth2_iss"
     t.string "oauth2_aud"
+    t.string "nanoid"
+    t.uuid "referred_by_id"
+    t.integer "referred_count", default: 0
+    t.bigint "referred_credit_cents", default: 0, null: false
+    t.string "referred_credit_currency", default: "USD", null: false
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
+    t.index ["referred_by_id"], name: "index_accounts_on_referred_by_id"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
     t.index ["selected_curriculum_id"], name: "index_accounts_on_selected_curriculum_id"
   end
@@ -301,6 +307,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
     t.index ["subject_id"], name: "index_questions_on_subject_id"
   end
 
+  create_table "referral_activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id"
+    t.string "referral_source_type"
+    t.uuid "referral_source_id"
+    t.string "referral_type"
+    t.boolean "voided", default: false, null: false
+    t.bigint "credit_cents", default: 0, null: false
+    t.string "credit_currency", default: "USD", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["referral_source_type", "referral_source_id"], name: "index_referral_activities_on_referral_source"
+    t.index ["user_id"], name: "index_referral_activities_on_user_id"
+  end
+
   create_table "saved_user_exams", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.uuid "user_exam_id", null: false
@@ -450,6 +470,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
     t.index ["subject_id"], name: "index_user_exams_on_subject_id"
   end
 
+  add_foreign_key "accounts", "accounts", column: "referred_by_id"
   add_foreign_key "accounts", "curriculums", column: "selected_curriculum_id"
   add_foreign_key "activities", "accounts", column: "user_id"
   add_foreign_key "activities", "exams"
@@ -480,6 +501,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
   add_foreign_key "question_topics", "topics"
   add_foreign_key "questions", "exams"
   add_foreign_key "questions", "subjects"
+  add_foreign_key "referral_activities", "accounts", column: "user_id"
   add_foreign_key "saved_user_exams", "accounts", column: "user_id"
   add_foreign_key "saved_user_exams", "user_exams"
   add_foreign_key "sessions", "accounts"
