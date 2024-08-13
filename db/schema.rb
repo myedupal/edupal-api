@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -35,13 +35,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
     t.integer "maximum_streak", default: 0, null: false
     t.uuid "selected_curriculum_id"
     t.integer "guess_word_daily_streak", default: 0, null: false
-    t.string "oauth2_iss"
-    t.string "oauth2_aud"
     t.string "nanoid"
     t.uuid "referred_by_id"
     t.integer "referred_count", default: 0
     t.bigint "referred_credit_cents", default: 0, null: false
     t.string "referred_credit_currency", default: "USD", null: false
+    t.string "oauth2_iss"
+    t.string "oauth2_aud"
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["referred_by_id"], name: "index_accounts_on_referred_by_id"
@@ -447,6 +447,29 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
     t.index ["subject_id"], name: "index_topics_on_subject_id"
   end
 
+  create_table "user_collection_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_collection_id", null: false
+    t.uuid "question_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["question_id", "user_collection_id"], name: "index_question_user_collections_on_question_and_collection", unique: true
+    t.index ["question_id"], name: "index_user_collection_questions_on_question_id"
+    t.index ["user_collection_id"], name: "index_user_collection_questions_on_user_collection_id"
+  end
+
+  create_table "user_collections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "curriculum_id", null: false
+    t.string "collection_type", null: false
+    t.string "title"
+    t.string "description"
+    t.integer "questions_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["curriculum_id"], name: "index_user_collections_on_curriculum_id"
+    t.index ["user_id"], name: "index_user_collections_on_user_id"
+  end
+
   create_table "user_exam_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_exam_id", null: false
     t.uuid "question_id", null: false
@@ -518,6 +541,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "prices"
   add_foreign_key "topics", "subjects"
+  add_foreign_key "user_collection_questions", "questions"
+  add_foreign_key "user_collection_questions", "user_collections"
+  add_foreign_key "user_collections", "accounts", column: "user_id"
+  add_foreign_key "user_collections", "curriculums"
   add_foreign_key "user_exam_questions", "questions"
   add_foreign_key "user_exam_questions", "user_exams"
   add_foreign_key "user_exams", "accounts", column: "created_by_id"
