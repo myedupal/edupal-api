@@ -13,6 +13,8 @@ RSpec.describe Question, type: :model do
     it { is_expected.to have_many(:activity_questions).dependent(:destroy) }
     it { is_expected.to have_many(:user_exam_questions).dependent(:destroy) }
     it { is_expected.to have_many(:point_activities).dependent(:destroy) }
+    it { is_expected.to have_many(:user_collection_questions).dependent(:destroy) }
+    it { is_expected.to have_many(:user_collections).through(:user_collection_questions) }
   end
 
   describe 'nested attributes' do

@@ -4,17 +4,19 @@ class Api::V1::User::QuestionsController < Api::V1::User::ApplicationController
 
   def index
     @pagy, @questions = pagy(@questions)
-    render json: @questions
+    @questions = load_user_collections(@questions) if params[:with_collections]
+    render json: @questions, with_collections: params[:with_collections]
   end
 
   def show
-    render json: @question
+    render json: @question, with_collections: params[:with_collections]
   end
 
   private
 
     def set_question
       @question = pundit_scope(Question).find(params[:id])
+      @question = load_user_collection(@question) if params[:with_collections]
       pundit_authorize(@question) if @question
     end
 
@@ -52,5 +54,26 @@ class Api::V1::User::QuestionsController < Api::V1::User::ApplicationController
       else
         attribute_sortable(questions)
       end
+    end
+
+    def load_user_collections(questions)
+      ids = questions.pluck(:id)
+      user_collection_questions = UserCollectionQuestion.includes(:user_collection).where(question_id: ids, user_collection: { user: current_user })
+
+      questions.each do |question|
+        user_collections = user_collection_questions.select { |ucq| ucq.question_id == question.id }.map(&:user_collection)
+
+        question.user_collections_preloaded = user_collections
+      end
+
+      questions
+    end
+
+    def load_user_collection(question)
+      user_collection_questions = UserCollectionQuestion.includes(:user_collection).where(question_id: question.id, user_collection: { user: current_user })
+
+      question.user_collections_preloaded = user_collection_questions.select { |ucq| ucq.question_id == question.id }.map(&:user_collection)
+
+      question
     end
 end
