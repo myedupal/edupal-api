@@ -114,11 +114,4 @@ RSpec.describe User, type: :model do
       end
     end
   end
-
-  describe 'nanoid' do
-    it 'generates a nanoid on create' do
-      user_exam = create(:user_exam)
-      expect(user_exam.nanoid).to be_present
-    end
-  end
 end

@@ -1,5 +1,4 @@
 class User < Account
-  include NanoidGenerator
   devise :database_authenticatable, :validatable, :registerable
 
   belongs_to :selected_curriculum, class_name: 'Curriculum', optional: true

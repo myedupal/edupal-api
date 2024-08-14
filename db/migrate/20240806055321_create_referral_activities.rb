@@ -15,13 +15,5 @@ class CreateReferralActivities < ActiveRecord::Migration[7.0]
     add_reference :accounts, :referred_by, foreign_key: { to_table: :accounts }, type: :uuid, null: true
     add_column :accounts, :referred_count, :integer, default: 0
     add_monetize :accounts, :referred_credit
-
-    reversible do |dir|
-      dir.up do
-        User.find_each do |user|
-          user.set_nanoid
-        end
-      end
-    end
   end
 end

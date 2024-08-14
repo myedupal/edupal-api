@@ -35,14 +35,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_09_092234) do
     t.integer "maximum_streak", default: 0, null: false
     t.uuid "selected_curriculum_id"
     t.integer "guess_word_daily_streak", default: 0, null: false
-    t.string "oauth2_iss"
-    t.string "oauth2_aud"
     t.string "nanoid"
     t.uuid "referred_by_id"
     t.integer "referred_count", default: 0
     t.bigint "referred_credit_cents", default: 0, null: false
     t.string "referred_credit_currency", default: "USD", null: false
+    t.string "oauth2_iss"
+    t.string "oauth2_aud"
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
+    t.index ["nanoid"], name: "index_accounts_on_nanoid", unique: true
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["referred_by_id"], name: "index_accounts_on_referred_by_id"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
