@@ -75,6 +75,9 @@ class Api::V1::Admin::QuestionsController < Api::V1::Admin::ApplicationControlle
         answers_attributes: [:id, :text, :image, :_destroy],
         question_images_attributes: [:id, :image, :display_order, :_destroy],
         question_topics_attributes: [:id, :topic_id, :_destroy]
-      )
+      ).tap do |whitelisted|
+        all_permited = params.require(:question).permit!
+        whitelisted[:metadata] = all_permited[:metadata] if all_permited[:metadata].present?
+      end
     end
 end
