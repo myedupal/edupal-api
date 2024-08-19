@@ -7,9 +7,13 @@ class User < Account
 
   has_one :stripe_profile, dependent: :restrict_with_error
   has_many :subscriptions, dependent: :restrict_with_error
+  has_many :active_subscriptions, -> { active }, class_name: 'Subscription' do
+    def for_plan(plan:)
+      where(plan: plan)
+    end
+  end
   has_many :submissions, dependent: :destroy
   has_many :submission_answers, dependent: :destroy
-  has_one :active_subscription, -> { active }, class_name: 'Subscription'
   has_many :activities, dependent: :destroy
   has_many :saved_user_exams, dependent: :destroy
   has_many :daily_check_ins, dependent: :destroy

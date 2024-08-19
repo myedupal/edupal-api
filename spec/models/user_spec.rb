@@ -5,7 +5,7 @@ RSpec.describe User, type: :model do
     it { is_expected.to belong_to(:selected_curriculum).class_name('Curriculum').optional }
     it { is_expected.to have_one(:stripe_profile).dependent(:restrict_with_error) }
     it { is_expected.to have_many(:subscriptions).dependent(:restrict_with_error) }
-    it { is_expected.to have_one(:active_subscription).class_name('Subscription') }
+    it { is_expected.to have_many(:active_subscriptions).class_name('Subscription') }
     it { is_expected.to have_many(:submissions).dependent(:destroy) }
     it { is_expected.to have_many(:submission_answers).dependent(:destroy) }
     it { is_expected.to have_many(:activities).dependent(:destroy) }
@@ -16,6 +16,21 @@ RSpec.describe User, type: :model do
     it { is_expected.to have_many(:referred_users).class_name('User').with_foreign_key('referred_by_id').counter_cache(:referred_count) }
     it { is_expected.to have_many(:referral_activities).dependent(:destroy) }
     it { is_expected.to have_many(:referred_activities).class_name('ReferralActivity').dependent(:nullify) }
+
+    describe 'extensions' do
+      describe 'active_subscriptions' do
+        describe 'for_plan' do
+          let(:user) { create(:user) }
+          let!(:plan) { create(:plan) }
+          let!(:subscription) { create(:subscription, :active, user: user, plan: plan) }
+          before { create(:subscription, :active, user: user) }
+
+          it 'filters by plan' do
+            expect(user.active_subscriptions.for_plan(plan: plan)).to contain_exactly(subscription)
+          end
+        end
+      end
+    end
   end
 
   describe 'validations' do

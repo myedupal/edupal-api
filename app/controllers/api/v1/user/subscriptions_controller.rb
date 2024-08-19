@@ -1,7 +1,6 @@
 class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationController
   before_action :set_subscription, only: [:show, :update, :cancel]
   before_action :set_subscriptions, only: [:index]
-  before_action :check_user_active_subscription, only: [:redeem]
 
   def index
     @pagy, @subscriptions = pagy(@subscriptions)
@@ -71,6 +70,8 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
 
     return render json: ErrorResponse.new('Invalid gift card code'), status: :bad_request unless @gift_card
 
+    return render json: ErrorResponse.new('You already have an active subscription for this plan'), status: :bad_request if current_user.active_subscriptions.for_plan(plan: @gift_card.plan).present?
+
     return render json: ErrorResponse.new('Gift card has already been redeemed'), status: :bad_request unless @gift_card.redeemable?
 
     return render json: ErrorResponse.new('Gift card has expired'), status: :bad_request if @gift_card.expired?
@@ -128,11 +129,5 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
 
     def cancel_params
       params.require(:subscription).permit(:cancel_reason, :cancel_at_period_end)
-    end
-
-    def check_user_active_subscription
-      return if current_user.active_subscription.blank?
-
-      render json: ErrorResponse.new('User already has an active subscription'), status: :bad_request
     end
 end

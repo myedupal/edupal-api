@@ -68,7 +68,7 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
       context 'when plan type is stripe' do
         response(200, 'successful', save_request_example: :data) do
           run_test! do
-            expect(user.reload.active_subscription).to be_present
+            expect(user.reload.active_subscriptions).to be_present
           end
         end
 
@@ -87,6 +87,10 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
         let(:price) { create(:price, plan: plan) }
 
         response(200, 'successful', save_request_example: :data) do
+          before do
+            create(:subscription, user: user, plan_type: :razorpay, status: :active)
+          end
+
           run_test! do |response|
             response_body = JSON.parse(response.body)
             expect(response_body['subscription']['razorpay_short_url']).to be_present
@@ -95,7 +99,7 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
 
         response(422, 'unprocessable entity') do
           before do
-            create(:subscription, user: user, plan_type: :razorpay, status: :active)
+            create(:subscription, user: user, plan_type: :razorpay, status: :active, plan: plan, price: price)
           end
 
           run_test!
@@ -310,10 +314,14 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
       let(:data) { { subscription: { redeem_code: gift_card.code } } }
 
       response(200, 'successful', save_request_example: :data) do
+        before do
+          create(:subscription, user: user, status: :active)
+        end
+
         run_test! do |response|
           response_body = JSON.parse(response.body)
           expect(response_body['subscription']['status']).to eq('active')
-          expect(user.reload.active_subscription).to be_present
+          expect(user.reload.active_subscriptions).to be_present
         end
       end
 
@@ -323,9 +331,9 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
         run_test!
       end
 
-      context 'when user already has an active subscription' do
+      context 'when user already has an active subscription for plan' do
         before do
-          create(:subscription, user: user, status: :active)
+          create(:subscription, user: user, status: :active, plan: gift_card.plan)
         end
 
         response(400, 'bad_request', save_request_example: :data) do
