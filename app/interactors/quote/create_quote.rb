@@ -22,9 +22,6 @@ class Quote::CreateQuote
       expires_at: (Time.now + 1.day).to_i
     )
 
-    stripe_quote = Stripe::Quote.finalize_quote(stripe_quote.id)
-    context.stripe_quote = stripe_quote
-
     quote = Quote.new(
       user: context.current_user,
       created_by: context.current_user,

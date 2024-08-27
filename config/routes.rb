@@ -91,7 +91,7 @@ Rails.application.routes.draw do
           put :cancel, on: :member
           post :redeem, on: :collection
         end
-        resources :quotes, only: [:index, :show, :create] do
+        resources :quotes, only: [:index, :show, :create, :update] do
           put :accept, on: :member
           get :payment_intent, on: :member
           put :cancel, on: :member

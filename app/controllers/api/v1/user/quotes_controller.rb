@@ -1,5 +1,5 @@
 class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
-  before_action :set_quote, only: [:show, :accept, :cancel, :payment_intent, :show_pdf]
+  before_action :set_quote, only: [:show, :update, :accept, :cancel, :payment_intent, :show_pdf]
   before_action :set_quotes, only: [:index]
 
   def index
@@ -25,6 +25,21 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
     organizer = Quote::CreateQuoteOrganizer.call(
       current_user: current_user,
       price_params: price_params,
+      promo_code_params: promotion_code_params
+    )
+
+    if organizer.success?
+      render json: organizer.quote
+    else
+      error = organizer.error_object || organizer.error_message
+      render json: ErrorResponse.new(error, metadata: error_metadata(organizer)), status: :unprocessable_entity
+    end
+  end
+
+  def update
+    organizer = Quote::UpdateQuoteOrganizer.call(
+      current_user: current_user,
+      quote: @quote,
       promo_code_params: promotion_code_params
     )
 

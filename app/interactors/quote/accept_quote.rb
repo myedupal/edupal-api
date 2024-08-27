@@ -2,6 +2,7 @@ class Quote::AcceptQuote
   include Interactor
 
   def call
+    context.stripe_quote = Stripe::Quote.finalize_quote(context.quote.stripe_quote_id)
     context.stripe_quote = Stripe::Quote.accept(context.quote.stripe_quote_id)
 
     context.quote.update(

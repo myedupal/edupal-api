@@ -38,7 +38,7 @@ module StripeMock
       def update_quote(route, method_url, params, headers)
         stripe_account = headers && headers[:stripe_account] || Stripe.api_key
         route =~ method_url
-        quo = assert_existence :quotes, $1, customers[stripe_account][$1]
+        quo = assert_existence :quotes, $1, quotes[stripe_account][$1]
 
         # get existing and pending metadata
         metadata = quo.delete(:metadata) || {}

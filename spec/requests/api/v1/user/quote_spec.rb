@@ -67,7 +67,7 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['quote']['stripe_quote_id']).to be_present
-          expect(data['quote']['status']).to eq('open')
+          expect(data['quote']['status']).to eq('draft')
         end
       end
 
@@ -132,6 +132,40 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
 
       response(200, 'successful') do
         run_test!
+      end
+    end
+
+    put('update quotes') do
+      tags 'User Quotes'
+      produces 'application/json'
+      consumes 'application/json'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        properties: {
+          promotion_code: { type: :string }
+        }
+      }
+
+      let(:quote) do
+        organizer = Quote::CreateQuoteOrganizer.call(
+          current_user: user,
+          price_params: { price_ids: [price.id] }
+        )
+        organizer.quote
+      end
+
+      let(:data) { { promotion_code: promotion_code.code } }
+      let!(:coupon) { Stripe::Coupon.create(percent_off: 25, duration: 'once', name: 'testing') }
+      let!(:promotion_code) { Stripe::PromotionCode.create(coupon: coupon.id) }
+
+      response(200, 'successful', save_request_example: :data) do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['quote']['stripe_quote_id']).to be_present
+          expect(data['quote']['status']).to eq('draft')
+        end
       end
     end
   end
