@@ -78,6 +78,7 @@ Rails.application.routes.draw do
           get :zklogin_salt, on: :collection
           post :update_referral, on: :collection
         end
+
         resource :stripe, only: [] do
           collection do
             get :payment_methods
@@ -89,6 +90,12 @@ Rails.application.routes.draw do
         resources :subscriptions, only: [:index, :show, :create, :update] do
           put :cancel, on: :member
           post :redeem, on: :collection
+        end
+        resources :quotes, only: [:index, :show, :create] do
+          put :accept, on: :member
+          get :payment_intent, on: :member
+          put :cancel, on: :member
+          get :show_pdf, on: :member
         end
 
         resources :questions, only: [:index, :show]

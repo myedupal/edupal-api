@@ -1,5 +1,6 @@
 class ErrorResponse
-  def initialize(error)
+  def initialize(error, metadata: nil)
+    @metadata = metadata
     if error.is_a?(String)
       initialize_error_message(error)
     elsif error.is_a?(ActiveRecord::Base)
@@ -10,7 +11,11 @@ class ErrorResponse
   end
 
   def to_h
-    { errors: @errors, errors_messages: @error_messages }
+    if @metadata.present?
+      { errors: @errors, errors_messages: @error_messages, metadata: @metadata }
+    else
+      { errors: @errors, errors_messages: @error_messages }
+    end
   end
 
   # def as_json

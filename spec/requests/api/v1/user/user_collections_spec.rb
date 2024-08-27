@@ -9,7 +9,7 @@ RSpec.describe 'api/v1/user/user_collections', type: :request do
 
   path '/api/v1/user/user_collections' do
     get('list user collections') do
-      tags 'User User Collection'
+      tags 'User User Collections'
       security [{ bearerAuth: nil }]
       produces 'application/json'
 
