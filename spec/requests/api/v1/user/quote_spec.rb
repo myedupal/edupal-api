@@ -256,6 +256,11 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
       end
 
       response(200, 'successful', save_request_example: :data) do
+        before(:all) do
+          # will raise Stripe::AuthenticationError when calling Stripe::Quote.pdf without an api key present
+          Stripe.api_key = "sk_test_12345" if Stripe.api_key.blank?
+        end
+
         before do
           WebMock.stub_request(:get, %r{files.stripe.com/v1/quotes/.*})
             .to_return(status: 200, body: Rails.root.join('spec/fixtures/files/example_quote.pdf').read, headers: {})
