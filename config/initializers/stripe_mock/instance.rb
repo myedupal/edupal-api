@@ -1,4 +1,4 @@
-require 'stripe_mock.rb'
+return unless Rails.env.test?
 require_relative 'request_handlers/quotes.rb'
 
 module StripeMock

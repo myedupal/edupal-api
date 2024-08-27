@@ -1,3 +1,4 @@
+return unless Rails.env.test?
 module StripeMock
   module RequestHandlers
     module Quotes

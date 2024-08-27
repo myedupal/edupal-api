@@ -1,3 +1,4 @@
+return unless Rails.env.test?
 module StripeMock
   Data.module_eval do
     def self.mock_quotes(params = {})
