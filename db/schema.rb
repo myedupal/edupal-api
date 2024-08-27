@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_19_101002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -308,6 +308,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
     t.index ["subject_id"], name: "index_questions_on_subject_id"
   end
 
+  create_table "quotes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "created_by_id", null: false
+    t.string "stripe_quote_id"
+    t.string "status"
+    t.datetime "quote_expire_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_quotes_on_created_by_id"
+    t.index ["user_id"], name: "index_quotes_on_user_id"
+  end
+
   create_table "referral_activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id"
     t.string "referral_source_type"
@@ -433,9 +445,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
     t.string "razorpay_subscription_id"
     t.string "razorpay_short_url"
     t.string "redeem_code"
+    t.uuid "quote_id"
     t.index ["created_by_id"], name: "index_subscriptions_on_created_by_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["price_id"], name: "index_subscriptions_on_price_id"
+    t.index ["quote_id"], name: "index_subscriptions_on_quote_id"
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
@@ -453,7 +467,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
     t.uuid "question_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["question_id", "user_collection_id"], name: "index_question_user_collections_on_question_and_collection", unique: true
+    t.index ["question_id", "user_collection_id"], name: "index_user_collection_questions_on_question_and_collection", unique: true
     t.index ["question_id"], name: "index_user_collection_questions_on_question_id"
     t.index ["user_collection_id"], name: "index_user_collection_questions_on_user_collection_id"
   end
@@ -525,6 +539,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
   add_foreign_key "question_topics", "topics"
   add_foreign_key "questions", "exams"
   add_foreign_key "questions", "subjects"
+  add_foreign_key "quotes", "accounts", column: "created_by_id"
+  add_foreign_key "quotes", "accounts", column: "user_id"
   add_foreign_key "referral_activities", "accounts", column: "user_id"
   add_foreign_key "saved_user_exams", "accounts", column: "user_id"
   add_foreign_key "saved_user_exams", "user_exams"
@@ -541,6 +557,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_12_064215) do
   add_foreign_key "subscriptions", "accounts", column: "user_id"
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "prices"
+  add_foreign_key "subscriptions", "quotes"
   add_foreign_key "topics", "subjects"
   add_foreign_key "user_collection_questions", "questions"
   add_foreign_key "user_collection_questions", "user_collections"

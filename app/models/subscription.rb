@@ -3,6 +3,7 @@ class Subscription < ApplicationRecord
   belongs_to :price, optional: true
   belongs_to :user
   belongs_to :created_by, class_name: 'Account'
+  belongs_to :quote, optional: true
 
   has_many :referred_activities, class_name: 'ReferralActivity', as: :referral_source, dependent: :nullify
 
