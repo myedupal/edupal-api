@@ -12,6 +12,8 @@ class User < Account
       where(plan: plan)
     end
   end
+  has_many :quotes, dependent: :restrict_with_error
+
   has_many :submissions, dependent: :destroy
   has_many :submission_answers, dependent: :destroy
   has_many :activities, dependent: :destroy

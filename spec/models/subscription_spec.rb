@@ -7,6 +7,7 @@ RSpec.describe Subscription, type: :model do
     it { is_expected.to belong_to(:price).optional }
     it { is_expected.to belong_to(:created_by) }
     it { is_expected.to have_many(:referred_activities).class_name('ReferralActivity').dependent(:nullify) }
+    it { is_expected.to belong_to(:quote).optional }
   end
 
   describe 'validations' do
