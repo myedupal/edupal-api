@@ -15,7 +15,7 @@ module StripeMock
         klass.add_handler 'post /v1/quotes/([^/]*)/finalize', :finalize_quote
       end
 
-      def new_quote(route, method_url, params, headers)
+      def new_quote(_route, _method_url, params, headers)
         stripe_account = headers && headers[:stripe_account] || Stripe.api_key
         params[:id] ||= new_id('quo')
 
@@ -85,14 +85,14 @@ module StripeMock
         result
       end
 
-      def get_quotes(route, method_url, params, headers)
+      def get_quotes(route, method_url, _params, headers)
         stripe_account = headers && headers[:stripe_account] || Stripe.api_key
         route =~ method_url
 
         quotes[stripe_account]
       end
 
-      def accept_quote(route, method_url, params, headers)
+      def accept_quote(route, method_url, _params, headers)
         stripe_account = headers && headers[:stripe_account] || Stripe.api_key
         route =~ method_url
         quo = assert_existence :quotes, $1, quotes[stripe_account][$1]
@@ -114,7 +114,7 @@ module StripeMock
         quo
       end
 
-      def cancel_quote(route, method_url, params, headers)
+      def cancel_quote(route, method_url, _params, headers)
         stripe_account = headers && headers[:stripe_account] || Stripe.api_key
         route =~ method_url
         quo = assert_existence :quotes, $1, quotes[stripe_account][$1]
@@ -127,7 +127,7 @@ module StripeMock
         quo
       end
 
-      def finalize_quote(route, method_url, params, headers)
+      def finalize_quote(route, method_url, _params, headers)
         stripe_account = headers && headers[:stripe_account] || Stripe.api_key
         route =~ method_url
         quo = assert_existence :quotes, $1, quotes[stripe_account][$1]
@@ -140,7 +140,7 @@ module StripeMock
         quo
       end
 
-      def quote_pdf(route, method_url, params, headers) end
+      def quote_pdf(_route, _method_url, _params, _headers) end
 
     end
   end
