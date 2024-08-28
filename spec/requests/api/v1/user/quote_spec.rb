@@ -107,7 +107,7 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
               .to receive(:list).with(any_args) { double(data: []) }
           end
 
-          it 'adds promotion' do
+          it 'return error' do
             post '/api/v1/user/quotes', headers: { Authorization: bearer_token_for(user) }, params: data
 
             expect(response).to have_http_status(:unprocessable_entity)
@@ -129,6 +129,17 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
       tags 'User Quotes'
       produces 'application/json'
       security [{ bearerAuth: nil }]
+
+      parameter name: :include_stripe_quote, in: :query, type: :boolean, required: false, description: 'include stripe quote'
+
+      let(:include_stripe_quote) { true }
+      let(:quote) do
+        organizer = Quote::CreateQuoteOrganizer.call(
+          current_user: user,
+          price_params: { price_ids: [price.id] }
+        )
+        organizer.quote
+      end
 
       response(200, 'successful') do
         run_test!
@@ -197,7 +208,7 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
           response_body = JSON.parse(response.body)
           expect(response_body['quote']['status']).to eq('accepted')
 
-          expect(Stripe::Quote).to have_received(:accept).with(quote.stripe_quote_id)
+          expect(Stripe::Quote).to have_received(:accept).with(quote.stripe_quote_id, expand: [:discounts])
           expect(Stripe::Invoice).to have_received(:finalize_invoice).with(any_args, auto_advance: false)
         end
       end
@@ -267,7 +278,7 @@ RSpec.describe 'api/v1/user/quotes', type: :request do
         run_test! do |response|
           response_body = JSON.parse(response.body)
           expect(response_body['quote']['status']).to eq('canceled')
-          expect(Stripe::Quote).to have_received(:cancel).with(stripe_quote_id)
+          expect(Stripe::Quote).to have_received(:cancel).with(stripe_quote_id, expand: [:discounts])
         end
       end
     end

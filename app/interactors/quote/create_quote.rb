@@ -19,8 +19,10 @@ class Quote::CreateQuote
         environment: Rails.env
       },
       collection_method: 'charge_automatically',
-      expires_at: (Time.now + 1.day).to_i
+      expires_at: (Time.now + 1.day).to_i,
+      expand: [:discounts]
     )
+    context.stripe_quote = stripe_quote
 
     quote = Quote.new(
       user: context.current_user,

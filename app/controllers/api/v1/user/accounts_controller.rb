@@ -2,7 +2,9 @@ class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
   after_action :daily_check_in, only: [:show]
 
   def show
-    render json: current_user, serializer: Api::V1::User::UserWithActiveSubscriptionSerializer
+    render json: current_user,
+           serializer: Api::V1::User::UserWithActiveSubscriptionSerializer,
+           include: ['*', 'active_subscriptions.plan']
   end
 
   def update

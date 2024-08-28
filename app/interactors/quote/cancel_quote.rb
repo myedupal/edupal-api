@@ -2,7 +2,7 @@ class Quote::CancelQuote
   include Interactor
 
   def call
-    context.stripe_quote = Stripe::Quote.cancel(context.quote.stripe_quote_id)
+    context.stripe_quote = Stripe::Quote.cancel(context.quote.stripe_quote_id,expand: [:discounts])
 
     context.quote.update(
       status: context.stripe_quote.status

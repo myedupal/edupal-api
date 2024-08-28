@@ -12,7 +12,8 @@ class Quote::UpdateQuote
     stripe_quote = Stripe::Quote.update(
       context.quote.stripe_quote_id,
       discounts: discounts,
-      expires_at: (Time.now + 1.day).to_i
+      expires_at: (Time.now + 1.day).to_i,
+      expand: [:discounts]
     )
 
     context.stripe_quote = stripe_quote

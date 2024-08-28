@@ -8,7 +8,17 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
   end
 
   def show
-    render json: @quote
+    unless params[:include_stripe_quote]
+      render json: @quote
+      return
+    end
+
+    stripe_quote = Stripe::Quote.retrieve(id: @quote.stripe_quote_id, expand: ['discounts'])
+
+    render json: @quote, meta: stripe_quote_metadata(stripe_quote)
+  rescue Stripe::InvalidRequestError => e
+    Rails.logger.error(e.message)
+    render json: ErrorResponse.new(I18n.t('errors.stripe_quote_error'), metadata: stripe_error_metadata(e)), status: :unprocessable_entity
   end
 
   def create
@@ -29,10 +39,10 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
     )
 
     if organizer.success?
-      render json: organizer.quote
+      render json: organizer.quote, meta: stripe_quote_metadata(organizer.stripe_quote)
     else
       error = organizer.error_object || organizer.error_message
-      render json: ErrorResponse.new(error, metadata: error_metadata(organizer)), status: :unprocessable_entity
+      render json: ErrorResponse.new(error, metadata: organizer_error_metadata(organizer)), status: :unprocessable_entity
     end
   end
 
@@ -44,10 +54,10 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
     )
 
     if organizer.success?
-      render json: organizer.quote
+      render json: organizer.quote, meta: stripe_quote_metadata(organizer.stripe_quote)
     else
       error = organizer.error_object || organizer.error_message
-      render json: ErrorResponse.new(error, metadata: error_metadata(organizer)), status: :unprocessable_entity
+      render json: ErrorResponse.new(error, metadata: organizer_error_metadata(organizer)), status: :unprocessable_entity
     end
   end
 
@@ -58,18 +68,18 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
     )
 
     if organizer.success? && organizer.stripe_invoice&.status == 'paid'
-      render json: organizer.quote
+      render json: organizer.quote, meta: stripe_quote_metadata(organizer.stripe_quote)
     elsif organizer.success? && organizer.stripe_invoice&.status == 'open'
-      payment_intent = Stripe::PaymentIntent.retrieve(context.stripe_invoice.payment_intent)
+      payment_intent = Stripe::PaymentIntent.retrieve(organizer.stripe_invoice.payment_intent)
       render json: {
         hosted_invoice_url: organizer.stripe_invoice.hosted_invoice_url,
         payment_intent: payment_intent.id,
         client_secret: payment_intent.client_secret,
-        invoice_error: context.stripe_invoice_error.slice(:code, :message, :param, :type)
-      }, status: :payment_required
+        invoice_error: stripe_error_metadata(organizer.stripe_invoice_error)
+      }, status: :payment_required, meta: stripe_quote_metadata(organizer.stripe_quote)
     else
       error = organizer.error_object || organizer.error_message
-      render json: ErrorResponse.new(error, metadata: error_metadata(organizer)), status: :unprocessable_entity
+      render json: ErrorResponse.new(error, metadata: organizer_error_metadata(organizer)), status: :unprocessable_entity
     end
   end
 
@@ -102,10 +112,10 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
     )
 
     if organizer.success?
-      render json: organizer.quote
+      render json: organizer.quote, meta: stripe_quote_metadata(organizer.stripe_quote)
     else
       error = organizer.error_object || organizer.error_message
-      render json: ErrorResponse.new(error, metadata: error_metadata(organizer)), status: :unprocessable_entity
+      render json: ErrorResponse.new(error, metadata: organizer_error_metadata(organizer)), status: :unprocessable_entity
     end
   end
 
@@ -130,20 +140,33 @@ class Api::V1::User::QuotesController < Api::V1::User::ApplicationController
 
   private
 
-    def error_metadata(organizer)
+    def organizer_error_metadata(organizer)
       if organizer.error_metadata.present?
         organizer.error_metadata
-      elsif organizer.stripe_error.present? && organizer.stripe_error&.json_body&.dig(:error).present?
-        {
-          code: 'stripe_error',
-          stripe_error: organizer.stripe_error.json_body[:error].slice(:code, :message, :param, :type)
-        }
       elsif organizer.stripe_error.present?
+        stripe_error_metadata(organizer.stripe_error)
+      end
+    end
+
+    def stripe_error_metadata(stripe_error)
+      if stripe_error.present? && stripe_error.json_body&.dig(:error).present?
         {
           code: 'stripe_error',
-          stripe_error: { message: organizer.stripe_error&.message || "unknown stripe error" }
+          stripe_error: stripe_error.json_body[:error].slice(:code, :message, :param, :type)
+        }
+      elsif stripe_error.present?
+        {
+          code: 'stripe_error',
+          stripe_error: { message: stripe_error.message || "unknown stripe error" }
         }
       end
+    end
+
+    def stripe_quote_metadata(stripe_quote)
+      {
+        stripe_quote:
+          stripe_quote.to_hash.slice(:computed, :currency, :discounts, :expires_at, :status, :line_items)
+      }
     end
 
     def set_quote
