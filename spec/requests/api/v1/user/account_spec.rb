@@ -11,7 +11,13 @@ RSpec.describe 'api/v1/user/account', type: :request do
         produces 'application/json'
         security [{ bearerAuth: nil }]
 
-        run_test! do |_response|
+        before do
+          create(:subscription, :active, user: user)
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['user']['active_subscriptions'].first['plan']).to be_present
           expect(user.daily_check_ins).to exist(date: Date.current)
           expect(user.point_activities).to exist(action_type: :daily_check_in)
         end
