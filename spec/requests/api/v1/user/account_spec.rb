@@ -13,11 +13,13 @@ RSpec.describe 'api/v1/user/account', type: :request do
 
         before do
           create(:subscription, :active, user: user)
+          create(:study_goal, :with_subject, user: user, curriculum: user.selected_curriculum)
         end
 
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['user']['active_subscriptions'].first['plan']).to be_present
+          expect(data['user']['current_study_goal']['study_goal_subjects'].first['subject']['name']).to be_present
           expect(user.daily_check_ins).to exist(date: Date.current)
           expect(user.point_activities).to exist(action_type: :daily_check_in)
         end

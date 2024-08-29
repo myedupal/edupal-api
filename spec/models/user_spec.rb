@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe User, type: :model do
   describe 'associations' do
     it { is_expected.to belong_to(:selected_curriculum).class_name('Curriculum').optional }
+    it { is_expected.to have_many(:study_goals).dependent(:destroy) }
     it { is_expected.to have_one(:stripe_profile).dependent(:restrict_with_error) }
     it { is_expected.to have_many(:subscriptions).dependent(:restrict_with_error) }
     it { is_expected.to have_many(:active_subscriptions).class_name('Subscription') }
@@ -27,6 +28,26 @@ RSpec.describe User, type: :model do
 
           it 'filters by plan' do
             expect(user.active_subscriptions.for_plan(plan: plan)).to contain_exactly(subscription)
+          end
+        end
+      end
+
+      describe 'study_goals' do
+        describe 'current' do
+          let(:user) { create(:user) }
+          let!(:current_study_goal) { create(:study_goal, user: user, curriculum: user.selected_curriculum) }
+          let!(:another_study_goal) { create(:study_goal, user: user) }
+
+          it 'returns current study goal' do
+            expect(user.study_goals.current).to eq(current_study_goal)
+          end
+
+          context 'when selected_curriculum is nil' do
+            before { user.update(selected_curriculum: nil) }
+
+            it 'returns nothing' do
+              expect(user.study_goals.current).to be_blank
+            end
           end
         end
       end

@@ -2,8 +2,11 @@ class User < Account
   devise :database_authenticatable, :validatable, :registerable
 
   belongs_to :selected_curriculum, class_name: 'Curriculum', optional: true
-  belongs_to :referred_by, class_name: 'User', optional: true, counter_cache: :referred_count
-  has_many :referred_users, class_name: 'User', foreign_key: 'referred_by_id', counter_cache: :referred_count
+  has_many :study_goals, dependent: :destroy do
+    def current
+      find_by(curriculum: proxy_association.owner.selected_curriculum)
+    end
+  end
 
   has_one :stripe_profile, dependent: :restrict_with_error
   has_many :subscriptions, dependent: :restrict_with_error
@@ -19,6 +22,9 @@ class User < Account
   has_many :activities, dependent: :destroy
   has_many :saved_user_exams, dependent: :destroy
   has_many :daily_check_ins, dependent: :destroy
+
+  belongs_to :referred_by, class_name: 'User', optional: true, counter_cache: :referred_count
+  has_many :referred_users, class_name: 'User', foreign_key: 'referred_by_id', counter_cache: :referred_count
   has_many :referral_activities, dependent: :destroy
   has_many :referred_activities, class_name: 'ReferralActivity', as: :referral_source, dependent: :nullify
 

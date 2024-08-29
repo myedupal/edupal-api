@@ -2,9 +2,9 @@ class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
   after_action :daily_check_in, only: [:show]
 
   def show
-    render json: current_user,
+    render json: current_user(load_study_goals: true),
            serializer: Api::V1::User::UserWithActiveSubscriptionSerializer,
-           include: ['*', 'active_subscriptions.plan']
+           include: ['*', 'active_subscriptions.plan', 'current_study_goal.study_goal_subjects.subject']
   end
 
   def update
@@ -56,6 +56,17 @@ class Api::V1::User::AccountsController < Api::V1::User::ApplicationController
         end
         current_user.point_activities.find_or_create_by(action_type: :daily_check_in, activity_id: daily_check_in.id, activity_type: daily_check_in.class.name) do |point_activity|
           point_activity.points = Setting.daily_check_in_points
+        end
+      end
+    end
+
+    def current_user(load_study_goals: false)
+      @current_user ||= super().tap do |user|
+        if load_study_goals
+          ActiveRecord::Associations::Preloader.new(
+            records: [user],
+            associations: { study_goals: { study_goal_subjects: :subject } }
+          ).call
         end
       end
     end
