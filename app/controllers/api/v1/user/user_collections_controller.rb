@@ -8,7 +8,12 @@ class Api::V1::User::UserCollectionsController < Api::V1::User::ApplicationContr
   end
 
   def show
-    render json: @user_collection, include: ['user_collection_questions.question']
+    render json: @user_collection, include: [
+      'user_collection_questions.question.subject',
+      'user_collection_questions.question.answers',
+      'user_collection_questions.question.question_images',
+      'user_collection_questions.question.topics'
+    ]
   end
 
   def create
@@ -16,7 +21,12 @@ class Api::V1::User::UserCollectionsController < Api::V1::User::ApplicationContr
     pundit_authorize(@user)
 
     if @user_collection.save
-      render json: @user_collection, include: ['user_collection_questions.question']
+      render json: @user_collection, include: [
+        'user_collection_questions.question.subject',
+        'user_collection_questions.question.answers',
+        'user_collection_questions.question.question_images',
+        'user_collection_questions.question.topics'
+      ]
     else
       render json: ErrorResponse.new(@user_collection), status: :unprocessable_entity
     end
@@ -24,7 +34,12 @@ class Api::V1::User::UserCollectionsController < Api::V1::User::ApplicationContr
 
   def update
     if @user_collection.update(user_collection_params)
-      render json: @user_collection, include: ['user_collection_questions.question']
+      render json: @user_collection, include: [
+        'user_collection_questions.question.subject',
+        'user_collection_questions.question.answers',
+        'user_collection_questions.question.question_images',
+        'user_collection_questions.question.topics'
+      ]
     else
       render json: ErrorResponse.new(@user_collection), status: :unprocessable_entity
     end
@@ -41,7 +56,12 @@ class Api::V1::User::UserCollectionsController < Api::V1::User::ApplicationContr
   private
 
     def set_user_collection
-      @user_collection = pundit_scope(UserCollection.includes(user_collection_questions: :question)).find(params[:id])
+      @user_collection = pundit_scope(
+        UserCollection.includes(
+          user_collection_questions:
+            { question: [:subject, :answers, :question_images, :topics] }
+        )
+      ).find(params[:id])
       pundit_authorize(@user_collection) if @user_collection
     end
 
