@@ -63,12 +63,18 @@ RSpec.describe 'api/v1/user/user_collections', type: :request do
       }
 
       response(200, 'successful', save_request_example: :data) do
+        let(:question) do
+          create(:question, :mcq_with_answer, subject: create(:subject, curriculum: curriculum)).tap do |question|
+            create(:question_topic, question: question)
+          end
+        end
         let(:data) do
           { user_collection: attributes_for(:user_collection).slice(:title, :collection_type, :description).merge(
             curriculum_id: curriculum.id,
             user_collection_questions_attributes:
               [attributes_for(:user_collection_question, curriculum: curriculum).slice(:question_id),
-               attributes_for(:user_collection_question, curriculum: curriculum).slice(:question_id)]
+               attributes_for(:user_collection_question, curriculum: curriculum).slice(:question_id),
+               { question_id: question.id }]
           ) }
         end
 
@@ -85,8 +91,22 @@ RSpec.describe 'api/v1/user/user_collections', type: :request do
       produces 'application/json'
       security [{ bearerAuth: nil }]
 
+      let(:user_collection) { create(:user_collection, user: user, curriculum: curriculum) }
+      let(:question) do
+        create(:question, :mcq_with_answer, subject: create(:subject, curriculum: curriculum)).tap do |question|
+          create(:question_topic, question: question)
+          create(:question_image, question: question)
+        end
+      end
+
+      before { create(:user_collection_question, user_collection: user_collection, question: question) }
+
       response(200, 'successful') do
-        run_test!
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['user_collection']['user_collection_questions'].size).to eq(1)
+          expect(data['user_collection']['user_collection_questions'].first['question']['answers']).to be_present
+        end
       end
     end
 
