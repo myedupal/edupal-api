@@ -131,6 +131,8 @@ Rails.application.routes.draw do
         resources :referral_activities, only: [:index, :show]
 
         resources :user_collections
+
+        resources :study_goals
       end
 
       namespace :web do

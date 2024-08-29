@@ -7,4 +7,8 @@ class Api::V1::User::UserSerializer < ActiveModel::Serializer
 
   has_one :stripe_profile
   has_one :selected_curriculum
+
+  has_one :current_study_goal, serializer: Api::V1::User::StudyGoalSerializer do
+    object.study_goals.current
+  end
 end
