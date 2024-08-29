@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_19_101002) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_27_082811) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -377,6 +377,25 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_19_101002) do
     t.index ["user_id"], name: "index_stripe_profiles_on_user_id"
   end
 
+  create_table "study_goal_subjects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "study_goal_id", null: false
+    t.uuid "subject_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["study_goal_id"], name: "index_study_goal_subjects_on_study_goal_id"
+    t.index ["subject_id"], name: "index_study_goal_subjects_on_subject_id"
+  end
+
+  create_table "study_goals", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "curriculum_id", null: false
+    t.integer "a_grade_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["curriculum_id"], name: "index_study_goals_on_curriculum_id"
+    t.index ["user_id"], name: "index_study_goals_on_user_id"
+  end
+
   create_table "subjects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name"
     t.uuid "curriculum_id", null: false
@@ -546,6 +565,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_19_101002) do
   add_foreign_key "saved_user_exams", "user_exams"
   add_foreign_key "sessions", "accounts"
   add_foreign_key "stripe_profiles", "accounts", column: "user_id"
+  add_foreign_key "study_goal_subjects", "study_goals"
+  add_foreign_key "study_goal_subjects", "subjects"
+  add_foreign_key "study_goals", "accounts", column: "user_id"
+  add_foreign_key "study_goals", "curriculums"
   add_foreign_key "subjects", "curriculums"
   add_foreign_key "submission_answers", "accounts", column: "user_id"
   add_foreign_key "submission_answers", "questions"
