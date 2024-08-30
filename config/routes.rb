@@ -82,6 +82,7 @@ Rails.application.routes.draw do
         resource :stripe, only: [] do
           collection do
             get :payment_methods
+            post :detach_payment_method
             post :setup_intent
             put :default_payment_method
             get :customer
