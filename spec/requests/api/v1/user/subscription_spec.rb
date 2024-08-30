@@ -34,6 +34,7 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
+      parameter name: :status, in: :query, type: :string, required: false, description: 'Filter by status'
 
       response(200, 'successful') do
         before do
