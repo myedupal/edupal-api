@@ -7,7 +7,7 @@ class ProcessCallbackJob
     event_type = parsed_body['type']
 
     case event_type
-    when 'customer.subscription.created', 'customer.subscription.updated'
+    when 'customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'
       stripe_subscription_id = parsed_body['data']['object']['id']
       stripe_subscription = Stripe::Subscription.retrieve(stripe_subscription_id)
       subscription = Subscription.find_by!(stripe_subscription_id: stripe_subscription_id)
