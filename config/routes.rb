@@ -128,6 +128,9 @@ Rails.application.routes.draw do
         resources :guess_word_submissions, only: [:index, :show, :create] do
           post :guess, on: :member
         end
+        resources :guess_word_pools do
+          post :import, on: :member
+        end
 
         resources :referral_activities, only: [:index, :show]
 
