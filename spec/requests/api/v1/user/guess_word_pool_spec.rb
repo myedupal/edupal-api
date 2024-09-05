@@ -24,7 +24,8 @@ RSpec.describe 'api/v1/user/guess_word_pools', type: :request do
 
       response(200, 'successful') do
         before do
-          create_list(:guess_word_pool, 3, :with_questions, question_count: 3, user: user)
+          create_list(:guess_word_pool, 3, :with_questions, question_count: 1, user: user)
+          create(:guess_word_pool, :with_questions, user: nil, published: true)
         end
 
         run_test!
@@ -46,6 +47,7 @@ RSpec.describe 'api/v1/user/guess_word_pools', type: :request do
               subject_id: { type: :string },
               title: { type: :string },
               description: { type: :string },
+              published: { type: :boolean },
               guess_word_questions_attributes: {
                 type: :array,
                 items: {
@@ -111,6 +113,7 @@ RSpec.describe 'api/v1/user/guess_word_pools', type: :request do
               subject_id: { type: :string },
               title: { type: :string },
               description: { type: :string },
+              published: { type: :boolean },
               guess_word_questions_attributes: {
                 type: :array,
                 items: {

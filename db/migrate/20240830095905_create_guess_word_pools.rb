@@ -7,6 +7,7 @@ class CreateGuessWordPools < ActiveRecord::Migration[7.0]
 
       t.string :title
       t.string :description
+      t.boolean :published, null: false, default: false
       t.integer :guess_word_questions_count, null: false, default: 0
 
       t.index [:user_id, :subject_id]

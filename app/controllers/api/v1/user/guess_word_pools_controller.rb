@@ -110,7 +110,7 @@ class Api::V1::User::GuessWordPoolsController < Api::V1::User::ApplicationContro
 
     def guess_word_pool_params
       params.require(:guess_word_pool).permit(
-        :subject_id, :title, :description,
+        :subject_id, :title, :description, :published,
         guess_word_questions_attributes: [:id, :word, :description, :_destroy]
       )
     end

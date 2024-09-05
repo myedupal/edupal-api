@@ -203,7 +203,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_30_095905) do
     t.uuid "user_id"
     t.string "title"
     t.string "description"
-    t.integer "guess_word_questions_count"
+    t.boolean "published", default: false, null: false
+    t.integer "guess_word_questions_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["default_pool", "subject_id"], name: "index_guess_word_pools_on_default_pool_and_subject_id"

@@ -1,6 +1,6 @@
 class Api::V1::User::GuessWordPoolPolicy < ApplicationPolicy
   def show?
-    record.user_id == @user.id || record.user_id.nil?
+    record.user_id == @user.id || record.published
   end
 
   def update?
@@ -18,7 +18,7 @@ class Api::V1::User::GuessWordPoolPolicy < ApplicationPolicy
   class Scope < Scope
     # NOTE: Be explicit about which records you allow access to!
     def resolve
-      scope.where(user_id: @user.id).or(scope.where(user_id: nil))
+      scope.where(user_id: @user.id).or(scope.where(user_id: nil, published: true))
     end
   end
 end

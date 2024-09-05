@@ -6,6 +6,7 @@ FactoryBot.define do
     default_pool { false }
     subject_id { subject.id }
     user { nil }
+    published { true }
     title { Faker::Lorem.words(number: 3).join(' ') }
     description { Faker::Lorem.sentence }
 
