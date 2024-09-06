@@ -56,6 +56,9 @@ Rails.application.routes.draw do
         resources :guess_word_dictionaries do
           post :import, on: :collection
         end
+        resources :guess_word_pools do
+          post :import, on: :member
+        end
 
         resources :referral_activities, only: [:index, :show] do
           post :nullify, on: :member
