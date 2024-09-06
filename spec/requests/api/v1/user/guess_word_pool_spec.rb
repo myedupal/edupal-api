@@ -208,4 +208,48 @@ RSpec.describe 'api/v1/user/guess_word_pools', type: :request do
       end
     end
   end
+
+  path '/api/v1/user/guess_word_pools/{id}/daily_guess_word' do
+    parameter name: 'id', in: :path, type: :string, description: 'id'
+
+    get('get daily guess word from guess word pools') do
+      tags 'User Guess Word Pools'
+      produces 'application/json'
+      security [{ bearerAuth: nil }]
+
+      let(:guess_word_pool) { create(:guess_word_pool, :with_questions, user: user, question_count: 3) }
+
+      response(200, 'successful', save_request_example: :data) do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+
+          expect(data['guess_word_pool']['id']).to eq id
+          expect(data['guess_word_pool']['daily_guess_word']).to be_present
+        end
+      end
+
+      context 'multiple calls' do
+        let(:guess_word_pool) { create(:guess_word_pool, :with_questions, question_count: 3, user: user, published: true) }
+        let(:another_user) { create(:user) }
+
+        it 'create once' do
+          get daily_guess_word_api_v1_user_guess_word_pool_path(id: id), headers: { Authorization: bearer_token_for(user) }
+          data = JSON.parse(response.body)
+
+          expect(data['guess_word_pool']['id']).to eq id
+          expect(data['guess_word_pool']['daily_guess_word']['id']).to be_present
+          guess_word_pool.reload
+          expect(guess_word_pool.guess_words.count).to eq 1
+          guess_word_id = guess_word_pool.guess_words.first!.id
+          expect(data['guess_word_pool']['daily_guess_word']['id']).to eq guess_word_id
+
+          get daily_guess_word_api_v1_user_guess_word_pool_path(id: id), headers: { Authorization: bearer_token_for(another_user) }
+          data = JSON.parse(response.body)
+          expect(data['guess_word_pool']['daily_guess_word']['id']).to eq guess_word_id
+          guess_word_pool.reload
+          expect(guess_word_pool.guess_words.count).to eq 1
+        end
+      end
+    end
+  end
 end

@@ -15,6 +15,10 @@ class Api::V1::User::GuessWordPoolPolicy < ApplicationPolicy
     record.user_id == @user.id
   end
 
+  def daily_guess_word?
+    record.user_id == @user.id || record.published
+  end
+
   class Scope < Scope
     # NOTE: Be explicit about which records you allow access to!
     def resolve

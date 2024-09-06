@@ -5,7 +5,8 @@ RSpec.describe GuessWordPool, type: :model do
     it { is_expected.to belong_to(:subject) }
     it { is_expected.to belong_to(:user).class_name('User').optional }
     it { is_expected.to have_many(:guess_word_questions).counter_cache(:guess_word_questions_count).dependent(:destroy) }
-    it { is_expected.to have_many(:guess_word).dependent(:nullify) }
+    it { is_expected.to have_many(:guess_words).dependent(:nullify) }
+    it { is_expected.to have_one(:daily_guess_word).class_name('GuessWord') }
   end
 
   describe 'nested attributes' do

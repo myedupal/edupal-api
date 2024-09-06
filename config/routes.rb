@@ -133,6 +133,7 @@ Rails.application.routes.draw do
         end
         resources :guess_word_pools do
           post :import, on: :member
+          get :daily_guess_word, on: :member
         end
 
         resources :referral_activities, only: [:index, :show]

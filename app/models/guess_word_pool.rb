@@ -3,7 +3,8 @@ class GuessWordPool < ApplicationRecord
   belongs_to :user, class_name: 'User', optional: true
 
   has_many :guess_word_questions, counter_cache: :guess_word_questions_count, dependent: :destroy
-  has_many :guess_word, dependent: :nullify
+  has_many :guess_words, dependent: :nullify
+  has_one :daily_guess_word, -> { where(start_at: Time.now.beginning_of_day, end_at: Time.now.end_of_day) }, class_name: 'GuessWord'
   accepts_nested_attributes_for :guess_word_questions, allow_destroy: true
 
   validates :title, presence: true

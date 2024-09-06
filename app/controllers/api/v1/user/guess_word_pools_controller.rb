@@ -1,5 +1,5 @@
 class Api::V1::User::GuessWordPoolsController < Api::V1::User::ApplicationController
-  before_action :set_guess_word_pool, only: [:show, :update, :destroy, :import]
+  before_action :set_guess_word_pool, only: [:show, :update, :destroy, :import, :daily_guess_word]
   before_action :set_guess_word_pools, only: [:index]
 
   def index
@@ -76,6 +76,21 @@ class Api::V1::User::GuessWordPoolsController < Api::V1::User::ApplicationContro
     render json: ErrorResponse.new("Missing CSV keys: #{e.message}"), status: :unprocessable_entity
   rescue SmarterCSV::Error => e
     render json: ErrorResponse.new("Error Parsing CSV: #{e.message}"), status: :unprocessable_entity
+  end
+
+  def daily_guess_word
+    unless @guess_word_pool.daily_guess_word.present?
+      guess_word_question = @guess_word_pool.guess_word_questions.order('RANDOM()').first
+      @guess_word_pool.create_daily_guess_word!(
+        subject: @guess_word_pool.subject,
+        answer: guess_word_question.word,
+        description: guess_word_question.description,
+        attempts: 6,
+        reward_points: 0
+      )
+    end
+
+    render json: @guess_word_pool, include_daily_guess_word: true
   end
 
   private
