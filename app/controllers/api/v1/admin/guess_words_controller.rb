@@ -79,6 +79,7 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
       @guess_words = pundit_scope(GuessWord.includes(:subject))
       @guess_words = @guess_words.with_reports if params[:with_reports]
       @guess_words = @guess_words.where(subject_id: params[:subject_id]) if params[:subject_id].present?
+      @guess_words = @guess_words.where(guess_word_pool_id: params[:guess_word_pool_id].presence || nil) if params.has_key?(:guess_word_pool_id)
       @guess_words = @guess_words.ongoing if params[:ongoing].present?
       @guess_words = @guess_words.ended if params[:ended].present?
       @guess_words = @guess_words.only_submitted_by_user(params[:only_submitted_by]) if params[:only_submitted_by].present?

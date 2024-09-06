@@ -24,6 +24,7 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
       pundit_authorize(GuessWord)
       @guess_words = pundit_scope(GuessWord.includes(:subject, :guess_word_submissions))
       @guess_words = @guess_words.where(subject_id: params[:subject_id]) if params[:subject_id].present?
+      @guess_words = @guess_words.where(guess_word_pool_id: params[:guess_word_pool_id]) if params.has_key?(:guess_word_pool_id)
       @guess_words = @guess_words.only_submitted_by_user(current_user) if params[:submitted].present?
       @guess_words = @guess_words.ongoing if params[:ongoing].present?
       @guess_words = @guess_words.ended if params[:ended].present?
