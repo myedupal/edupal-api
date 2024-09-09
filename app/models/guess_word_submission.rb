@@ -107,7 +107,8 @@ class GuessWordSubmission < ApplicationRecord
     end
 
     def guess_is_word?(guess)
-      return true if GuessWordDictionary.exists?(word: guess.downcase)
+      return true if guess == guess_word.answer || GuessWordDictionary.exists?(word: guess.downcase)
+      return true if guess_word.guess_word_pool.present? && guess_word.guess_word_pool.guess_word_questions.exists?(word: guess.downcase)
 
       errors.add(:guess, 'is not in the dictionary') unless errors.added?(:guess, 'is not in the dictionary')
       false

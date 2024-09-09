@@ -15,10 +15,10 @@ RSpec.describe GuessWordDictionary, type: :model do
   describe 'callbacks' do
     describe '#downcase_word' do
       it 'downcase word before saving' do
-        guess_word_dictionary = build(:guess_word_dictionary, word: 'TEST')
+        guess_word_dictionary = build(:guess_word_dictionary, word: 'TEST ')
         expect do
           guess_word_dictionary.save!
-        end.to change(guess_word_dictionary, :word).from('TEST').to('test')
+        end.to change(guess_word_dictionary, :word).from('TEST ').to('test')
       end
     end
   end

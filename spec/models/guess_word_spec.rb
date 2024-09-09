@@ -4,6 +4,7 @@ RSpec.describe GuessWord, type: :model do
   describe 'associations' do
     it { is_expected.to belong_to(:subject) }
     it { is_expected.to have_many(:guess_word_submissions) }
+    it { is_expected.to belong_to(:guess_word_pool).optional(true) }
   end
 
   describe 'validations' do

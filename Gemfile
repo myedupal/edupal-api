@@ -118,7 +118,7 @@ gem "file_validators", "~> 2.3"
 gem "fog-aws", "~> 3.6"
 
 # only needed for csv processing
-# gem "smarter_csv", "~> 1.2"
+gem "smarter_csv", "~> 1.2"
 
 # state machine
 gem "aasm"

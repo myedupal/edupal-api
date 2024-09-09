@@ -56,6 +56,9 @@ Rails.application.routes.draw do
         resources :guess_word_dictionaries do
           post :import, on: :collection
         end
+        resources :guess_word_pools do
+          post :import, on: :member
+        end
 
         resources :referral_activities, only: [:index, :show] do
           post :nullify, on: :member
@@ -127,6 +130,10 @@ Rails.application.routes.draw do
         end
         resources :guess_word_submissions, only: [:index, :show, :create] do
           post :guess, on: :member
+        end
+        resources :guess_word_pools do
+          post :import, on: :member
+          get :daily_guess_word, on: :member
         end
 
         resources :referral_activities, only: [:index, :show]

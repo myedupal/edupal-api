@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :guess_word do
     subject_id { create(:subject).id }
+    guess_word_pool { nil }
     answer { Faker::Lorem.word }
     description { Faker::Lorem.paragraph }
     attempts { Faker::Number.between(from: 6, to: 12) }

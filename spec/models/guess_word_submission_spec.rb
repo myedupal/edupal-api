@@ -72,10 +72,35 @@ RSpec.describe GuessWordSubmission, type: :model do
         let(:testing_words) { [test_word] }
 
         it 'allows word in dictionary' do
-          expect(guess_word_submission).to allow_event(:guess, test_word).with(test_word)
+          expect(guess_word_submission).to allow_event(:guess).with(test_word)
         end
 
         context 'word not in dictionary' do
+          it 'does not allow non words' do
+            expect(guess_word_submission).not_to allow_event(:guess).with(Faker::Lorem.characters(number: 10))
+            expect(guess_word_submission.errors[:guess]).to match([/not in the dictionary/])
+          end
+        end
+
+        context 'with pool' do
+          let(:guess_word) do
+            create(:guess_word, start_at: 1.day.ago, end_at: 14.days.from_now,
+                   answer: Faker::Lorem.characters(number: 10), attempts: 3,
+                   guess_word_pool: guess_word_pool)
+          end
+          let(:guess_word_pool) { create(:guess_word_pool) }
+          let(:another_test_word) { Faker::Lorem.characters(number: 10) }
+
+          before { create(:guess_word_question, guess_word_pool: guess_word_pool, word: another_test_word) }
+
+          it 'allows word in dictionary' do
+            expect(guess_word_submission).to allow_event(:guess).with(test_word)
+          end
+
+          it 'allows word in pool' do
+            expect(guess_word_submission).to allow_event(:guess).with(another_test_word)
+          end
+
           it 'does not allow non words' do
             expect(guess_word_submission).not_to allow_event(:guess).with(Faker::Lorem.characters(number: 10))
             expect(guess_word_submission.errors[:guess]).to match([/not in the dictionary/])
