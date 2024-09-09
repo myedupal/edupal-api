@@ -31,7 +31,7 @@ namespace :daily_guess_word do
     dates = date_range.to_enum
 
     # Create a new enumerator to pull questions from
-    questions = Enumerator.new do |enumerator|
+    question_enumerator = Enumerator.new do |enumerator|
       # Loop to create an endless question pool
       loop do
         # Find questions in small batches
@@ -44,7 +44,7 @@ namespace :daily_guess_word do
     end
 
     ActiveRecord::Base.transaction do
-      questions.zip(dates) do |question, date|
+      question_enumerator.zip(dates) do |question, date|
         break if date.blank?
 
         GuessWord.create!(
