@@ -92,8 +92,8 @@ class Api::V1::Admin::GuessWordPoolsController < Api::V1::Admin::ApplicationCont
       @guess_word_pools = pundit_scope(GuessWordPool)
       @guess_word_pools = @guess_word_pools.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @guess_word_pools = @guess_word_pools.by_curriculum(params[:curriculum_id]) if params[:curriculum_id].present?
-      @guess_word_pools = @guess_word_pools.where(user_id: params[:user_id]) if params[:user_id].present?
-      @guess_word_pools = @guess_word_pools.where(published: params[:published]) if params[:published].present?
+      @guess_word_pools = @guess_word_pools.where(user_id: params[:user_id].presence || nil) if params.has_key?(:user_id)
+      @guess_word_pools = @guess_word_pools.where(published: boolean(params[:published])) if params[:published].present?
       @guess_word_pools = keyword_queryable(@guess_word_pools)
       @guess_word_pools = attribute_sortable(@guess_word_pools)
     end
@@ -115,6 +115,14 @@ class Api::V1::Admin::GuessWordPoolsController < Api::V1::Admin::ApplicationCont
 
     def import_params
       params.require(:file)
+    end
+
+    def boolean(param)
+      if ActiveModel::Type::Boolean.new.cast(param)
+        true
+      else
+        false
+      end
     end
 end
 

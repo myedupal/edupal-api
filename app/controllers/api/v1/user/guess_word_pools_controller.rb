@@ -108,8 +108,22 @@ class Api::V1::User::GuessWordPoolsController < Api::V1::User::ApplicationContro
       @guess_word_pools = @guess_word_pools.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @guess_word_pools = @guess_word_pools.by_curriculum(params[:curriculum_id]) if params[:curriculum_id].present?
       @guess_word_pools = @guess_word_pools.by_curriculum(current_user.selected_curriculum.id) if params[:current_curriculum].present?
-      if params[:user_created].present?
-        @guess_word_pools = @guess_word_pools.where(user_id: params[:user_created] ? current_user.id : nil)
+      @guess_word_pools = @guess_word_pools.where(user_id: params[:user_id].presence || nil) if params.has_key?(:user_id)
+      @guess_word_pools = @guess_word_pools.where(published: boolean(params[:published])) if params[:published].present?
+
+      if params[:include_default_pool].present? || params[:include_self].present? || params[:include_user_id].present? || params[:include_system].present? || params[:include_other].present?
+        conditions = []
+
+        conditions << GuessWordPool.where(default_pool: true) if boolean(:include_default_pool)
+        conditions << GuessWordPool.where(user_id: current_user.id) if boolean(params[:include_self])
+        conditions << GuessWordPool.where(user_id: params[:include_user_id]) if params[:include_user_id].present?
+        conditions << GuessWordPool.where(user_id: nil) if boolean(params[:include_system])
+        conditions << GuessWordPool.where.not(user_id: nil) if boolean(params[:include_user])
+
+        combined_conditions = conditions.reduce { |query, condition| query.or(condition) }
+        @guess_word_pools = @guess_word_pools.merge(combined_conditions)
+      else
+        @guess_word_pools = @guess_word_pools.where(user_id: current_user.id).or(GuessWordPool.where(user_id: nil))
       end
       @guess_word_pools = keyword_queryable(@guess_word_pools)
       @guess_word_pools = attribute_sortable(@guess_word_pools)
@@ -132,6 +146,14 @@ class Api::V1::User::GuessWordPoolsController < Api::V1::User::ApplicationContro
 
     def import_params
       params.require(:file)
+    end
+
+    def boolean(param)
+      if ActiveModel::Type::Boolean.new.cast(param)
+        true
+      else
+        false
+      end
     end
 end
 

@@ -18,6 +18,7 @@ RSpec.describe "api/v1/user/guess_words", type: :request do
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :guess_word_pool_id, in: :query, type: :string, required: false, description: 'Filter by guess word pool id, empty to filter for no pool id'
+      parameter name: :system_guess_word_pool, in: :query, type: :string, required: false, description: 'Filter for system guess word pool'
       parameter name: :ongoing, in: :query, type: :string, required: false, description: 'Filter by ongoing'
       parameter name: :ended, in: :query, type: :string, required: false, description: 'Filter by ended'
       parameter name: :submitted, in: :query, type: :string, required: false, description: 'Filter by guess word with user submission'

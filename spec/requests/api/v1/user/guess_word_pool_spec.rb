@@ -16,19 +16,51 @@ RSpec.describe 'api/v1/user/guess_word_pools', type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
-      parameter name: :user_created, in: :query, type: :boolean, required: false, description: 'Filter by user created or system pool'
+      parameter name: :user_id, in: :query, type: :string, required: false, description: 'Filter by user id, empty for no user id'
       parameter name: :current_curriculum, in: :query, type: :boolean, required: false, description: 'Filter by user current curriculum'
       parameter name: :curriculum_id, in: :query, type: :string, required: false, description: 'Filter by curriculum id'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
+      parameter name: :published, in: :query, type: :boolean, required: false, description: 'Filter by published status'
+      parameter name: :include_default_pool, in: :query, type: :boolean, required: false, description: 'Include default pool'
+      parameter name: :include_self, in: :query, type: :boolean, required: false, description: 'Include created by current user'
+      parameter name: :include_system, in: :query, type: :boolean, required: false, description: 'Include created by system'
+      parameter name: :include_user, in: :query, type: :boolean, required: false, description: 'Include created by user'
+      parameter name: :include_user_id, in: :query, type: :string, required: false, description: 'Include created by user id'
       parameter name: :query, in: :query, type: :string, required: false, description: 'Query by title'
 
       response(200, 'successful') do
         before do
-          create_list(:guess_word_pool, 3, :with_questions, question_count: 1, user: user)
-          create(:guess_word_pool, :with_questions, user: nil, published: true)
+          create_list(:guess_word_pool, 2, :with_questions, question_count: 1, user: user, published: false)
+          create(:guess_word_pool, user: nil, published: true)
+          create(:guess_word_pool, user: create(:user), published: true)
         end
 
         run_test!
+      end
+
+      context 'with filters' do
+        let(:include_default_pool) { true }
+        let(:include_self) { true }
+        let(:include_system) { false }
+        let(:include_other) { false }
+
+        before do
+          create(:guess_word_pool, :with_questions, question_count: 1, user: user, published: false)
+          create(:guess_word_pool, user: nil, published: true)
+          create(:guess_word_pool, user: nil, published: true, default_pool: true)
+          create(:guess_word_pool, user: create(:user), published: true)
+        end
+
+        it 'returns with filtered list' do
+          get api_v1_user_guess_word_pools_url,
+              params: { include_default_pool: include_default_pool, include_system: include_system, include_self: include_self, include_other: include_other },
+              headers: { Authorization: bearer_token_for(user) }
+
+          data = JSON.parse(response.body)
+          expect(data['guess_word_pools'].size).to eq(2)
+          expect(data['guess_word_pools'].select { |pool| pool['default_pool'] }).to be_present
+          expect(data['guess_word_pools'].select { |pool| pool['user_id'] == user.id }).to be_present
+        end
       end
     end
 

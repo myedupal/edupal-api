@@ -22,6 +22,7 @@ RSpec.describe "api/v1/admin/guess_words", type: :request do
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search by answer'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :guess_word_pool_id, in: :query, type: :string, required: false, description: 'Filter by guess word pool id, empty to filter for no pool id'
+      parameter name: :system_guess_word_pool, in: :query, type: :string, required: false, description: 'Filter for system guess word pool'
       parameter name: :ongoing, in: :query, type: :string, required: false, description: 'Filter by ongoing'
       parameter name: :ended, in: :query, type: :string, required: false, description: 'Filter by ended'
       parameter name: :only_submitted_by, in: :query, type: :string, required: false, description: 'Filter for submitted by user'
@@ -41,6 +42,7 @@ RSpec.describe "api/v1/admin/guess_words", type: :request do
               create(:guess_word_submission_guess, guess_word_submission: guess_word_submission)
             end
           end
+          create(:guess_word, guess_word_pool: create(:guess_word_pool))
         end
 
         run_test!
@@ -135,6 +137,7 @@ RSpec.describe "api/v1/admin/guess_words", type: :request do
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search by answer'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :guess_word_pool_id, in: :query, type: :string, required: false, description: 'Filter by guess word pool id, empty to filter for no pool id'
+      parameter name: :system_guess_word_pool, in: :query, type: :string, required: false, description: 'Filter for system guess word pool'
       parameter name: :ongoing, in: :query, type: :string, required: false, description: 'Filter by ongoing'
       parameter name: :ended, in: :query, type: :string, required: false, description: 'Filter by ended'
       parameter name: :only_submitted_by, in: :query, type: :string, required: false, description: 'Filter for submitted by user'

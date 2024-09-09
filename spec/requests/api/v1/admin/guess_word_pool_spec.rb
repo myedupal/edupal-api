@@ -18,8 +18,8 @@ RSpec.describe 'api/v1/admin/guess_word_pools', type: :request do
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :curriculum_id, in: :query, type: :string, required: false, description: 'Filter by curriculum id'
-      parameter name: :user_id, in: :query, type: :string, required: false, description: 'Filter by user id'
-      parameter name: :published, in: :query, type: :boolean, required: false, description: 'Filter by published'
+      parameter name: :user_id, in: :query, type: :string, required: false, description: 'Filter by user id, empty for no user id'
+      parameter name: :published, in: :query, type: :boolean, required: false, description: 'Filter by published status'
       parameter name: :query, in: :query, type: :string, required: false, description: 'Query by title'
 
       response(200, 'successful') do
@@ -67,8 +67,9 @@ RSpec.describe 'api/v1/admin/guess_word_pools', type: :request do
         let(:data) do
           { guess_word_pool: attributes_for(:guess_word_pool).slice(:title, :description, :subject_id).merge(
             guess_word_questions_attributes:
-              [attributes_for(:guess_word_question).slice(:word, :description),
-               attributes_for(:guess_word_question).slice(:word, :description)
+              [
+                attributes_for(:guess_word_question).slice(:word, :description),
+                attributes_for(:guess_word_question).slice(:word, :description)
               ]
           ) }
         end
