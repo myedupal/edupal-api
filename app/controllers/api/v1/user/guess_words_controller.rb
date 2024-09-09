@@ -5,11 +5,11 @@ class Api::V1::User::GuessWordsController < Api::V1::User::ApplicationController
   def index
     @pagy, @guess_words = pagy(@guess_words)
     @guess_words = load_guess_word_submissions(@guess_words) if params[:with_submission]
-    render json: @guess_words, include: ['subject']
+    render json: @guess_words, include: ['subject'], skip_exams_filtering: true
   end
 
   def show
-    render json: @guess_word, include: ['subject', 'guess_word_submissions', 'guess_word_submissions.guesses']
+    render json: @guess_word, include: ['subject', 'guess_word_submissions', 'guess_word_submissions.guesses'], skip_exams_filtering: true
   end
 
   private

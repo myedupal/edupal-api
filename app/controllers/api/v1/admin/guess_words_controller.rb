@@ -4,11 +4,11 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
 
   def index
     @pagy, @guess_words = pagy(@guess_words)
-    render json: @guess_words, include: ['subject'], with_reports: params[:with_reports]
+    render json: @guess_words, include: ['subject'], with_reports: params[:with_reports], skip_exams_filtering: true
   end
 
   def show
-    render json: @guess_word, include: ['subject'], with_reports: params[:with_reports]
+    render json: @guess_word, include: ['subject'], with_reports: params[:with_reports], skip_exams_filtering: true
   end
 
   def create
@@ -18,7 +18,7 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
     if @guess_word.save
       render json: @guess_word, include: ['subject']
     else
-      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity
+      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity, skip_exams_filtering: true
     end
   end
 
@@ -26,7 +26,7 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
     if @guess_word.update(guess_word_params)
       render json: @guess_word, include: ['subject', 'guess_word_submissions']
     else
-      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity
+      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity, skip_exams_filtering: true
     end
   end
 
