@@ -8,15 +8,16 @@ RSpec.describe 'api/v1/user/reports', type: :request do
   let(:biology) { create(:subject, name: 'Biology', curriculum: curriculum) }
   let(:physics) { create(:subject, name: 'Physics', curriculum: curriculum) }
   let(:chemistry) { create(:subject, name: 'Chemistry', curriculum: curriculum) }
-  let!(:biology_questions) { create_list(:question, 10, :mcq_with_answer, subject: biology) }
-  let!(:physics_questions) { create_list(:question, 10, :mcq_with_answer, subject: physics) }
-  let!(:chemistry_questions) { create_list(:question, 10, :mcq_with_answer, subject: chemistry) }
 
   path '/api/v1/user/reports/daily_challenge' do
     get('daily challenge report') do
       tags 'User Reports'
       security [{ bearerAuth: nil }]
       produces 'application/json'
+
+      let!(:biology_questions) { create_list(:question, 3, :mcq_with_answer, subject: biology) }
+      let!(:physics_questions) { create_list(:question, 3, :mcq_with_answer, subject: physics) }
+      let!(:chemistry_questions) { create_list(:question, 3, :mcq_with_answer, subject: chemistry) }
 
       before do
         biology_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: biology, start_at: 1.hour.ago, end_at: 1.hour.from_now)
@@ -47,11 +48,107 @@ RSpec.describe 'api/v1/user/reports', type: :request do
     end
   end
 
+  path '/api/v1/user/reports/daily_challenge_heatmap' do
+    get('daily challenge report') do
+      tags 'User Reports'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      before do
+        biology_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: biology, start_at: 1.hour.ago, end_at: 1.hour.from_now)
+        create(:submission, challenge: biology_daily_challenge, user: user, status: :submitted, submitted_at: Time.current.beginning_of_day, created_at: Time.current.beginning_of_day)
+
+        4.times do |i|
+          day = i.days.ago.beginning_of_day
+          physics_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: physics, start_at: day, end_at: 1.hour.from_now)
+          create(:submission, challenge: physics_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+        end
+
+        3.times do |i|
+          day = i.days.ago.beginning_of_day
+          chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: day, end_at: 1.hour.from_now)
+          create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+        end
+
+        2.times do |i|
+          day = (10 + (i * 5)).days.ago.beginning_of_day
+          chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: day, end_at: 1.hour.from_now)
+          create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+        end
+      end
+
+      response(200, 'successful') do
+        run_test!
+      end
+    end
+  end
+
+
+  path '/api/v1/user/reports/daily_challenge_breakdown' do
+    get('daily challenge breakdown') do
+      tags 'User Reports'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      parameter name: :from_date, in: :query, type: :string, required: false, description: "start date"
+      parameter name: :to_date, in: :query, type: :string, required: false, description: "end date"
+      parameter name: :breakdown_for, in: :query, type: :string, required: true, description: "Select data point to group by\nbreakdown for option: subject, month, month_subject"
+
+      let(:physics_questions) { create_list(:question, 2, :mcq_with_answer, subject: physics) }
+
+      before do
+        biology_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: biology, start_at: 1.hour.ago, end_at: 1.hour.from_now)
+        biology_submission = create(:submission, challenge: biology_daily_challenge, user: user, status: :submitted, submitted_at: Time.current.beginning_of_day, created_at: Time.current.beginning_of_day)
+        biology_submission.update_columns(score: 30, total_score: 100)
+
+        3.times do |i|
+          day = i.days.ago.beginning_of_day
+          physics_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: physics, start_at: day, end_at: 1.hour.from_now)
+          submission = create(:submission, challenge: physics_daily_challenge, user: user, status: :pending, submitted_at: day + 5.minutes, created_at: day)
+          physics_questions.each.with_index do |question, _|
+            if i < 2
+              create(:submission_answer, :correct_answer, submission: submission, question: question)
+            else
+              create(:submission_answer, :incorrect_answer, submission: submission, question: question)
+            end
+          end
+          travel_to day + 5.minutes do
+            submission.submit!
+          end
+        end
+
+        2.times do |i|
+          day = i.days.ago.beginning_of_day
+          chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: day, end_at: 1.hour.from_now)
+          create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+        end
+
+        2.times do |i|
+          i = 10 + (i * 2)
+          day = (i * 2).days.ago.beginning_of_day
+          chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: day, end_at: 1.hour.from_now)
+          create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+        end
+      end
+
+      response(200, 'successful') do
+        let(:breakdown_for) { 'subject' }
+        run_test!do |response|
+          puts response.body
+        end
+      end
+    end
+  end
+
   path '/api/v1/user/reports/mcq' do
     get('MCQ report') do
       tags 'User Reports'
       security [{ bearerAuth: nil }]
       produces 'application/json'
+
+      let!(:biology_questions) { create_list(:question, 10, :mcq_with_answer, subject: biology) }
+      let!(:physics_questions) { create_list(:question, 10, :mcq_with_answer, subject: physics) }
+      let!(:chemistry_questions) { create_list(:question, 10, :mcq_with_answer, subject: chemistry) }
 
       before do
         current_time = Time.current
