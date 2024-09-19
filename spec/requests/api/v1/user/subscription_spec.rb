@@ -68,7 +68,7 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
       context 'when plan type is stripe' do
         response(200, 'successful', save_request_example: :data) do
           run_test! do
-            expect(user.reload.active_subscription).to be_present
+            expect(user.reload.active_subscriptions).to be_present
           end
         end
 
@@ -87,6 +87,10 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
         let(:price) { create(:price, plan: plan) }
 
         response(200, 'successful', save_request_example: :data) do
+          before do
+            create(:subscription, user: user, plan_type: :razorpay, status: :active)
+          end
+
           run_test! do |response|
             response_body = JSON.parse(response.body)
             expect(response_body['subscription']['razorpay_short_url']).to be_present
@@ -95,10 +99,25 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
 
         response(422, 'unprocessable entity') do
           before do
-            create(:subscription, user: user, plan_type: :razorpay, status: :active)
+            create(:subscription, user: user, plan_type: :razorpay, status: :active, plan: plan, price: price)
           end
 
           run_test!
+        end
+      end
+
+      context 'with referring user' do
+        let(:referred_by) { create(:user) }
+        let(:user) { create(:user, referred_by: referred_by) }
+        it 'create referral activity' do
+          post '/api/v1/user/subscriptions', headers: { Authorization: bearer_token_for(user) }, params: { subscription: { price_id: price.id } }
+
+          expect(response).to have_http_status(:ok)
+          data = JSON.parse(response.body)
+          expect(referred_by.reload.referral_activities.count).to eq(1)
+          referral_activity = referred_by.referral_activities.first!
+          expect(referral_activity.user).to eq(referred_by)
+          expect(referral_activity.referral_source_id).to eq(data['subscription']['id'])
         end
       end
     end
@@ -267,6 +286,58 @@ RSpec.describe 'api/v1/user/subscriptions', type: :request do
             expect(response_body['subscription']['status']).to eq('active')
             expect(response_body['subscription']['cancel_at_period_end']).to be_truthy
           end
+        end
+      end
+    end
+  end
+
+  path '/api/v1/user/subscriptions/redeem' do
+    post('redeem subscriptions') do
+      tags 'User Subscriptions'
+      produces 'application/json'
+      consumes 'application/json'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        properties: {
+          subscription: {
+            type: :object,
+            properties: {
+              redeem_code: { type: :string }
+            }
+          }
+        }
+      }
+
+      let(:gift_card) { create(:gift_card) }
+      let(:data) { { subscription: { redeem_code: gift_card.code } } }
+
+      response(200, 'successful', save_request_example: :data) do
+        before do
+          create(:subscription, user: user, status: :active)
+        end
+
+        run_test! do |response|
+          response_body = JSON.parse(response.body)
+          expect(response_body['subscription']['status']).to eq('active')
+          expect(user.reload.active_subscriptions).to be_present
+        end
+      end
+
+      response(400, 'bad_request', save_request_example: :data) do
+        let(:gift_card) { create(:gift_card, expires_at: 1.day.ago) }
+
+        run_test!
+      end
+
+      context 'when user already has an active subscription for plan' do
+        before do
+          create(:subscription, user: user, status: :active, plan: gift_card.plan)
+        end
+
+        response(400, 'bad_request', save_request_example: :data) do
+          run_test!
         end
       end
     end

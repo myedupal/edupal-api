@@ -22,9 +22,19 @@ Rails.application.routes.draw do
           put :password, on: :collection
         end
         resources :admins
-        resources :users
+        resources :users do
+          get :count, on: :collection
+        end
         resources :plans
         resources :subscriptions, only: [:index]
+        resources :reports, only: [] do
+          get :user_current_streaks_count, on: :collection
+          get :user_max_streaks_count, on: :collection
+          get :user_recent_check_in_count, on: :collection
+          get :user_recent_submission_count, on: :collection
+          get :submission_recent_count, on: :collection
+          get :point_activity_recent_count, on: :collection
+        end
 
         resources :curriculums
         resources :subjects
@@ -37,6 +47,20 @@ Rails.application.routes.draw do
         resources :challenges
         resources :submissions, only: [:index, :show]
         resources :submission_answers, only: [:index]
+        resources :gift_cards
+
+        resources :guess_words do
+          get :export_csv, on: :collection
+        end
+        resources :guess_word_submissions, only: [:index, :show]
+        resources :guess_word_dictionaries do
+          post :import, on: :collection
+        end
+
+        resources :referral_activities, only: [:index, :show] do
+          post :nullify, on: :member
+          post :revalidate, on: :member
+        end
       end
 
       namespace :user do
@@ -52,7 +76,9 @@ Rails.application.routes.draw do
         resource :account, only: [:show, :update] do
           put :password, on: :collection
           get :zklogin_salt, on: :collection
+          post :update_referral, on: :collection
         end
+
         resource :stripe, only: [] do
           collection do
             get :payment_methods
@@ -63,6 +89,13 @@ Rails.application.routes.draw do
         end
         resources :subscriptions, only: [:index, :show, :create, :update] do
           put :cancel, on: :member
+          post :redeem, on: :collection
+        end
+        resources :quotes, only: [:index, :show, :create, :update] do
+          put :accept, on: :member
+          get :payment_intent, on: :member
+          put :cancel, on: :member
+          get :show_pdf, on: :member
         end
 
         resources :questions, only: [:index, :show]
@@ -81,8 +114,25 @@ Rails.application.routes.draw do
           get :daily_challenge, on: :collection
           get :mcq, on: :collection
           get :points, on: :collection
+          get :guess_word, on: :collection
+          get :subject, on: :collection
         end
         resources :point_activities, only: [:index]
+
+        resources :guess_words, only: [:index, :show] do
+          resources :guess_word_submissions, only: [:index] do
+            post :guess, on: :collection, action: :direct_guess
+          end
+        end
+        resources :guess_word_submissions, only: [:index, :show, :create] do
+          post :guess, on: :member
+        end
+
+        resources :referral_activities, only: [:index, :show]
+
+        resources :user_collections
+
+        resources :study_goals
       end
 
       namespace :web do

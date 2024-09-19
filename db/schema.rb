@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_27_082811) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -34,8 +34,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.integer "daily_streak", default: 0, null: false
     t.integer "maximum_streak", default: 0, null: false
     t.uuid "selected_curriculum_id"
+    t.integer "guess_word_daily_streak", default: 0, null: false
+    t.string "nanoid"
+    t.uuid "referred_by_id"
+    t.integer "referred_count", default: 0
+    t.bigint "referred_credit_cents", default: 0, null: false
+    t.string "referred_credit_currency", default: "USD", null: false
+    t.string "oauth2_iss"
+    t.string "oauth2_aud"
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
+    t.index ["nanoid"], name: "index_accounts_on_nanoid", unique: true
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
+    t.index ["referred_by_id"], name: "index_accounts_on_referred_by_id"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
     t.index ["selected_curriculum_id"], name: "index_accounts_on_selected_curriculum_id"
   end
@@ -164,6 +174,65 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.index ["paper_id"], name: "index_exams_on_paper_id"
   end
 
+  create_table "gift_cards", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name"
+    t.string "remark"
+    t.uuid "plan_id", null: false
+    t.uuid "created_by_id", null: false
+    t.integer "redemption_limit", default: 1, null: false
+    t.integer "redemption_count", default: 0, null: false
+    t.datetime "expires_at"
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "duration"
+    t.index ["created_by_id"], name: "index_gift_cards_on_created_by_id"
+    t.index ["plan_id"], name: "index_gift_cards_on_plan_id"
+  end
+
+  create_table "guess_word_dictionaries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "word", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["word"], name: "index_guess_word_dictionaries_on_word", unique: true
+  end
+
+  create_table "guess_word_submission_guesses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "guess_word_submission_id", null: false
+    t.string "guess"
+    t.text "result", default: [], array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guess_word_submission_id"], name: "index_guess_word_submission_guesses_on_guess_word_submission_id"
+  end
+
+  create_table "guess_word_submissions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "guess_word_id", null: false
+    t.uuid "user_id", null: false
+    t.integer "guesses_count", default: 0
+    t.string "status"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guess_word_id", "user_id"], name: "index_guess_word_submissions_on_guess_word_id_and_user_id", unique: true
+    t.index ["guess_word_id"], name: "index_guess_word_submissions_on_guess_word_id"
+    t.index ["user_id"], name: "index_guess_word_submissions_on_user_id"
+  end
+
+  create_table "guess_words", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "subject_id", null: false
+    t.integer "guess_word_submissions_count", default: 0
+    t.string "answer", null: false
+    t.string "description"
+    t.integer "attempts", default: 6, null: false
+    t.integer "reward_points", default: 0, null: false
+    t.datetime "start_at"
+    t.datetime "end_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subject_id"], name: "index_guess_words_on_subject_id"
+  end
+
   create_table "papers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name"
     t.uuid "subject_id", null: false
@@ -181,6 +250,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "plan_type"
+    t.decimal "referral_fee_percentage", precision: 5, scale: 2, default: "0.0"
   end
 
   create_table "point_activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -238,6 +308,32 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.index ["subject_id"], name: "index_questions_on_subject_id"
   end
 
+  create_table "quotes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "created_by_id", null: false
+    t.string "stripe_quote_id"
+    t.string "status"
+    t.datetime "quote_expire_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_quotes_on_created_by_id"
+    t.index ["user_id"], name: "index_quotes_on_user_id"
+  end
+
+  create_table "referral_activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id"
+    t.string "referral_source_type"
+    t.uuid "referral_source_id"
+    t.string "referral_type"
+    t.boolean "voided", default: false, null: false
+    t.bigint "credit_cents", default: 0, null: false
+    t.string "credit_currency", default: "USD", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["referral_source_type", "referral_source_id"], name: "index_referral_activities_on_referral_source"
+    t.index ["user_id"], name: "index_referral_activities_on_user_id"
+  end
+
   create_table "saved_user_exams", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.uuid "user_exam_id", null: false
@@ -281,6 +377,25 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.index ["user_id"], name: "index_stripe_profiles_on_user_id"
   end
 
+  create_table "study_goal_subjects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "study_goal_id", null: false
+    t.uuid "subject_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["study_goal_id"], name: "index_study_goal_subjects_on_study_goal_id"
+    t.index ["subject_id"], name: "index_study_goal_subjects_on_subject_id"
+  end
+
+  create_table "study_goals", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "curriculum_id", null: false
+    t.integer "a_grade_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["curriculum_id"], name: "index_study_goals_on_curriculum_id"
+    t.index ["user_id"], name: "index_study_goals_on_user_id"
+  end
+
   create_table "subjects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name"
     t.uuid "curriculum_id", null: false
@@ -322,13 +437,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.string "title"
     t.integer "total_submitted_answers", default: 0
     t.integer "total_correct_answers", default: 0
+    t.uuid "user_exam_id"
+    t.string "mcq_type"
     t.index ["challenge_id"], name: "index_submissions_on_challenge_id"
+    t.index ["user_exam_id"], name: "index_submissions_on_user_exam_id"
     t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "plan_id", null: false
-    t.uuid "price_id", null: false
+    t.uuid "price_id"
     t.uuid "user_id", null: false
     t.uuid "created_by_id", null: false
     t.datetime "start_at"
@@ -345,9 +463,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.datetime "updated_at", null: false
     t.string "razorpay_subscription_id"
     t.string "razorpay_short_url"
+    t.string "redeem_code"
+    t.uuid "quote_id"
     t.index ["created_by_id"], name: "index_subscriptions_on_created_by_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["price_id"], name: "index_subscriptions_on_price_id"
+    t.index ["quote_id"], name: "index_subscriptions_on_quote_id"
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
@@ -358,6 +479,29 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.datetime "updated_at", null: false
     t.integer "display_order", default: 0
     t.index ["subject_id"], name: "index_topics_on_subject_id"
+  end
+
+  create_table "user_collection_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_collection_id", null: false
+    t.uuid "question_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["question_id", "user_collection_id"], name: "index_user_collection_questions_on_question_and_collection", unique: true
+    t.index ["question_id"], name: "index_user_collection_questions_on_question_id"
+    t.index ["user_collection_id"], name: "index_user_collection_questions_on_user_collection_id"
+  end
+
+  create_table "user_collections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "curriculum_id", null: false
+    t.string "collection_type", null: false
+    t.string "title"
+    t.string "description"
+    t.integer "questions_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["curriculum_id"], name: "index_user_collections_on_curriculum_id"
+    t.index ["user_id"], name: "index_user_collections_on_user_id"
   end
 
   create_table "user_exam_questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -383,6 +527,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
     t.index ["subject_id"], name: "index_user_exams_on_subject_id"
   end
 
+  add_foreign_key "accounts", "accounts", column: "referred_by_id"
   add_foreign_key "accounts", "curriculums", column: "selected_curriculum_id"
   add_foreign_key "activities", "accounts", column: "user_id"
   add_foreign_key "activities", "exams"
@@ -399,6 +544,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
   add_foreign_key "challenges", "subjects"
   add_foreign_key "daily_check_ins", "accounts", column: "user_id"
   add_foreign_key "exams", "papers"
+  add_foreign_key "gift_cards", "accounts", column: "created_by_id"
+  add_foreign_key "gift_cards", "plans"
+  add_foreign_key "guess_word_submission_guesses", "guess_word_submissions"
+  add_foreign_key "guess_word_submissions", "accounts", column: "user_id"
+  add_foreign_key "guess_word_submissions", "guess_words"
+  add_foreign_key "guess_words", "subjects"
   add_foreign_key "papers", "subjects"
   add_foreign_key "point_activities", "accounts"
   add_foreign_key "prices", "plans"
@@ -407,21 +558,34 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_30_141755) do
   add_foreign_key "question_topics", "topics"
   add_foreign_key "questions", "exams"
   add_foreign_key "questions", "subjects"
+  add_foreign_key "quotes", "accounts", column: "created_by_id"
+  add_foreign_key "quotes", "accounts", column: "user_id"
+  add_foreign_key "referral_activities", "accounts", column: "user_id"
   add_foreign_key "saved_user_exams", "accounts", column: "user_id"
   add_foreign_key "saved_user_exams", "user_exams"
   add_foreign_key "sessions", "accounts"
   add_foreign_key "stripe_profiles", "accounts", column: "user_id"
+  add_foreign_key "study_goal_subjects", "study_goals"
+  add_foreign_key "study_goal_subjects", "subjects"
+  add_foreign_key "study_goals", "accounts", column: "user_id"
+  add_foreign_key "study_goals", "curriculums"
   add_foreign_key "subjects", "curriculums"
   add_foreign_key "submission_answers", "accounts", column: "user_id"
   add_foreign_key "submission_answers", "questions"
   add_foreign_key "submission_answers", "submissions"
   add_foreign_key "submissions", "accounts", column: "user_id"
   add_foreign_key "submissions", "challenges"
+  add_foreign_key "submissions", "user_exams"
   add_foreign_key "subscriptions", "accounts", column: "created_by_id"
   add_foreign_key "subscriptions", "accounts", column: "user_id"
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "prices"
+  add_foreign_key "subscriptions", "quotes"
   add_foreign_key "topics", "subjects"
+  add_foreign_key "user_collection_questions", "questions"
+  add_foreign_key "user_collection_questions", "user_collections"
+  add_foreign_key "user_collections", "accounts", column: "user_id"
+  add_foreign_key "user_collections", "curriculums"
   add_foreign_key "user_exam_questions", "questions"
   add_foreign_key "user_exam_questions", "user_exams"
   add_foreign_key "user_exams", "accounts", column: "created_by_id"

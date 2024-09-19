@@ -1,0 +1,35 @@
+name: Generate Daily Challenge Task
+
+on:
+  workflow_dispatch:
+    inputs:
+      from_date:
+        description: 'Date From'
+        required: true
+        default: '2024-05-20'
+      subject_code:
+        description: 'Subject Code'
+        required: true
+        default: '0610'
+      to_date:
+        description: 'Date To'
+        required: true
+        default: '2024-05-31'
+      number_of_questions:
+        description: 'Number of Questions'
+        required: true
+        default: '10'
+        
+jobs:
+  run-rake-task:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Generate daily challenge
+      uses: JimCronqvist/action-ssh@master
+      with:
+        hosts: ${{ vars.PRODUCTION_HOSTS }}
+        privateKey: ${{ secrets.PRODUCTION_SSH_KEY }}
+        command: |
+          cd ~/edupals-docker
+          docker-compose run --rm api rake daily_challenge:generate subject_code=${{ github.event.inputs.subject_code }} from_date=${{ github.event.inputs.from_date }} to_date=${{ github.event.inputs.to_date }} questions_per_challenge=${{ github.event.inputs.number_of_questions }}

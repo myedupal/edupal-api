@@ -25,6 +25,9 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
       parameter name: :challenge_type, in: :query, type: :string, required: false, description: 'Filter by challenge type'
       parameter name: :daily_challenge, in: :query, type: :boolean, required: false, description: 'Filter by daily challenge'
       parameter name: :mcq, in: :query, type: :boolean, required: false, description: 'Filter by mcq'
+      parameter name: :mcq_type, in: :query, type: :string, required: false, description: 'Filter by mcq type'
+      parameter name: :user_exam, in: :query, type: :boolean, required: false, description: 'Filter by user exam'
+      parameter name: :user_exam_id, in: :query, type: :string, required: false, description: 'Filter by user exam id'
 
       response(200, 'successful') do
         before do
@@ -43,6 +46,54 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
           expect(parsed_response['submissions'].size).to eq(3)
         end
       end
+
+      context 'filter with mcq_type' do
+        let(:mcq_submission) { create(:submission, user: user, challenge: nil, mcq_type: :yearly) }
+
+        before do
+          challenge = create(:challenge, :published, :daily, start_at: Time.current)
+          question = create(:question, :mcq_with_answer)
+          create(:challenge_question, challenge: challenge, question: question, score: 10)
+          challenge_submission = create(:submission, user: user, challenge: challenge)
+          create(:submission_answer, submission: challenge_submission, question: question)
+          challenge_submission.submit!
+
+          create(:submission_answer, submission: mcq_submission)
+          mcq_submission.submit!
+        end
+
+        it 'should return only yearly mcq submissions' do
+          get '/api/v1/user/submissions', params: { mcq_type: 'yearly' }, headers: { Authorization: bearer_token_for(user) }
+          expect(response).to have_http_status(:ok)
+          response_body = JSON.parse(response.body)
+          expect(response_body['submissions'].size).to eq(1)
+          expect(response_body['submissions'][0]['id']).to eq(mcq_submission.id)
+        end
+      end
+
+      context 'filter with user_exam' do
+        let(:user_exam_submission) { create(:submission, user: user, challenge: nil, user_exam: create(:user_exam)) }
+
+        before do
+          challenge = create(:challenge, :published, :daily, start_at: Time.current)
+          question = create(:question, :mcq_with_answer)
+          create(:challenge_question, challenge: challenge, question: question, score: 10)
+          challenge_submission = create(:submission, user: user, challenge: challenge)
+          create(:submission_answer, submission: challenge_submission, question: question)
+          challenge_submission.submit!
+
+          create(:submission_answer, submission: user_exam_submission)
+          user_exam_submission.submit!
+        end
+
+        it 'should return only user exam submissions' do
+          get '/api/v1/user/submissions', params: { user_exam: true }, headers: { Authorization: bearer_token_for(user) }
+          expect(response).to have_http_status(:ok)
+          response_body = JSON.parse(response.body)
+          expect(response_body['submissions'].size).to eq(1)
+          expect(response_body['submissions'][0]['id']).to eq(user_exam_submission.id)
+        end
+      end
     end
 
     post('create submissions') do
@@ -58,6 +109,7 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
             type: :object,
             properties: {
               challenge_id: { type: :string },
+              user_exam_id: { type: :string },
               title: { type: :string },
               submission_answers_attributes: {
                 type: :array,
@@ -115,6 +167,7 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
             type: :object,
             properties: {
               challenge_id: { type: :string },
+              user_exam_id: { type: :string },
               title: { type: :string },
               submission_answers_attributes: {
                 type: :array,
@@ -199,6 +252,7 @@ RSpec.describe 'api/v1/user/submissions', type: :request do
             type: :object,
             properties: {
               challenge_id: { type: :string },
+              user_exam_id: { type: :string },
               title: { type: :string },
               submission_answers_attributes: {
                 type: :array,

@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Submission, type: :model do
   describe 'associations' do
     it { is_expected.to belong_to(:challenge).optional }
+    it { is_expected.to belong_to(:user_exam).optional }
     it { is_expected.to belong_to(:user) }
     it { is_expected.to have_many(:submission_answers).dependent(:destroy) }
     it { is_expected.to have_many(:point_activities).dependent(:destroy) }
@@ -12,11 +13,28 @@ RSpec.describe Submission, type: :model do
     it { is_expected.to accept_nested_attributes_for(:submission_answers).allow_destroy(true) }
   end
 
+  describe 'enums' do
+    it { is_expected.to define_enum_for(:mcq_type).with_values({ yearly: 'yearly', topical: 'topical' }).backed_by_column_of_type(:string) }
+  end
+
   describe 'validations' do
     context 'when challenge is not present' do
-      subject { build(:submission, challenge: nil) }
+      subject { build(:submission, challenge: nil, mcq_type: :yearly) }
 
       it { is_expected.to validate_presence_of(:title) }
+      it { is_expected.to validate_presence_of(:mcq_type) }
+    end
+
+    context 'when challenge is present' do
+      subject { build(:submission, challenge: create(:challenge), mcq_type: :yearly) }
+
+      it { is_expected.to validate_absence_of(:mcq_type) }
+    end
+
+    context 'when user exam is present' do
+      subject { build(:submission, user_exam: create(:user_exam), mcq_type: :yearly) }
+
+      it { is_expected.to validate_absence_of(:mcq_type) }
     end
   end
 
@@ -39,6 +57,23 @@ RSpec.describe Submission, type: :model do
 
         expect(described_class.mcq).to include(submission)
         expect(described_class.mcq).not_to include(daily_challenge_submission)
+      end
+    end
+
+    describe '.is_user_exam' do
+      let(:user_exam_submission) { create(:submission, user_exam: create(:user_exam)) }
+      let(:non_user_exam_submission) { create(:submission, user_exam: nil) }
+
+      context 'when true' do
+        it 'returns user exam submissions' do
+          expect(described_class.is_user_exam(true)).to contain_exactly(user_exam_submission)
+        end
+      end
+
+      context 'when false' do
+        it 'returns non user exam submissions' do
+          expect(described_class.is_user_exam(false)).to contain_exactly(non_user_exam_submission)
+        end
       end
     end
   end
@@ -72,7 +107,7 @@ RSpec.describe Submission, type: :model do
         end
 
         it 'return true if challenge is nil' do
-          submission = create(:submission, challenge: nil)
+          submission = create(:submission, challenge: nil, mcq_type: :yearly)
 
           expect(submission.send(:within_challenge_time?)).to be_truthy
         end

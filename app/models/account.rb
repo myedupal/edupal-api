@@ -1,4 +1,5 @@
 class Account < ApplicationRecord
+  include NanoidGenerator
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :recoverable
@@ -15,6 +16,8 @@ class Account < ApplicationRecord
       u.password = SecureRandom.alphanumeric(128)
       u.oauth2_provider = provider
       u.oauth2_sub = id_token['sub']
+      u.oauth2_iss = id_token['iss']
+      u.oauth2_aud = id_token['aud']
       u.oauth2_profile_picture_url = id_token['picture']
     end
 
@@ -24,6 +27,8 @@ class Account < ApplicationRecord
       user.update_columns(
         oauth2_provider: provider,
         oauth2_sub: id_token['sub'],
+        oauth2_iss: id_token['iss'],
+        oauth2_aud: id_token['aud'],
         oauth2_profile_picture_url: id_token['picture']
       )
     end

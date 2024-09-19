@@ -7,6 +7,7 @@ FactoryBot.define do
     user_id { user&.id }
     challenge_id { challenge&.id }
     title { challenge.blank? ? Faker::Lorem.sentence : nil }
+    mcq_type { challenge.blank? && user_exam.blank? ? Submission.mcq_types.keys.sample : nil}
     # score { '' }
     # total_score { '' }
     # completion_seconds { '' }

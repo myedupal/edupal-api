@@ -11,7 +11,15 @@ RSpec.describe 'api/v1/user/account', type: :request do
         produces 'application/json'
         security [{ bearerAuth: nil }]
 
-        run_test! do |_response|
+        before do
+          create(:subscription, :active, user: user)
+          create(:study_goal, :with_subject, user: user, curriculum: user.selected_curriculum)
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['user']['active_subscriptions'].first['plan']).to be_present
+          expect(data['user']['current_study_goal']['study_goal_subjects'].first['subject']['name']).to be_present
           expect(user.daily_check_ins).to exist(date: Date.current)
           expect(user.point_activities).to exist(action_type: :daily_check_in)
         end
@@ -98,6 +106,36 @@ RSpec.describe 'api/v1/user/account', type: :request do
         before do
           allow_any_instance_of(User).to receive(:zklogin_salt).and_return('salt')
         end
+
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/user/account/update_referral' do
+    post('update account referral') do
+      tags 'User Account'
+      produces 'application/json'
+      consumes 'application/json'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        properties: {
+          referral_code: { type: :string }
+        }
+      }
+
+      let!(:referred_by) { create(:user) }
+
+      response(200, 'successful', save_request_example: :data) do
+        let(:data) { { referral_code: referred_by.nanoid } }
+
+        run_test!
+      end
+
+      response(422, 'successful', save_request_example: :data) do
+        let(:data) { { referral_code: user.nanoid } }
 
         run_test!
       end

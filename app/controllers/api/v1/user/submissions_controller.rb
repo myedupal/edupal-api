@@ -78,6 +78,10 @@ class Api::V1::User::SubmissionsController < Api::V1::User::ApplicationControlle
       @submissions = @submissions.joins(:challenge).where(challenge: { challenge_type: params[:challenge_type] }) if params[:challenge_type].present?
       @submissions = @submissions.daily_challenge if params[:daily_challenge].present? && ActiveModel::Type::Boolean.new.cast(params[:daily_challenge])
       @submissions = @submissions.mcq if params[:mcq].present? && ActiveModel::Type::Boolean.new.cast(params[:mcq])
+      @submissions = @submissions.where(mcq_type: params[:mcq_type]) if params[:mcq_type].present?
+      @submissions = @submissions.is_user_exam(ActiveModel::Type::Boolean.new.cast(params[:user_exam])) if params[:user_exam].present?
+      @submissions = @submissions.where(user_exam_id: params[:user_exam_id]) if params[:user_exam_id].present?
+
       @submissions = attribute_sortable(@submissions)
     end
 
@@ -90,6 +94,6 @@ class Api::V1::User::SubmissionsController < Api::V1::User::ApplicationControlle
     end
 
     def submission_params
-      params.require(:submission).permit(:challenge_id, :title, submission_answers_attributes: [:id, :_destroy, :question_id, :answer])
+      params.require(:submission).permit(:challenge_id, :user_exam_id, :title, :mcq_type, submission_answers_attributes: [:id, :_destroy, :question_id, :answer])
     end
 end

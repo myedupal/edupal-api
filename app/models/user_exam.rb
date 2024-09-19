@@ -9,6 +9,7 @@ class UserExam < ApplicationRecord
   has_many :user_exam_questions, dependent: :destroy
   has_many :questions, through: :user_exam_questions
   has_many :saved_user_exams, dependent: :destroy
+  has_many :submissions, dependent: :destroy
 
   accepts_nested_attributes_for :user_exam_questions, allow_destroy: true, reject_if: :all_blank
 end

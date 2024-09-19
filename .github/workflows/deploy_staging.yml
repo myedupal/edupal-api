@@ -9,6 +9,7 @@ env:
   SIDEKIQ_NAME: ${{ github.event.repository.name }}-staging-sidekiq
   SIDEKIQ_COMMAND: bundle exec sidekiq -C config/sidekiq.yml
   IMAGE_REPO: ghcr.io/${{ github.repository }}
+  IMAGE_TAG: ${{ github.sha }}
   REDIS_APP_NAME: ${{ github.event.repository.name }}-staging-redis
   POSTGRES_APP_NAME: ${{ github.event.repository.name }}-staging-postgres
   EXPOSED_PORT: "3000"
@@ -30,6 +31,42 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Login registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull docker image
+        run: |
+          docker pull ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }}
+          docker tag ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }} ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}
+
+      - name: Save docker image
+        run: docker save ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }} > ${{ env.APP_NAME }}_${{ env.IMAGE_TAG }}.tar
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.DOKKU_BE_HOST }}
+          username: root
+          key: ${{ secrets.DOKKU_BE_SSH_PRIVATE_KEY }}
+          timeout: 90s
+          source: "${{ env.APP_NAME }}_${{ env.IMAGE_TAG }}.tar"
+          overwrite: true
+          target: "~/"
+
+      - name: Load docker image
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.DOKKU_BE_HOST }}
+          username: root
+          key: ${{ secrets.DOKKU_BE_SSH_PRIVATE_KEY }}
+          script: |
+            docker load -i ${{ env.APP_NAME }}_${{ env.IMAGE_TAG }}.tar
+            rm ${{ env.APP_NAME }}_${{ env.IMAGE_TAG }}.tar
+            
       - name: Rebuild Apps
         uses: JimCronqvist/action-ssh@master
         with:
@@ -52,14 +89,14 @@ jobs:
                 dokku redis:create ${{ env.REDIS_APP_NAME }};
                 dokku redis:link ${{ env.REDIS_APP_NAME }} ${{ env.APP_NAME }};
               fi
-              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
+              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG}};
               dokku run ${{ env.APP_NAME }} rails db:migrate;
               dokku ps:restart ${{ env.APP_NAME }};
             else 
               dokku apps:create ${{ env.APP_NAME }};
               dokku domains:set ${{ env.APP_NAME }} ${{ env.APP_NAME }}.${{ vars.DOKKU_BE_HOST }};
               dokku letsencrypt:enable ${{ env.APP_NAME }};
-              dokku proxy:ports-set ${{ env.APP_NAME }} http:80:${{ env.EXPOSED_PORT }} https:443:${{ env.EXPOSED_PORT }};
+              dokku ports:add ${{ env.APP_NAME }} http:80:${{ env.EXPOSED_PORT }} https:443:${{ env.EXPOSED_PORT }};
               if dokku postgres:exists ${{ env.POSTGRES_APP_NAME }};
               then
                 dokku postgres:link ${{ env.POSTGRES_APP_NAME }} ${{ env.APP_NAME }};
@@ -74,7 +111,7 @@ jobs:
                 dokku redis:create ${{ env.REDIS_APP_NAME }};
                 dokku redis:link ${{ env.REDIS_APP_NAME }} ${{ env.APP_NAME }};
               fi
-              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
+              dokku git:from-image ${{ env.APP_NAME }} ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG}};
               dokku run ${{ env.APP_NAME }} rails db:migrate;
               dokku ps:restart ${{ env.APP_NAME }};
             fi
@@ -86,16 +123,16 @@ jobs:
           command: |
             if dokku apps:exists ${{ env.SIDEKIQ_NAME }};
             then
-              dokku git:from-image ${{ env.SIDEKIQ_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
-              dokku ps:restart ${{ env.APP_NAME }};
+              dokku git:from-image ${{ env.SIDEKIQ_NAME }} ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG}};
+              dokku ps:restart ${{ env.SIDEKIQ_NAME }};
             else 
               dokku apps:create ${{ env.SIDEKIQ_NAME }};
               dokku proxy:disable ${{ env.SIDEKIQ_NAME }};
               dokku config:set ${{ env.SIDEKIQ_NAME }} DOKKU_DOCKERFILE_START_CMD="${{ env.SIDEKIQ_COMMAND }}";
               dokku postgres:link ${{ env.POSTGRES_APP_NAME }} ${{ env.SIDEKIQ_NAME }};
               dokku redis:link ${{ env.REDIS_APP_NAME }} ${{ env.SIDEKIQ_NAME }};
-              dokku git:from-image ${{ env.SIDEKIQ_NAME }} ${{ env.IMAGE_REPO }}@${{ needs.build.outputs.image_digest }};
-              dokku ps:restart ${{ env.APP_NAME }};
+              dokku git:from-image ${{ env.SIDEKIQ_NAME }} ${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG}};
+              dokku ps:restart ${{ env.SIDEKIQ_NAME }};
             fi
       - name: Comment commit
         uses: peter-evans/commit-comment@v2

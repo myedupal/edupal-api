@@ -1,6 +1,6 @@
 class Api::V1::Admin::UsersController < Api::V1::Admin::ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
-  before_action :set_users, only: [:index]
+  before_action :set_users, only: [:index, :count]
 
   def index
     @pagy, @users = pagy(@users)
@@ -38,6 +38,10 @@ class Api::V1::Admin::UsersController < Api::V1::Admin::ApplicationController
     end
   end
 
+  def count
+    render json: { count: @users.count }
+  end
+
   private
 
     def set_user
@@ -61,6 +65,6 @@ class Api::V1::Admin::UsersController < Api::V1::Admin::ApplicationController
     end
 
     def user_params
-      params.require(:user).permit(:email, :name, :active, :password, :phone_number)
+      params.require(:user).permit(:email, :name, :active, :password, :phone_number, :referred_by_id)
     end
 end
