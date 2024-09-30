@@ -116,12 +116,13 @@ Rails.application.routes.draw do
         resources :user_exams
         resources :reports, only: [] do
           get :daily_challenge, on: :collection
-          get :daily_challenge_heatmap, on: :collection
+          get :submission_heatmap, on: :collection
           get :daily_challenge_breakdown, on: :collection
           get :mcq, on: :collection
           get :points, on: :collection
           get :guess_word, on: :collection
           get :subject, on: :collection
+          get :subject_breakdown, on: :collection
         end
         resources :point_activities, only: [:index]
 
