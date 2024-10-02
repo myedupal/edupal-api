@@ -51,6 +51,7 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
               reward_type: { type: :string, enum: Challenge.reward_types.keys },
               penalty_seconds: { type: :integer },
               subject_id: { type: :string },
+              banner: { type: :string },
               challenge_questions_attributes: {
                 type: :array,
                 items: {
@@ -118,6 +119,8 @@ RSpec.describe 'api/v1/admin/challenges', type: :request do
               reward_type: { type: :string, enum: Challenge.reward_types.keys },
               penalty_seconds: { type: :integer },
               subject_id: { type: :string },
+              banner: { type: :string },
+              remove_banner: { type: :boolean },
               challenge_questions_attributes: {
                 type: :array,
                 items: {

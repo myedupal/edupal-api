@@ -10,6 +10,7 @@ FactoryBot.define do
     subject_id { subject.id }
     reward_points { rand(10..50) }
     penalty_seconds { rand(30..180) }
+    banner { "data:image/png;base64,(#{Base64.encode64(Rails.root.join('spec/fixtures/product.png').read)})" }
 
     trait :published do
       is_published { true }
