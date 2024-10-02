@@ -39,6 +39,11 @@ class Api::V1::User::DailyChallengesController < Api::V1::User::ApplicationContr
                  .with_challenge_questions_count
       ).preload({ subject: :curriculum })
       @challenges = @challenges.joins(:subject).where(subject: { curriculum_id: current_user.selected_curriculum_id })
+      @challenges = @challenges.where(challenge_type: params[:challenge_type]) if params[:challenge_type].present?
+      if params[:ongoing].present?
+        @challenges = ActiveModel::Type::Boolean.new.cast(params[:ongoing]) ? @challenges.ongoing : @challenges.ended
+      end
+
       @challenges = challenge_time_filterable(@challenges)
       @challenges = attribute_sortable(@challenges)
     end

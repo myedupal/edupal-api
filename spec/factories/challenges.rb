@@ -7,7 +7,7 @@ FactoryBot.define do
     reward_type { Challenge.reward_types.keys.sample }
     sequence(:start_at) { |n| n.days.from_now }
     end_at { start_at + 2.hours }
-    subject_id { subject.id }
+    subject_id { subject&.id }
     reward_points { rand(10..50) }
     penalty_seconds { rand(30..180) }
     banner { "data:image/png;base64,(#{Base64.encode64(Rails.root.join('spec/fixtures/product.png').read)})" }
@@ -24,6 +24,12 @@ FactoryBot.define do
       after(:create) do |challenge|
         create_list(:challenge_question, 3, challenge: challenge)
       end
+    end
+
+    trait :custom do
+      challenge_type { :custom }
+      start_at { Time.zone.now }
+      end_at { nil }
     end
   end
 end

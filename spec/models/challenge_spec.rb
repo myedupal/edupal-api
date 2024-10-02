@@ -13,7 +13,7 @@ RSpec.describe Challenge, type: :model do
   end
 
   describe 'enums' do
-    it { is_expected.to define_enum_for(:challenge_type).with_values(daily: 'daily', contest: 'contest').backed_by_column_of_type(:string) }
+    it { is_expected.to define_enum_for(:challenge_type).with_values(daily: 'daily', contest: 'contest', custom: 'custom').backed_by_column_of_type(:string) }
     it { is_expected.to define_enum_for(:reward_type).with_values(binary: 'binary', proportional: 'proportional').backed_by_column_of_type(:string) }
   end
 
@@ -84,6 +84,26 @@ RSpec.describe Challenge, type: :model do
         end
       end
     end
+
+    describe '.ongoing' do
+      let!(:ongoing_challenge) { create(:challenge, :custom, subject: nil, end_at: 5.days.from_now) }
+      let!(:permanent_challenge) { create(:challenge, :custom, subject: nil, end_at: nil) }
+      let!(:ended_challenge) { create(:challenge, :custom, subject: nil, end_at: 5.days.ago) }
+
+      it 'returns the published challenge' do
+        expect(described_class.ongoing).to contain_exactly(ongoing_challenge, permanent_challenge)
+      end
+    end
+
+    describe '.ended' do
+      let!(:ongoing_challenge) { create(:challenge, :custom, subject: nil, end_at: 5.days.from_now) }
+      let!(:permanent_challenge) { create(:challenge, :custom, subject: nil, end_at: nil) }
+      let!(:ended_challenge) { create(:challenge, :custom, subject: nil, end_at: 5.days.ago) }
+
+      it 'returns the published challenge' do
+        expect(described_class.ended).to contain_exactly(ended_challenge)
+      end
+    end
   end
 
   describe 'validations' do
@@ -140,6 +160,15 @@ RSpec.describe Challenge, type: :model do
       it 'sets end_at' do
         challenge.save
         expect(challenge.end_at.to_i).to eq(start_at.end_of_day.to_i)
+      end
+    end
+
+    describe '#set_custom_start_at' do
+      let(:challenge) { build(:challenge, :custom, subject: nil, start_at: nil, end_at: nil) }
+
+      it 'sets start_at' do
+        challenge.save
+        expect(challenge.start_at).to eq(Time.zone.now.beginning_of_day)
       end
     end
   end
