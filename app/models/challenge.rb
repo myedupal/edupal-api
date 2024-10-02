@@ -12,6 +12,8 @@ class Challenge < ApplicationRecord
   enum challenge_type: { daily: 'daily', contest: 'contest' }, _default: :daily
   enum reward_type: { binary: 'binary', proportional: 'proportional' }, _default: :binary
 
+  mount_base64_uploader :banner, ImageUploader
+
   scope :query, ->(keyword) { where('title ILIKE ?', "%#{keyword}%") }
   scope :published, -> { where(is_published: true) }
   scope :with_user_submission_count, lambda { |user_id|
