@@ -1,5 +1,6 @@
 class GuessWord < ApplicationRecord
   belongs_to :subject
+  belongs_to :guess_word_pool, optional: true
   has_many :guess_word_submissions
   attr_accessor :user_guess_word_submissions
 

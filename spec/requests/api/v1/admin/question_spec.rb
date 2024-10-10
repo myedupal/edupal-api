@@ -20,6 +20,7 @@ RSpec.describe 'api/v1/admin/questions', type: :request do
       parameter name: :paper_id, in: :query, type: :string, required: false, description: 'Filter by paper id'
       parameter name: :topic_id, in: :query, type: :string, required: false, description: 'Filter by topic id'
       parameter name: :exam_id, in: :query, type: :string, required: false, description: 'Filter by exam id'
+      parameter name: :not_in_exam, in: :query, type: :boolean, required: false, description: 'Filter by questions without exam'
       parameter name: :year, in: :query, type: :string, required: false, description: 'Filter by year'
       parameter name: :season, in: :query, type: :string, required: false, description: 'Filter by season'
       parameter name: :zone, in: :query, type: :string, required: false, description: 'Filter by zone'

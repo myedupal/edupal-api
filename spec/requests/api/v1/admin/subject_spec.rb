@@ -45,7 +45,8 @@ RSpec.describe 'api/v1/admin/subjects', type: :request do
               name: { type: :string },
               curriculum_id: { type: :string },
               code: { type: :string },
-              is_published: { type: :boolean }
+              is_published: { type: :boolean },
+              banner: { type: :string }
             }
           }
         }
@@ -87,7 +88,9 @@ RSpec.describe 'api/v1/admin/subjects', type: :request do
               name: { type: :string },
               curriculum_id: { type: :string },
               code: { type: :string },
-              is_published: { type: :boolean }
+              is_published: { type: :boolean },
+              banner: { type: :string },
+              remove_banner: { type: :boolean }
             }
           }
         }

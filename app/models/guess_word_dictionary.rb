@@ -8,6 +8,7 @@ class GuessWordDictionary < ApplicationRecord
   private
 
     def downcase_word
-      word&.downcase!
+      self.word = word&.strip
+      self.word = word&.downcase
     end
 end

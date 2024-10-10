@@ -50,9 +50,9 @@ class Api::V1::Admin::GuessWordDictionariesController < Api::V1::Admin::Applicat
         read += words.length
         # insert_all does not instantiate any models nor does it trigger Active Record callbacks or validations.
         # therefore word formatting has to be made beforehand
-        entries = words.each_with_object([]) do |entry, memo|
-          memo << { word: entry.strip.downcase }
-        end
+        entries = words
+                    .map { |entry| { word: entry.strip.downcase } }
+                    .select(&:present?)
 
         result = GuessWordDictionary.insert_all(entries, unique_by: :word, returning: :id)
         imported += result.length

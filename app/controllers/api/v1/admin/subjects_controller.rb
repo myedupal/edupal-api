@@ -64,6 +64,6 @@ class Api::V1::Admin::SubjectsController < Api::V1::Admin::ApplicationController
     end
 
     def subject_params
-      params.require(:subject).permit(:name, :curriculum_id, :code, :is_published)
+      params.require(:subject).permit(:name, :curriculum_id, :code, :is_published, :banner, :remove_banner)
     end
 end

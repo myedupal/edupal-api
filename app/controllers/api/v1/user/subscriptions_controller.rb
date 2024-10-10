@@ -109,6 +109,7 @@ class Api::V1::User::SubscriptionsController < Api::V1::User::ApplicationControl
       pundit_authorize(Subscription)
       @subscriptions = pundit_scope(Subscription.includes(:plan, :price))
       @subscriptions = attribute_sortable(@subscriptions)
+      @subscriptions = status_scopable(@subscriptions)
     end
 
     def pundit_scope(scope)

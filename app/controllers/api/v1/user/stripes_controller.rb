@@ -19,6 +19,39 @@ class Api::V1::User::StripesController < Api::V1::User::ApplicationController
     render json: { payment_methods: @data }, status: :ok
   end
 
+  def detach_payment_method
+    payment_method_id = payment_method_params[:payment_method_id]
+
+    begin
+      subscriptions = Stripe::Subscription.list({ customer: @stripe_profile.customer_id, status: :active }).data
+    rescue Stripe::InvalidRequestError
+      render json: ErrorResponse.new("Something went wrong when retrieving your subscriptions."), status: :bad_request
+      return
+    end
+
+    in_use_subscriptions = subscriptions.select do |subscription|
+      subscription.default_payment_method == payment_method_id
+    end
+    if in_use_subscriptions.any?
+      render json: ErrorResponse.new(
+        "You cannot remove a payment method from an active subscription.",
+        metadata: { code: 'payment_method_is_use', subscription_ids: in_use_subscriptions.map(&:id) }
+      ), status: :bad_request
+      return
+    end
+
+    begin
+      Stripe::PaymentMethod.detach(payment_method_id)
+    rescue Stripe::InvalidRequestError
+      render json: ErrorResponse.new("Something went wrong when removing the payment method."), status: :bad_request
+      return
+    end
+
+    @stripe_profile.update(payment_method_id: nil) if @stripe_profile.payment_method_id == payment_method_id
+
+    head :no_content
+  end
+
   def setup_intent
     if @stripe_profile.current_setup_intent_id.present?
       @setup_intent = Stripe::SetupIntent.retrieve(@stripe_profile.current_setup_intent_id)

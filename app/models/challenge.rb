@@ -9,8 +9,10 @@ class Challenge < ApplicationRecord
                                 allow_destroy: true,
                                 reject_if: :reject_challenge_questions?
 
-  enum challenge_type: { daily: 'daily', contest: 'contest' }, _default: :daily
+  enum challenge_type: { daily: 'daily', contest: 'contest', custom: 'custom' }, _default: :daily
   enum reward_type: { binary: 'binary', proportional: 'proportional' }, _default: :binary
+
+  mount_base64_uploader :banner, ImageUploader
 
   scope :query, ->(keyword) { where('title ILIKE ?', "%#{keyword}%") }
   scope :published, -> { where(is_published: true) }
@@ -53,6 +55,9 @@ class Challenge < ApplicationRecord
     joins(sql).select('challenges.*, COALESCE(challenge_questions_count.challenge_questions_count, 0) AS challenge_questions_count')
   }
 
+  scope :ongoing, -> { where(end_at: Time.zone.now...).or(Challenge.where(end_at: nil)) }
+  scope :ended, -> { where(end_at: ..Time.zone.now) }
+
   # validates :title, presence: true
   validates :reward_points, presence: true
   validates :start_at, presence: true
@@ -62,6 +67,7 @@ class Challenge < ApplicationRecord
   before_validation :set_title, if: -> { title.blank? }
   before_validation :set_start_at, if: -> { daily? }
   before_validation :set_end_at, if: -> { daily? }
+  before_validation :set_custom_start_at, if: -> { custom? && start_at.blank? }
 
   private
 
@@ -77,6 +83,8 @@ class Challenge < ApplicationRecord
                  [subject&.curriculum&.board, subject&.curriculum&.name, subject&.name, 'Daily Challenge', start_at&.strftime('%d %b %Y')]
                when 'contest'
                  [subject&.curriculum&.board, subject&.curriculum&.name, subject&.name, 'Contest', start_at&.strftime('%d %b %Y')]
+               when 'custom'
+                 [subject&.curriculum&.board, subject&.curriculum&.name, subject&.name, 'Custom Challenge', start_at&.strftime('%d %b %Y')]
                end
       self.title = titles.compact_blank.join(' ')
     end
@@ -99,5 +107,9 @@ class Challenge < ApplicationRecord
 
     def set_end_at
       self.end_at = start_at&.end_of_day
+    end
+
+    def set_custom_start_at
+      self.start_at = Time.zone.now.beginning_of_day
     end
 end

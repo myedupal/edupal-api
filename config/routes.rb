@@ -56,6 +56,9 @@ Rails.application.routes.draw do
         resources :guess_word_dictionaries do
           post :import, on: :collection
         end
+        resources :guess_word_pools do
+          post :import, on: :member
+        end
 
         resources :referral_activities, only: [:index, :show] do
           post :nullify, on: :member
@@ -82,6 +85,7 @@ Rails.application.routes.draw do
         resource :stripe, only: [] do
           collection do
             get :payment_methods
+            post :detach_payment_method
             post :setup_intent
             put :default_payment_method
             get :customer
@@ -112,10 +116,13 @@ Rails.application.routes.draw do
         resources :user_exams
         resources :reports, only: [] do
           get :daily_challenge, on: :collection
+          get :submission_heatmap, on: :collection
+          get :daily_challenge_breakdown, on: :collection
           get :mcq, on: :collection
           get :points, on: :collection
           get :guess_word, on: :collection
           get :subject, on: :collection
+          get :subject_breakdown, on: :collection
         end
         resources :point_activities, only: [:index]
 
@@ -126,6 +133,10 @@ Rails.application.routes.draw do
         end
         resources :guess_word_submissions, only: [:index, :show, :create] do
           post :guess, on: :member
+        end
+        resources :guess_word_pools do
+          post :import, on: :member
+          get :daily_guess_word, on: :member
         end
 
         resources :referral_activities, only: [:index, :show]

@@ -38,6 +38,76 @@ RSpec.describe 'api/v1/user/stripes', type: :request do
     end
   end
 
+  path '/api/v1/user/stripe/detach_payment_method/' do
+    post('detach payment methods on Stripe') do
+      tags 'User Stripe'
+      security [{ bearerAuth: nil }]
+      consumes 'application/json'
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        properties: {
+          stripe: {
+            type: :object,
+            properties: {
+              payment_method_id: { type: :string }
+            }
+          }
+        }
+      }
+
+      let!(:stripe_customer) do
+        Stripe::Customer.create(
+          email: user.email,
+          name: user.name,
+          metadata: {
+            user_id: user.id,
+            environment: 'test'
+          }
+        )
+      end
+
+      let!(:payment_method) do
+        payment_method = Stripe::PaymentMethod.create(
+          {
+            type: 'card',
+            card: {
+              number: '4242424242424242',
+              exp_month: 12,
+              exp_year: 5.years.from_now.year,
+              cvc: '314'
+            }
+          }
+        )
+        Stripe::PaymentMethod.attach(payment_method.id, customer: stripe_customer.id)
+      end
+
+      let!(:stripe_profile) { StripeProfile.create(user_id: user.id, customer_id: stripe_customer.id, payment_method_id: payment_method.id) }
+
+      response(204, 'no content') do
+        let(:data) { { stripe: { payment_method_id: payment_method.id } } }
+
+        run_test! do |_response|
+          expect(stripe_profile.reload.payment_method_id).to be_falsey
+        end
+      end
+
+      response(400, 'bad request') do
+        before do
+          allow(Stripe::Subscription).to receive_message_chain(:list, :data) { [double(id: subscription_id, default_payment_method: payment_method.id)] }
+        end
+        let(:data) { { stripe: { payment_method_id: payment_method.id } } }
+        let(:subscription_id) { Faker::Internet.uuid }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['metadata']['subscription_ids']).to include(subscription_id)
+          expect(stripe_profile.reload.payment_method_id).to be_truthy
+        end
+      end
+    end
+  end
+
   path '/api/v1/user/stripe/setup_intent/' do
     post('create setup_intent') do
       tags 'User Stripe'

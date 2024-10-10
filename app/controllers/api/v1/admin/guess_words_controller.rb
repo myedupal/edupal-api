@@ -4,11 +4,11 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
 
   def index
     @pagy, @guess_words = pagy(@guess_words)
-    render json: @guess_words, include: ['subject'], with_reports: params[:with_reports]
+    render json: @guess_words, include: ['subject'], with_reports: params[:with_reports], skip_exams_filtering: true
   end
 
   def show
-    render json: @guess_word, include: ['subject'], with_reports: params[:with_reports]
+    render json: @guess_word, include: ['subject'], with_reports: params[:with_reports], skip_exams_filtering: true
   end
 
   def create
@@ -18,7 +18,7 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
     if @guess_word.save
       render json: @guess_word, include: ['subject']
     else
-      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity
+      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity, skip_exams_filtering: true
     end
   end
 
@@ -26,7 +26,7 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
     if @guess_word.update(guess_word_params)
       render json: @guess_word, include: ['subject', 'guess_word_submissions']
     else
-      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity
+      render json: ErrorResponse.new(@guess_word), status: :unprocessable_entity, skip_exams_filtering: true
     end
   end
 
@@ -79,6 +79,8 @@ class Api::V1::Admin::GuessWordsController < Api::V1::Admin::ApplicationControll
       @guess_words = pundit_scope(GuessWord.includes(:subject))
       @guess_words = @guess_words.with_reports if params[:with_reports]
       @guess_words = @guess_words.where(subject_id: params[:subject_id]) if params[:subject_id].present?
+      @guess_words = @guess_words.where(guess_word_pool_id: params[:guess_word_pool_id].presence || nil) if params.has_key?(:guess_word_pool_id)
+      @guess_words = @guess_words.joins(:guess_word_pool).merge(GuessWordPool.where(user_id: nil)) if params[:system_guess_word_pool].present?
       @guess_words = @guess_words.ongoing if params[:ongoing].present?
       @guess_words = @guess_words.ended if params[:ended].present?
       @guess_words = @guess_words.only_submitted_by_user(params[:only_submitted_by]) if params[:only_submitted_by].present?

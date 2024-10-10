@@ -28,6 +28,7 @@ class Api::V1::User::QuestionsController < Api::V1::User::ApplicationController
       @questions = @questions.joins(exam: :paper).where(exam: { papers: { name: params[:paper_name] } }) if params[:paper_name].present?
       @questions = @questions.joins(:topics).where(topics: { id: params[:topic_id] }) if params[:topic_id].present?
       @questions = @questions.where(exam_id: params[:exam_id]) if params[:exam_id].present?
+      @questions = @questions.where(exam_id: nil) if params[:not_in_exam].present?
       @questions = @questions.where(number: params[:number]) if params[:number].present?
       @questions = @questions.joins(:exam).where(exam: { year: params[:year] }) if params[:year].present?
       @questions = @questions.joins(:exam).where(exam: { season: params[:season] }) if params[:season].present?

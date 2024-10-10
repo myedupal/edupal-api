@@ -11,6 +11,8 @@ class Subject < ApplicationRecord
   has_many :question_topics, through: :questions
   has_many :challenges, dependent: :destroy
 
+  mount_base64_uploader :banner, ImageUploader
+
   validates :name, presence: true, uniqueness: { scope: :curriculum_id, case_sensitive: false }
   # validates :code, uniqueness: { scope: :curriculum_id, case_sensitive: false }, allow_nil: true
 

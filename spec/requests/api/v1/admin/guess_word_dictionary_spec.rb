@@ -71,7 +71,7 @@ RSpec.describe "api/v1/admin/guess_word_dictionaries", type: :request do
           expect(data['read']).to eq 6
           expect(data['imported']).to eq 5
           expect(GuessWordDictionary.count).to eq 5
-          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3','word4','word5')
+          expect(GuessWordDictionary.all.map(&:word)).to contain_exactly('word1', 'word2', 'word3', 'word4', 'word5')
         end
       end
 

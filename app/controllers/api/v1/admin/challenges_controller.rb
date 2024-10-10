@@ -65,7 +65,8 @@ class Api::V1::Admin::ChallengesController < Api::V1::Admin::ApplicationControll
 
     def challenge_params
       params.require(:challenge).permit(
-        :title, :challenge_type, :start_at, :end_at, :reward_points, :reward_type, :penalty_seconds, :subject_id, :is_published,
+        :title, :challenge_type, :start_at, :end_at, :reward_points, :reward_type, :penalty_seconds, :subject_id,
+        :is_published, :banner, :remove_banner,
         challenge_questions_attributes: [:id, :question_id, :display_order, :score, :_destroy]
       )
     end

@@ -19,8 +19,10 @@ RSpec.describe 'api/v1/user/daily_challenges', type: :request do
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
       parameter name: :curriculum_id, in: :query, type: :string, required: false, description: 'Filter by curriculum id'
+      parameter name: :challenge_type, in: :query, schema: { type: :string, enum: Challenge.challenge_types.keys }, required: false, description: 'Filter by challenge type'
       parameter name: :from_start_at, in: :query, type: :string, required: false, description: 'Filter challenge by start_at'
       parameter name: :to_start_at, in: :query, type: :string, required: false, description: 'Filter challenge by start_at'
+      parameter name: :ongoing, in: :query, type: :boolean, required: false, description: 'Filter challenge by challenge end_at, true for ongoing challenge, false for ended challenge'
 
       description <<-TEXT.squish
         By default, it will return today's daily challenge only.<br>
