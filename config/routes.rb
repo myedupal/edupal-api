@@ -34,6 +34,7 @@ Rails.application.routes.draw do
           get :user_recent_submission_count, on: :collection
           get :submission_recent_count, on: :collection
           get :point_activity_recent_count, on: :collection
+          get :export_user_csv, on: :collection
         end
 
         resources :curriculums

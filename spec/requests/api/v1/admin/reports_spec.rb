@@ -298,4 +298,44 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
       end
     end
   end
+
+  path '/api/v1/admin/reports/export_user_csv' do
+    get('export users csv') do
+      tags 'Admin Report'
+      produces 'text/csv'
+      security [{ bearerAuth: nil }]
+      description <<~DOC
+        Exports all user data into csv
+      DOC
+
+      parameter name: :query, in: :query, type: :string, required: false, description: 'Query users'
+      parameter name: :user_ids, in: :query, type: :array, items: { type: :string }, required: false, description: 'User ids to export'
+
+      response(200, 'successful') do
+        let!(:user_account) { create(:user) }
+        let!(:strong_subject) { create(:subject, curriculum: user_account.selected_curriculum) }
+        let!(:weak_subject) { create(:subject, curriculum: user_account.selected_curriculum) }
+
+        before do
+          create(:submission, :with_submission_answers, user: user_account)
+          3.times do |i|
+            user_account.daily_check_ins.create(date: Date.current - i.days)
+          end
+
+          create_list(:submission_answer, 5, challenge: create(:challenge, :daily, subject: strong_subject), user: user_account, is_correct: true, evaluated_at: Time.zone.now)
+          create_list(:submission_answer, 4, challenge: create(:challenge, :daily, subject: weak_subject), user: user_account, is_correct: false, evaluated_at: Time.zone.now)
+
+          create(:user)
+        end
+
+        after do |example|
+          example.metadata[:response][:content] = { 'text/csv': { examples: { test_example: { value: response.body } } } }
+        end
+
+        run_test! do |response|
+          expect(response.body).to match(/#{user_account.id},.*,#{strong_subject.name},#{weak_subject.name},#{Date.current},3/)
+        end
+      end
+    end
+  end
 end

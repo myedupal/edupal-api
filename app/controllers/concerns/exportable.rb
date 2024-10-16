@@ -16,12 +16,12 @@ module Exportable
     end
   end
 
-  def enumerate_csv(records, headers, attributes)
+  def enumerate_csv(records, headers, attributes, &inject)
     csv_options = { headers: true, quote_empty: true, force_quotes: true }
     Enumerator.new do |row|
       row << CSV::Row.new(headers, headers, csv_options: csv_options).to_s
       convert_record = lambda do |record|
-        CSV::Row.new(headers, attributes.map do |attr|
+        row_result = attributes.map do |attr|
           # split the attribute by '.' to traverse nested attributes
           # inject(record) to set record as default memo
           result = attr.split('.').inject(record) do |memo, substring|
@@ -31,7 +31,10 @@ module Exportable
           end
           result = result.join(", ") if result.is_a?(Array)
           result
-        end, csv_options: csv_options).to_s
+        end
+        row_result.concat(inject.call(record) || []) if inject
+
+        CSV::Row.new(headers, row_result, csv_options: csv_options).to_s
       end
 
       if records.respond_to?(:find_each)

@@ -21,7 +21,7 @@ FactoryBot.define do
 
     trait :with_submission_answers do
       after(:create) do |submission|
-        create_list(:submission_answer, 2, :correct_answer, challenge: submission.challenge, submission: submission)
+        create_list(:submission_answer, 2, :correct_answer, challenge: submission.challenge, submission: submission, user: submission.user)
       end
     end
 
