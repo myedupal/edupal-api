@@ -164,45 +164,106 @@ class Api::V1::Admin::ReportsController < Api::V1::Admin::ApplicationController
     }, status: :ok
   end
 
-  # Parses a sum range from the params
-  # If params sum_ranges is present, it will parse the sum_ranges in comma separated format
-  # otherwise it will create an array with multiple of interval for given times and prepend 0..prepend
-  #
-  # @param interval [Integer] the base interval
-  # @param times [Integer] the times to multiply the interval by
-  # @param prepend [Integer] the number of digit to prepend from 0..prepend
-  # @return [Array] an array of numbers
-  def parse_sum_ranges(interval = 7, times = 6, prepend = -1)
-    if params[:sum_ranges].present?
-      ranges = params[:sum_ranges].split(',').map(&:to_i)
-      return ranges if ranges.count > 1 && ranges.first.zero?
+  def export_user_csv
+    @users = User.preload(:selected_curriculum)
+    @users = keyword_queryable(@users)
+    @users = @users.where(id: params[:user_ids]) if params[:user_ids].present?
+
+    csv_map = {
+      id: 'id',
+      email: 'email',
+      name: 'name',
+      phone_number: 'phone_number',
+      created_at: 'created_at',
+      updated_at: 'updated_at',
+      points: 'points',
+      daily_streak: 'daily_streak',
+      maximum_streak: 'maximum_streak',
+      selected_curriculum: 'selected_curriculum.name',
+      total_submission: 'submissions.count',
+      total_question_attempted: 'submission_answers.count',
+      referred_count: 'referred_count',
+      strength_subject: nil,
+      weakness_subject: nil,
+      last_checkin_date: nil,
+      daily_checkin_count: nil
+    }
+
+    injected = lambda do |user|
+      stats = user.submission_answers
+                .joins({ submission: { challenge: :subject } }, { question: :subject })
+                .where(
+                  submission: {
+                    challenges: {
+                      challenge_type: Challenge.challenge_types[:daily],
+                      subjects: {
+                        curriculum_id: user.selected_curriculum_id
+                      }
+                    }
+                  }
+                )
+                .where.not(evaluated_at: nil)
+                .group("subjects.id")
+                .select("subjects.id as id")
+                .select("subjects.name as subject_name")
+                .select('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) as correct_count')
+                .select('COUNT(*) as total_count')
+                .order(Arel.sql('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) / COUNT(*)::float DESC'))
+
+      strength_subject = (stats.length > 1) ? stats.first.subject_name : 'Not enough data'
+      weakness_subject = (stats.length > 1) ? stats.last.subject_name : 'Not enough data'
+
+      last_checkin_date = user.daily_check_ins.order(date: :desc).first&.date
+      [strength_subject, weakness_subject, last_checkin_date, user.daily_check_ins.count]
     end
 
-    sum_weeks = times
-    sum_weeks = params[:sum_times].to_i if params[:sum_times].present?
-    sum_interval = interval
-    sum_interval = params[:sum_interval].to_i if params[:sum_interval].present?
-    prepend = params[:sum_prepend].to_i if params[:sum_prepend].present?
+    csv_headers = csv_map.keys
+    csv_attributes = csv_map.compact.values
 
-    (1..sum_weeks).map { |i| sum_interval * i }.prepend(*(0..prepend))
+    stream_csv enumerate_csv(@users, csv_headers, csv_attributes, &injected), filename: "user_export_#{Time.zone.now.strftime('%Y%m%d%H%M%S')}.csv"
   end
 
-  def generate_ranges_sql(sum_ranges, &block)
-    sum_ranges.map do |range|
-      "COUNT(*) FILTER (WHERE #{block.call(range)}) AS \"#{range.is_a?(Array) ? range[0] : range}\""
-    end.join(",\n")
-  end
+  private
 
-  def generate_ranges_arel(sum_ranges, &block)
-    names = []
-    queries = sum_ranges.map do |range|
-      query = block.call(range)
-      name = Arel::Table.new(range.is_a?(Array) ? range[0] : range)
-      names.push(name)
-      Arel::Nodes::As.new(name, query)
+    # Parses a sum range from the params
+    # If params sum_ranges is present, it will parse the sum_ranges in comma separated format
+    # otherwise it will create an array with multiple of interval for given times and prepend 0..prepend
+    #
+    # @param interval [Integer] the base interval
+    # @param times [Integer] the times to multiply the interval by
+    # @param prepend [Integer] the number of digit to prepend from 0..prepend
+    # @return [Array] an array of numbers
+    def parse_sum_ranges(interval = 7, times = 6, prepend = -1)
+      if params[:sum_ranges].present?
+        ranges = params[:sum_ranges].split(',').map(&:to_i)
+        return ranges if ranges.count > 1 && ranges.first.zero?
+      end
+
+      sum_weeks = times
+      sum_weeks = params[:sum_times].to_i if params[:sum_times].present?
+      sum_interval = interval
+      sum_interval = params[:sum_interval].to_i if params[:sum_interval].present?
+      prepend = params[:sum_prepend].to_i if params[:sum_prepend].present?
+
+      (1..sum_weeks).map { |i| sum_interval * i }.prepend(*(0..prepend))
     end
 
-    Arel::SelectManager.new.with(queries).from(names).project(Arel.star)
-  end
+    def generate_ranges_sql(sum_ranges, &block)
+      sum_ranges.map do |range|
+        "COUNT(*) FILTER (WHERE #{block.call(range)}) AS \"#{range.is_a?(Array) ? range[0] : range}\""
+      end.join(",\n")
+    end
+
+    def generate_ranges_arel(sum_ranges, &block)
+      names = []
+      queries = sum_ranges.map do |range|
+        query = block.call(range)
+        name = Arel::Table.new(range.is_a?(Array) ? range[0] : range)
+        names.push(name)
+        Arel::Nodes::As.new(name, query)
+      end
+
+      Arel::SelectManager.new.with(queries).from(names).project(Arel.star)
+    end
 
 end
