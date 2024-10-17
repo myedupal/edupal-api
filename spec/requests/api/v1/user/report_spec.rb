@@ -121,9 +121,9 @@ RSpec.describe 'api/v1/user/reports', type: :request do
           submission = create(:submission, challenge: physics_daily_challenge, user: user, status: :pending, submitted_at: day + 5.minutes, created_at: day)
           physics_questions.each.with_index do |question, _|
             if i < 2
-              create(:submission_answer, :correct_answer, submission: submission, question: question)
+              create(:submission_answer, :correct_answer, submission: submission, user: user, question: question)
             else
-              create(:submission_answer, :incorrect_answer, submission: submission, question: question)
+              create(:submission_answer, :incorrect_answer, submission: submission, user: user, question: question)
             end
           end
           travel_to day + 5.minutes do
@@ -134,19 +134,21 @@ RSpec.describe 'api/v1/user/reports', type: :request do
         2.times do |i|
           day = i.days.ago.beginning_of_day
           chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: day, end_at: 1.hour.from_now)
-          create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+          submission = create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+          create(:submission_answer, :correct_answer, submission: submission, user: submission.user, evaluated_at: day + 5.minutes)
         end
 
         2.times do |i|
           i = 10 + (i * 2)
           day = (i * 2).days.ago.beginning_of_day
           chemistry_daily_challenge = create(:challenge, challenge_type: Challenge.challenge_types[:daily], subject: chemistry, start_at: day, end_at: 1.hour.from_now)
-          create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+          submission = create(:submission, challenge: chemistry_daily_challenge, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+          create(:submission_answer, :correct_answer, submission: submission, user: submission.user, evaluated_at: day + 5.minutes)
         end
       end
 
       response(200, 'successful') do
-        let(:breakdown_for) { 'subject' }
+        let(:breakdown_for) { 'month_subject' }
         run_test!
       end
     end
@@ -221,6 +223,62 @@ RSpec.describe 'api/v1/user/reports', type: :request do
           expect(data['submission_count']).to_not be_nil
           expect(data['avg_score']).to_not be_nil
         end
+      end
+    end
+  end
+
+  path '/api/v1/user/reports/mcq_breakdown' do
+    get('daily challenge breakdown') do
+      tags 'User Reports'
+      security [{ bearerAuth: nil }]
+      produces 'application/json'
+
+      parameter name: :subject_id, in: :query, type: :string, required: false, description: 'subject id'
+      parameter name: :from_date, in: :query, type: :string, required: false, description: "filter start date"
+      parameter name: :to_date, in: :query, type: :string, required: false, description: "filter end date"
+      parameter name: :breakdown_for, in: :query, type: :string, required: true, description: "Select data point to group by\nbreakdown for option: subject, month, month_subject"
+
+      let(:biology_questions) { create_list(:question, 2, :mcq_with_answer, subject: biology) }
+      let(:physics_questions) { create_list(:question, 2, :mcq_with_answer, subject: physics) }
+      let(:chemistry_questions) { create_list(:question, 2, :mcq_with_answer, subject: chemistry) }
+
+      before do
+        biology_submission = create(:submission, challenge: nil, user: user, status: :submitted, submitted_at: Time.current.beginning_of_day, created_at: Time.current.beginning_of_day)
+        biology_submission.update_columns(score: 30, total_score: 100)
+
+        3.times do |i|
+          day = i.days.ago.beginning_of_day
+          submission = create(:submission, challenge: nil, user: user, status: :pending, submitted_at: day + 5.minutes, created_at: day)
+          physics_questions.each.with_index do |question, _|
+            if i < 2
+              create(:submission_answer, :correct_answer, submission: submission, question: question)
+            else
+              create(:submission_answer, :incorrect_answer, submission: submission, question: question)
+            end
+          end
+          travel_to day + 5.minutes do
+            submission.submit!
+          end
+        end
+
+        2.times do |i|
+          day = i.days.ago.beginning_of_day
+          submission = create(:submission, challenge: nil, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+          create(:submission_answer, :correct_answer, question: biology_questions.sample, submission: submission, user: submission.user, evaluated_at: day + 5.minutes)
+        end
+
+        2.times do |i|
+          i = 10 + (i * 2)
+          day = (i * 2).days.ago.beginning_of_day
+          submission = create(:submission, challenge: nil, user: user, status: :submitted, submitted_at: day + 5.minutes, created_at: day)
+          create(:submission_answer, :correct_answer, question: chemistry_questions.sample, submission: submission, user: submission.user, evaluated_at: day + 5.minutes)
+        end
+
+      end
+
+      response(200, 'successful') do
+        let(:breakdown_for) { 'month_subject' }
+        run_test!
       end
     end
   end

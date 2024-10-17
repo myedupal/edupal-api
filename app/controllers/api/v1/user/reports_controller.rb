@@ -110,7 +110,15 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
       subject_stats = ActiveRecord::Base.connection.execute(query.to_sql)
 
       # Group results by month if required
-      subject_stats = subject_stats.group_by { |entry| entry['month'].to_date } if breakdown_for == 'month_subject'
+      if breakdown_for == 'month_subject'
+        subject_stats = subject_stats.group_by { |entry| entry['month'].to_date }
+        subject_stats = subject_stats.map do |month, stats|
+          {
+            "month" => month,
+            "stats" => stats
+          }
+        end
+      end
 
       subject_stats.to_a
     end
@@ -173,6 +181,48 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
       submission_count: submission_count,
       avg_score: avg_score
     }, status: :ok
+  end
+
+  def mcq_breakdown
+    from_date, to_date = parse_date_range
+
+    subject = nil
+    if params[:subject_id].present?
+      subject = Subject.find_by(id: params[:subject_id])
+      return render json: ErrorResponse.new("Invalid subject id") unless subject.present?
+    end
+
+    return render json: ErrorResponse.new("Missing breakdown_for") unless params[:breakdown_for].present?
+
+    return render json: ErrorResponse.new("Invalid value for parameter breakdown_for") unless %w[subject month_subject month].include?(params[:breakdown_for].to_s)
+
+    breakdown_for = params[:breakdown_for].downcase
+
+    cache_key = [current_user.id, current_user.selected_curriculum_id, breakdown_for, subject&.id, from_date.to_date.mjd, to_date.to_date.mjd].join('-')
+    mcq_stats = Rails.cache.fetch(
+      "user/reports/mcq_breakdown/#{cache_key}", expires_at: Time.current + 1.hour
+    ) do
+      query = generate_mcq_stats_query(from_date, to_date, subject&.id, breakdown_for)
+      mcq_stats = ActiveRecord::Base.connection.execute(query.to_sql)
+
+      if breakdown_for == 'month_subject'
+        mcq_stats = mcq_stats.group_by { |entry| entry['month'].to_date }
+        mcq_stats = mcq_stats.map do |month, stats|
+          {
+            "month" => month,
+            "stats" => stats
+          }
+        end
+      end
+
+      mcq_stats.to_a
+    end
+
+    render json: {
+      mcq_stats: mcq_stats,
+      from_date: from_date,
+      to_date: to_date
+    }
   end
 
   def points
@@ -302,12 +352,20 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
 
     cache_key = [current_user.id, current_user.selected_curriculum_id, breakdown_for, subject.id, from_date.to_date.mjd, to_date.to_date.mjd].join('-')
     topic_stats = Rails.cache.fetch(
-      "user/reports/daily_challenge_breakdown/#{cache_key}", expires_at: Time.current + 1.hour
+      "user/reports/subject_breakdown/#{cache_key}", expires_at: Time.current + 1.hour
     ) do
       query = generate_topic_stats_query(from_date, to_date, subject.id, breakdown_for)
       topic_stats = ActiveRecord::Base.connection.execute(query.to_sql)
 
-      topic_stats = topic_stats.group_by { |entry| entry['month'].to_date } if breakdown_for == 'month_subject'
+      if breakdown_for == 'month_topic'
+        topic_stats = topic_stats.group_by { |entry| entry['month'].to_date }
+        topic_stats = topic_stats.map do |month, stats|
+          {
+            "month" => month,
+            "stats" => stats
+          }
+        end
+      end
 
       topic_stats.to_a
     end
@@ -358,9 +416,12 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
                    )
                    .join(submission_answers_table, Arel::Nodes::OuterJoin)
                    .on(submission_answers_table[:submission_id].eq(submissions_table[:id]))
+                   .where(
+                     submission_answers_table[:evaluated_at].not_eq(nil)
+                   )
 
       # Add breakdown-specific details to the subquery
-      subquery = challenge_breakdown_subquery_projection(subquery, breakdown_for)
+      subquery = add_breakdown_projection(subquery, breakdown_for, subjects_table)
 
       # Add general details to the subquery
       subquery.project(
@@ -377,60 +438,49 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
                      .from(Arel::Nodes::SqlLiteral.new('computed_sums'))
 
       # Add breakdown-specific projections to the main query
-      challenge_breakdown_main_query_projection(main_query, breakdown_for)
+      add_main_query_projection(main_query, breakdown_for, subjects_table)
     end
 
-    def challenge_breakdown_subquery_projection(subquery, breakdown_for)
+    def generate_mcq_stats_query(from_date, to_date, subject_id, breakdown_for)
+      submissions_table = Submission.arel_table
       subjects_table = Subject.arel_table
+      submission_answers_table = SubmissionAnswer.arel_table
+      questions_table = Question.arel_table
 
-      case breakdown_for
-      when 'subject'
-        subquery.project(
-          subjects_table[:id].as('subject_id'),
-          subjects_table[:name].as('subject_name')
-        ).group(subjects_table[:id])
-      when 'month'
-        subquery.project(
-          Arel.sql("date_trunc('month', submissions.submitted_at) as month")
-        ).group(Arel.sql("date_trunc('month', submissions.submitted_at)"))
-      when 'month_subject'
-        subquery.project(
-          Arel.sql("date_trunc('month', submissions.submitted_at) as month"),
-          subjects_table[:id].as('subject_id'),
-          subjects_table[:name].as('subject_name')
-        ).group(Arel.sql("date_trunc('month', submissions.submitted_at), subjects.id"))
-      end
-    end
+      subquery = submission_answers_table
+                   .join(submissions_table).on(submission_answers_table[:submission_id].eq(submissions_table[:id]))
+                   .join(questions_table).on(submission_answers_table[:question_id].eq(questions_table[:id]))
+                   .join(subjects_table).on(questions_table[:subject_id].eq(subjects_table[:id]))
+                   .where(
+                     submissions_table[:challenge_id].eq(nil)
+                       .and(submissions_table[:status].eq('submitted'))
+                       .and(submissions_table[:submitted_at].between(from_date..to_date))
+                       .and(questions_table[:question_type].eq(Question.question_types[:mcq]))
+                       .and(subjects_table[:curriculum_id].eq(current_user.selected_curriculum_id))
+                       .and(submission_answers_table[:evaluated_at]).not_eq(nil)
+                   )
 
-    def challenge_breakdown_main_query_projection(main_query, breakdown_for)
-      case breakdown_for
-      when 'subject'
-        main_query.project(
-          Arel.sql('computed_sums.subject_id AS id'),
-          Arel.sql('computed_sums.subject_name AS subject_name')
-        ).order(Arel.sql('answers_correct_ratio DESC, answers_correct_count DESC'))
-      when 'month'
-        main_query.project(
-          Arel.sql('computed_sums.month AS month')
-        ).order(Arel.sql('computed_sums.month DESC'))
-      when 'month_subject'
-        main_query.project(
-          Arel.sql('computed_sums.subject_id AS id'),
-          Arel.sql('computed_sums.subject_name AS subject_name'),
-          Arel.sql('computed_sums.month AS month')
-        ).order(Arel.sql('computed_sums.month DESC, answers_correct_ratio DESC, answers_correct_count DESC'))
-      end
+      subquery = subquery.where(questions_table[:subject_id].eq(subject_id)) if subject_id.present?
 
-      # Add general projections
-      main_query.project(
-        Arel.sql('computed_sums.submission_count AS submission_count'),
-        Arel.sql('computed_sums.sum_score AS sum_score'),
-        Arel.sql('computed_sums.sum_total_score AS sum_total_score'),
-        Arel.sql('COALESCE(computed_sums.sum_score / NULLIF(computed_sums.sum_total_score::float, 0), 0) AS score_ratio'),
-        Arel.sql('computed_sums.answers_count AS answers_count'),
-        Arel.sql('computed_sums.answers_correct_count AS answers_correct_count'),
-        Arel.sql('COALESCE(computed_sums.answers_correct_count / NULLIF(answers_count::float, 0), 0) as answers_correct_ratio')
+      # Add breakdown-specific details to the subquery
+      subquery = add_breakdown_projection(subquery, breakdown_for, subjects_table)
+
+      # Add general details to the subquery
+      subquery.project(
+        submissions_table[:id].count.as('submission_count'),
+        submissions_table[:score].sum.as('sum_score'),
+        submissions_table[:total_score].sum.as('sum_total_score'),
+        Arel.sql('SUM(CASE WHEN submission_answers.is_correct THEN 1 ELSE 0 END) as answers_correct_count'),
+        submission_answers_table[:id].count.as('answers_count')
       )
+
+      # Main query built from the subquery
+      main_query = Arel::SelectManager.new
+                     .with(Arel::Nodes::As.new(Arel::Table.new('computed_sums'), subquery))
+                     .from(Arel::Nodes::SqlLiteral.new('computed_sums'))
+
+      # Add breakdown-specific projections to the main query
+      add_main_query_projection(main_query, breakdown_for, subjects_table)
     end
 
     def generate_topic_stats_query(from_date, to_date, subject_id, breakdown_for)
@@ -446,16 +496,17 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
                    .join(questions_table).on(submission_answers_table[:question_id].eq(questions_table[:id]))
                    .join(subjects_table).on(questions_table[:subject_id].eq(subjects_table[:id]))
                    .join(question_topics_table).on(questions_table[:id].eq(question_topics_table[:question_id]))
-                   .join(topics_table,).on(question_topics_table[:topic_id].eq(topics_table[:id]))
+                   .join(topics_table).on(question_topics_table[:topic_id].eq(topics_table[:id]))
                    .where(
                      submissions_table[:challenge_id].eq(nil)
                        .and(submissions_table[:status].eq('submitted'))
                        .and(submissions_table[:submitted_at].between(from_date..to_date))
                        .and(questions_table[:question_type].eq(Question.question_types[:mcq]))
                        .and(questions_table[:subject_id].eq(subject_id))
+                       .and(submission_answers_table[:evaluated_at]).not_eq(nil)
                    )
 
-      subquery = topics_breakdown_subquery_projection(subquery, breakdown_for)
+      subquery = add_breakdown_projection(subquery, breakdown_for, topics_table)
 
       subquery.project(
         submissions_table[:id].count.as('submission_count'),
@@ -468,49 +519,49 @@ class Api::V1::User::ReportsController < Api::V1::User::ApplicationController
                      .with(Arel::Nodes::As.new(Arel::Table.new('computed_sums'), subquery))
                      .from(Arel::Nodes::SqlLiteral.new('computed_sums'))
 
-      topics_breakdown_main_query_projection(main_query, breakdown_for)
+      add_main_query_projection(main_query, breakdown_for, topics_table)
     end
 
-    def topics_breakdown_subquery_projection(subquery, breakdown_for)
-      topics_table = Topic.arel_table
-
+    def add_breakdown_projection(subquery, breakdown_for, grouping_table)
+      table_name = grouping_table.name.downcase
+      table_name_singular = table_name.singularize
       case breakdown_for
-      when 'topic'
+      when 'subject', 'topic', table_name_singular
         subquery.project(
-          topics_table[:id].as('topic_id'),
-          topics_table[:name].as('topic_name')
-        ).group(topics_table[:id])
+          grouping_table[:id].as("#{table_name_singular}_id"),
+          grouping_table[:name].as("#{table_name_singular}_name")
+        ).group(grouping_table[:id])
       when 'month'
         subquery.project(
           Arel.sql("date_trunc('month', submissions.submitted_at) as month")
         ).group(Arel.sql("date_trunc('month', submissions.submitted_at)"))
-      when 'month_topic'
+      when 'month_subject', 'month_topic', "month_#{table_name_singular}"
         subquery.project(
           Arel.sql("date_trunc('month', submissions.submitted_at) as month"),
-          topics_table[:id].as('topic_id'),
-          topics_table[:name].as('topic_name')
-        ).group(Arel.sql("date_trunc('month', submissions.submitted_at), topics.id"))
+          grouping_table[:id].as("#{table_name_singular}_id"),
+          grouping_table[:name].as("#{table_name_singular}_name")
+        ).group(Arel.sql("date_trunc('month', submissions.submitted_at), #{table_name}.id"))
       end
     end
 
-    def topics_breakdown_main_query_projection(main_query, breakdown_for)
+    def add_main_query_projection(main_query, breakdown_for, grouping_table)
+      table_name = grouping_table.name.downcase.singularize
       case breakdown_for
-      when 'topic'
+      when table_name
         main_query.project(
-          Arel.sql('computed_sums.topic_id AS id'),
-          Arel.sql('computed_sums.topic_name AS topic_name')
+          Arel.sql("computed_sums.#{table_name}_id AS id"),
+          Arel.sql("computed_sums.#{table_name}_name AS #{table_name}_name")
         ).order(Arel.sql('answers_correct_ratio DESC, answers_correct_count DESC'))
       when 'month'
         main_query.project(
           Arel.sql('computed_sums.month AS month')
         ).order(Arel.sql('computed_sums.month DESC'))
-      when 'month_topic'
+      when "month_#{table_name}"
         main_query.project(
-          Arel.sql('computed_sums.topic_id AS id'),
-          Arel.sql('computed_sums.topic_name AS topic_name'),
+          Arel.sql("computed_sums.#{table_name}_id AS id"),
+          Arel.sql("computed_sums.#{table_name}_name AS #{table_name}_name"),
           Arel.sql('computed_sums.month AS month')
         ).order(Arel.sql('computed_sums.month DESC, answers_correct_ratio DESC, answers_correct_count DESC'))
-
       end
 
       main_query.project(

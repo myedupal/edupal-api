@@ -120,6 +120,7 @@ Rails.application.routes.draw do
           get :submission_heatmap, on: :collection
           get :daily_challenge_breakdown, on: :collection
           get :mcq, on: :collection
+          get :mcq_breakdown, on: :collection
           get :points, on: :collection
           get :guess_word, on: :collection
           get :subject, on: :collection
