@@ -34,6 +34,7 @@ Rails.application.routes.draw do
           get :user_recent_submission_count, on: :collection
           get :submission_recent_count, on: :collection
           get :point_activity_recent_count, on: :collection
+          get :export_user_csv, on: :collection
         end
 
         resources :curriculums
@@ -119,6 +120,7 @@ Rails.application.routes.draw do
           get :submission_heatmap, on: :collection
           get :daily_challenge_breakdown, on: :collection
           get :mcq, on: :collection
+          get :mcq_breakdown, on: :collection
           get :points, on: :collection
           get :guess_word, on: :collection
           get :subject, on: :collection
