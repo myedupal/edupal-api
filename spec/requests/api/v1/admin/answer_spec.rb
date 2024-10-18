@@ -42,7 +42,9 @@ RSpec.describe 'api/v1/admin/answers', type: :request do
               question_id: { type: :string },
               text: { type: :string },
               image: { type: :string },
-              display_order: { type: :integer }
+              display_order: { type: :integer },
+              is_correct: { type: :boolean },
+              description: { type: :string }
             }
           }
         }
@@ -84,7 +86,9 @@ RSpec.describe 'api/v1/admin/answers', type: :request do
               question_id: { type: :string },
               text: { type: :string },
               image: { type: :string },
-              display_order: { type: :integer }
+              display_order: { type: :integer },
+              is_correct: { type: :boolean },
+              description: { type: :string }
             }
           }
         }

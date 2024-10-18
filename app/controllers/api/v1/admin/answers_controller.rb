@@ -49,6 +49,7 @@ class Api::V1::Admin::AnswersController < Api::V1::Admin::ApplicationController
       pundit_authorize(Answer)
       @answers = pundit_scope(Answer.includes(:question))
       @answers = @answers.where(question_id: params[:question_id]) if params[:question_id].present?
+      @answers = @answers.where(is_correct: ActiveModel::Type::Boolean.new.cast(params[:is_correct])) if params[:is_correct].present?
       @answers = attribute_sortable(@answers)
     end
 
@@ -61,6 +62,6 @@ class Api::V1::Admin::AnswersController < Api::V1::Admin::ApplicationController
     end
 
     def answer_params
-      params.require(:answer).permit(:question_id, :text, :image, :display_order)
+      params.require(:answer).permit(:question_id, :text, :image, :display_order, :is_correct, :description)
     end
 end

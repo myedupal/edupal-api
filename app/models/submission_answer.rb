@@ -15,7 +15,7 @@ class SubmissionAnswer < ApplicationRecord
     return if evaluated_at.present? && !force
     return unless question.mcq?
 
-    is_correct = question.answers.exists?(text: answer)
+    is_correct = question.answers.correct.exists?(text: answer)
     score = if !is_correct
               0
             elsif submission.challenge.present?

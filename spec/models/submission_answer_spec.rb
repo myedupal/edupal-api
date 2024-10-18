@@ -35,8 +35,8 @@ RSpec.describe SubmissionAnswer, type: :model do
       let!(:challenge_question) { create(:challenge_question, challenge: challenge, question: question, score: expected_score) }
       let!(:submission) { create(:submission, challenge: challenge) }
       let!(:submission_answer) { create(:submission_answer, submission: submission, question: question, answer: 'X') }
-      let(:correct_answer) { question.answers.first.text }
-      let(:incorrect_answer) { 'E' }
+      let(:correct_answer) { question.answers.correct.first!.text }
+      let(:incorrect_answer) { create(:answer, question: question, text: 'F', is_correct: false).text }
 
       context 'when question is mcq' do
         it 'updates is_correct and score' do

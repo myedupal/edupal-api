@@ -73,7 +73,7 @@ class Api::V1::Admin::QuestionsController < Api::V1::Admin::ApplicationControlle
     def question_params
       params.require(:question).permit(
         :exam_id, :number, :question_type, :topics_label, :text,
-        answers_attributes: [:id, :text, :image, :_destroy],
+        answers_attributes: [:id, :_destroy, :text, :image, :display_order, :is_correct, :description],
         question_images_attributes: [:id, :image, :display_order, :_destroy],
         question_topics_attributes: [:id, :topic_id, :_destroy]
       ).tap do |whitelisted|

@@ -27,7 +27,7 @@ FactoryBot.define do
     end
 
     trait :correct_answer do
-      answer { question.answers.first.text }
+      answer { question.answers.correct.first.text }
     end
 
     trait :incorrect_answer do
