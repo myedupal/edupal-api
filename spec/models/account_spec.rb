@@ -4,6 +4,10 @@ RSpec.describe Account, type: :model do
   describe 'associations' do
     it { is_expected.to have_many(:sessions).dependent(:destroy) }
     it { is_expected.to have_many(:point_activities).dependent(:destroy) }
+    it { is_expected.to belong_to(:selected_organization).class_name('Organization').optional }
+    it { is_expected.to have_many(:owned_organizations).class_name('Organization') }
+    it { is_expected.to have_many(:organization_accounts) }
+    it { is_expected.to have_many(:organizations).class_name('Organization').through(:organization_accounts).source(:organization) }
   end
 
   describe 'validations' do
@@ -19,6 +23,28 @@ RSpec.describe Account, type: :model do
       subject { described_class.new(oauth2_provider: nil) }
 
       it { is_expected.not_to validate_presence_of(:oauth2_sub) }
+    end
+
+    describe 'member_of_selected_organization?' do
+      subject(:account) { create(:admin) }
+      let(:organization) { create(:organization) }
+
+      context 'when not a member' do
+        it 'cannot select organization' do
+          account.assign_attributes(selected_organization: organization)
+          expect(account).to_not be_valid
+          expect(account.errors[:selected_organization]).to include(/must be a member/)
+        end
+      end
+
+      context 'when is a member' do
+        before { create(:organization_account, account: account, organization: organization) }
+
+        it 'allow selecting organization' do
+          account.assign_attributes(selected_organization: organization)
+          expect(account).to be_valid
+        end
+      end
     end
   end
 

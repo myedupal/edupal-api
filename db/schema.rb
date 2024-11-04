@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_10_14_074423) do
+ActiveRecord::Schema[7.0].define(version: 2024_10_15_095023) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -42,12 +42,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_14_074423) do
     t.string "referred_credit_currency", default: "USD", null: false
     t.string "oauth2_iss"
     t.string "oauth2_aud"
+    t.uuid "selected_organization_id"
+    t.boolean "super_admin", default: false, null: false
     t.index ["email", "type"], name: "index_accounts_on_email_and_type", unique: true, where: "((email IS NOT NULL) AND ((email)::text <> ''::text))"
     t.index ["nanoid"], name: "index_accounts_on_nanoid", unique: true
     t.index ["phone_number"], name: "index_accounts_on_phone_number"
     t.index ["referred_by_id"], name: "index_accounts_on_referred_by_id"
     t.index ["reset_password_token"], name: "index_accounts_on_reset_password_token", unique: true
     t.index ["selected_curriculum_id"], name: "index_accounts_on_selected_curriculum_id"
+    t.index ["selected_organization_id"], name: "index_accounts_on_selected_organization_id"
   end
 
   create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -189,6 +192,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_14_074423) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "duration"
+    t.index ["code"], name: "index_gift_cards_on_code", unique: true
     t.index ["created_by_id"], name: "index_gift_cards_on_created_by_id"
     t.index ["plan_id"], name: "index_gift_cards_on_plan_id"
   end
@@ -263,6 +267,52 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_14_074423) do
     t.uuid "guess_word_pool_id"
     t.index ["guess_word_pool_id"], name: "index_guess_words_on_guess_word_pool_id"
     t.index ["subject_id"], name: "index_guess_words_on_subject_id"
+  end
+
+  create_table "organization_accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "organization_id", null: false
+    t.uuid "account_id", null: false
+    t.string "role", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_organization_accounts_on_account_id"
+    t.index ["organization_id", "account_id"], name: "index_organization_accounts_on_organization_id_and_account_id", unique: true
+    t.index ["organization_id"], name: "index_organization_accounts_on_organization_id"
+  end
+
+  create_table "organization_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "organization_id", null: false
+    t.uuid "account_id"
+    t.uuid "created_by_id"
+    t.string "email"
+    t.string "invite_type"
+    t.string "label"
+    t.string "invitation_code"
+    t.integer "used_count", null: false
+    t.integer "max_uses", null: false
+    t.string "role", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_organization_invitations_on_account_id"
+    t.index ["created_by_id"], name: "index_organization_invitations_on_created_by_id"
+    t.index ["invitation_code"], name: "index_organization_invitations_on_invitation_code", unique: true
+    t.index ["organization_id", "account_id"], name: "index_organization_inv_on_org_and_acc", unique: true, where: "(account_id IS NOT NULL)"
+    t.index ["organization_id", "email"], name: "index_organization_inv_on_org_and_email", unique: true, where: "(account_id IS NOT NULL)"
+    t.index ["organization_id"], name: "index_organization_invitations_on_organization_id"
+  end
+
+  create_table "organizations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "owner_id", null: false
+    t.string "title"
+    t.string "description"
+    t.string "icon_image"
+    t.string "banner_image"
+    t.string "status"
+    t.integer "current_headcount"
+    t.integer "maximum_headcount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["owner_id"], name: "index_organizations_on_owner_id"
   end
 
   create_table "papers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -562,6 +612,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_14_074423) do
 
   add_foreign_key "accounts", "accounts", column: "referred_by_id"
   add_foreign_key "accounts", "curriculums", column: "selected_curriculum_id"
+  add_foreign_key "accounts", "organizations", column: "selected_organization_id"
   add_foreign_key "activities", "accounts", column: "user_id"
   add_foreign_key "activities", "exams"
   add_foreign_key "activities", "subjects"
@@ -587,6 +638,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_14_074423) do
   add_foreign_key "guess_word_submissions", "guess_words"
   add_foreign_key "guess_words", "guess_word_pools"
   add_foreign_key "guess_words", "subjects"
+  add_foreign_key "organization_accounts", "accounts"
+  add_foreign_key "organization_accounts", "organizations"
+  add_foreign_key "organization_invitations", "accounts"
+  add_foreign_key "organization_invitations", "accounts", column: "created_by_id"
+  add_foreign_key "organization_invitations", "organizations"
+  add_foreign_key "organizations", "accounts", column: "owner_id"
   add_foreign_key "papers", "subjects"
   add_foreign_key "point_activities", "accounts"
   add_foreign_key "prices", "plans"
