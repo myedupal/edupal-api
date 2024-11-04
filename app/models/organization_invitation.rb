@@ -79,15 +79,16 @@ class OrganizationInvitation < ApplicationRecord
                        .where('organizations.maximum_headcount > organizations.current_headcount')
                        .update_all('used_count = used_count + 1')
 
-      if updated_rows.zero?
-        reload
+      # make sure model's data are up to date after using update_all
+      reload
 
+      if updated_rows.zero?
         if organization.current_headcount >= organization.maximum_headcount
           errors.add(:base, :organization_full, message: 'The organization is full')
         elsif used_count >= max_uses
           errors.add(:base, :invite_used, message: 'This invite has been fully used')
         else
-          errors.add(:base,:invite_update_error,  message:'Error accepting this invite, please try again')
+          errors.add(:base, :invite_update_error, message: 'Error accepting this invite, please try again')
         end
         return false
       end
