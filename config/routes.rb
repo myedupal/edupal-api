@@ -65,6 +65,14 @@ Rails.application.routes.draw do
           post :nullify, on: :member
           post :revalidate, on: :member
         end
+
+        resources :organizations do
+          post :setup, on: :collection
+          post :leave, on: :member
+        end
+        resources :organization_accounts
+        resources :organization_invitations
+
       end
 
       namespace :user do
@@ -146,6 +154,15 @@ Rails.application.routes.draw do
         resources :user_collections
 
         resources :study_goals
+
+        resources :organizations do
+          post :leave, on: :member
+        end
+        resources :organization_invitations do
+          get 'lookup/:code', on: :collection, action: :lookup
+          post :accept, on: :member
+          post :reject, on: :member
+        end
       end
 
       namespace :web do
@@ -155,6 +172,10 @@ Rails.application.routes.draw do
         resources :topics, only: [:index, :show]
         resources :papers, only: [:index, :show]
         resources :exams, only: [:index, :show]
+
+        resources :organization_invitations, only: [] do
+          get 'lookup/:code', on: :collection, action: :lookup
+        end
       end
     end
   end

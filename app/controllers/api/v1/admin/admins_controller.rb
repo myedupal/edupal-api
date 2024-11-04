@@ -48,6 +48,7 @@ class Api::V1::Admin::AdminsController < Api::V1::Admin::ApplicationController
     def set_admins
       pundit_authorize(Admin)
       @admins = pundit_scope(Admin.all)
+      @admins = @admins.where(super_admin: ActiveSupport::Boolean.parse(params[:super_admin])) if params[:super_admin].present?
       @admins = keyword_queryable(@admins)
       @admins = attribute_sortable(@admins)
     end
@@ -61,6 +62,6 @@ class Api::V1::Admin::AdminsController < Api::V1::Admin::ApplicationController
     end
 
     def admin_params
-      params.require(:admin).permit(:email, :name, :active, :password)
+      params.require(:admin).permit(:super_admin, :email, :name, :active, :password)
     end
 end

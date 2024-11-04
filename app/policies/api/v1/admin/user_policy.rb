@@ -1,10 +1,28 @@
 class Api::V1::Admin::UserPolicy < ApplicationPolicy
+
+
+  def index?
+    @user.super_admin?
+  end
+
+  def show?
+    @user.super_admin?
+  end
+
+  def create?
+    @user.super_admin?
+  end
+
+  def update?
+    @user.super_admin?
+  end
+
   def destroy?
     false
   end
 
   def count?
-    true
+    @user.super_admin?
   end
 
   class Scope < Scope
