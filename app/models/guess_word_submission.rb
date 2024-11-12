@@ -1,11 +1,13 @@
 class GuessWordSubmission < ApplicationRecord
   include AASM
+  belongs_to :organization, optional: true
   belongs_to :guess_word, counter_cache: true
   belongs_to :user
 
   has_many :guesses, class_name: 'GuessWordSubmissionGuess', dependent: :destroy, counter_cache: :guesses_count
   has_many :point_activities, as: :activity, dependent: :destroy
 
+  validates :guess_word, same_organization: true
   validates :user_id, uniqueness: { scope: :guess_word_id }
 
   aasm column: :status, whiny_transitions: false do
@@ -107,7 +109,8 @@ class GuessWordSubmission < ApplicationRecord
     end
 
     def guess_is_word?(guess)
-      return true if guess == guess_word.answer || GuessWordDictionary.exists?(word: guess.downcase)
+      return true if guess == guess_word.answer || GuessWordDictionary.exists?(word: guess.downcase, organization: nil)
+      return true if organization.present? && GuessWordDictionary.exists?(word: guess.downcase, organization: organization)
       return true if guess_word.guess_word_pool.present? && guess_word.guess_word_pool.guess_word_questions.exists?(word: guess.downcase)
 
       errors.add(:guess, 'is not in the dictionary') unless errors.added?(:guess, 'is not in the dictionary')

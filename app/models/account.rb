@@ -68,6 +68,7 @@ class Account < ApplicationRecord
   private
 
     def must_be_member_of_selected_organization
+      return if is_a?(Admin) && super_admin?
       return if organizations.include?(selected_organization)
 
       errors.add(:selected_organization, 'must be a member of the selected organization')

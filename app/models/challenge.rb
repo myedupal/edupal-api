@@ -1,4 +1,5 @@
 class Challenge < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :subject, optional: true
 
   has_many :challenge_questions, dependent: :destroy
@@ -58,6 +59,7 @@ class Challenge < ApplicationRecord
   scope :ongoing, -> { where(end_at: Time.zone.now...).or(Challenge.where(end_at: nil)) }
   scope :ended, -> { where(end_at: ..Time.zone.now) }
 
+  validates :subject, same_organization: true
   # validates :title, presence: true
   validates :reward_points, presence: true
   validates :start_at, presence: true

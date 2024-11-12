@@ -2,6 +2,7 @@ class UserCollectionQuestion < ApplicationRecord
   belongs_to :user_collection, counter_cache: :questions_count
   belongs_to :question
 
+  validates :question, same_organization: { from: :user_collection }
   validates :question_id, uniqueness: { scope: :user_collection_id, case_sensitive: false }
 
   validate :must_be_same_curriculum

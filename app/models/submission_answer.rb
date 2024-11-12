@@ -1,8 +1,10 @@
 class SubmissionAnswer < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :submission
   belongs_to :question
   belongs_to :user
 
+  validates :submission, same_organization: true
   validates :answer, presence: true
   validates :recorded_time, presence: true
   validates :question_id, uniqueness: { scope: :submission_id, case_sensitive: false }

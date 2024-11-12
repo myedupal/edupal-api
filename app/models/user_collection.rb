@@ -1,4 +1,5 @@
 class UserCollection < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :user
   belongs_to :curriculum
   has_many :user_collection_questions, dependent: :destroy
@@ -8,6 +9,7 @@ class UserCollection < ApplicationRecord
 
   accepts_nested_attributes_for :user_collection_questions, allow_destroy: true, reject_if: :all_blank
 
+  validates :curriculum, same_organization: true
   validates :title, presence: true
 
   before_validation :set_title
