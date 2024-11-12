@@ -2,8 +2,9 @@ FactoryBot.define do
   factory :user_collection do
     transient do
       user { create(:user) }
-      curriculum { create(:curriculum) }
+      curriculum { create(:curriculum, organization: organization) }
     end
+    organization { nil }
     user_id { user.id }
     curriculum_id { curriculum.id }
     collection_type { UserCollection.collection_types.keys.sample }

@@ -26,7 +26,7 @@ RSpec.describe Account, type: :model do
     end
 
     describe 'member_of_selected_organization?' do
-      subject(:account) { create(:admin) }
+      subject(:account) { create(:admin, super_admin: false) }
       let(:organization) { create(:organization) }
 
       context 'when not a member' do
@@ -43,6 +43,17 @@ RSpec.describe Account, type: :model do
         it 'allow selecting organization' do
           account.assign_attributes(selected_organization: organization)
           expect(account).to be_valid
+        end
+      end
+
+      context 'with super admin' do
+        subject(:account) { create(:admin, super_admin: true) }
+
+        context 'when not a member' do
+          it 'can select organization' do
+            account.assign_attributes(selected_organization: organization)
+            expect(account).to be_valid
+          end
         end
       end
     end

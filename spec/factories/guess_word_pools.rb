@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :guess_word_pool do
     transient do
-      subject { create(:subject) }
+      subject { create(:subject, organization: organization) }
     end
+    organization { nil }
     default_pool { false }
     subject_id { subject.id }
     user { nil }

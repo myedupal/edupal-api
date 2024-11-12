@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Question, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:subject) }
     it { is_expected.to belong_to(:exam).optional }
     it { is_expected.to have_many(:answers).dependent(:destroy) }
@@ -34,6 +35,11 @@ RSpec.describe Question, type: :model do
       subject { create(:question) }
 
       it { is_expected.to validate_uniqueness_of(:number).case_insensitive.scoped_to(:exam_id) }
+    end
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :subject)
+      it_behaves_like('same_organization_validator', :exam)
     end
   end
 

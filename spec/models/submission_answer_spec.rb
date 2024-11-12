@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe SubmissionAnswer, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:submission) }
     it { is_expected.to belong_to(:question) }
     it { is_expected.to belong_to(:user) }
@@ -24,6 +25,10 @@ RSpec.describe SubmissionAnswer, type: :model do
 
       it { expect(submission_answer).to be_valid }
       it { expect(other_submission_answer).not_to be_valid }
+    end
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :submission)
     end
   end
 

@@ -20,5 +20,9 @@ RSpec.describe ChallengeQuestion, type: :model do
         expect(new_challenge_question).not_to be_valid
       end
     end
+
+    describe 'same_organization_to_organization_validator' do
+      it_behaves_like('same_organization_to_organization_validator', :question, :challenge)
+    end
   end
 end

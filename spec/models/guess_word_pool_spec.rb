@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe GuessWordPool, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:subject) }
     it { is_expected.to belong_to(:user).class_name('User').optional }
     it { is_expected.to have_many(:guess_word_questions).counter_cache(:guess_word_questions_count).dependent(:destroy) }
@@ -11,6 +12,16 @@ RSpec.describe GuessWordPool, type: :model do
 
   describe 'nested attributes' do
     it { is_expected.to accept_nested_attributes_for(:guess_word_questions).allow_destroy(true) }
+  end
+
+  describe 'validations' do
+    subject { build(:guess_word_pool, default_pool: true) }
+
+    it { is_expected.to validate_absence_of(:user_id) }
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :subject)
+    end
   end
 
   describe 'callbacks' do
