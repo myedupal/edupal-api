@@ -2,8 +2,9 @@ FactoryBot.define do
   factory :submission do
     transient do
       user { create(:user) }
-      challenge { create(:challenge, :daily, start_at: 1.hour.ago, end_at: 1.hour.from_now) }
+      challenge { create(:challenge, :daily, start_at: 1.hour.ago, end_at: 1.hour.from_now, organization: organization) }
     end
+    organization { nil }
     user_id { user&.id }
     challenge_id { challenge&.id }
     title { challenge.blank? ? Faker::Lorem.sentence : nil }

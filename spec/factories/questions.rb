@@ -1,10 +1,11 @@
 FactoryBot.define do
   factory :question do
     transient do
-      subject { create(:subject) }
-      paper { create(:paper, subject: subject) }
-      exam { create(:exam, paper: paper) }
+      subject { create(:subject, organization: organization) }
+      paper { create(:paper, subject: subject, organization: organization) }
+      exam { create(:exam, paper: paper, organization: organization) }
     end
+    organization { nil }
     subject_id { subject&.id }
     exam_id { exam&.id }
     sequence(:number)

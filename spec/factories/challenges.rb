@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :challenge do
     transient do
-      subject { create(:subject) }
+      subject { create(:subject, organization: organization) }
     end
+    organization { nil }
     challenge_type { Challenge.challenge_types.keys.sample }
     reward_type { Challenge.reward_types.keys.sample }
     sequence(:start_at) { |n| n.days.from_now }
