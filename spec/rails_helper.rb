@@ -66,6 +66,12 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
   config.include ActiveSupport::Testing::TimeHelpers
+
+  # Loads support files inside /spec/support/models if we are running a model spec file
+  # contains the shared example for model spec
+  if config.files_to_run.any? { |file| file.include?('/models/') }
+    Dir[Rails.root.join('spec', 'support', 'models', '**', '*.rb')].sort.each { |f| require f }
+  end
 end
 
 Shoulda::Matchers.configure do |config|
