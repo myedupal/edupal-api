@@ -27,8 +27,12 @@ class Api::V1::Admin::UserPolicy < ApplicationPolicy
 
   class Scope < Scope
     # NOTE: Be explicit about which records you allow access to!
-    # def resolve
-    #   scope.all
-    # end
+    def resolve
+      if @user.super_admin?
+        scope.all
+      else
+        scope_by_organization
+      end
+    end
   end
 end
