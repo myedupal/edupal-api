@@ -19,6 +19,11 @@ class Api::V1::Web::SubjectsController < Api::V1::Web::ApplicationController
 
     def set_subjects
       @subjects = Subject.preload(:curriculum, :papers).published
+      if params[:organization_id].present?
+        @subjects = @subjects.where(organization_id: params[:organization_id])
+      else
+        @subjects = @subjects.where(organization_id: nil)
+      end
       @subjects = @subjects.where(curriculum_id: params[:curriculum_id]) if params[:curriculum_id].present?
       @subjects = @subjects.where(code: params[:code]) if params[:code].present?
       @subjects = @subjects.where(name: params[:name]) if params[:name].present?

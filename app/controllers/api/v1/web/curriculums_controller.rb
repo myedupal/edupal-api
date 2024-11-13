@@ -19,6 +19,11 @@ class Api::V1::Web::CurriculumsController < Api::V1::Web::ApplicationController
 
     def set_curriculums
       @curriculums = Curriculum.preload(:subjects).published
+      if params[:organization_id].present?
+        @curriculums = @curriculums.where(organization_id: params[:organization_id])
+      else
+        @curriculums = @curriculums.where(organization_id: nil)
+      end
       @curriculums = keyword_queryable(@curriculums)
       @curriculums = attribute_sortable(@curriculums)
     end

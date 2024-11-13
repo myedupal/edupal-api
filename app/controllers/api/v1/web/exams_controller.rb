@@ -19,6 +19,11 @@ class Api::V1::Web::ExamsController < Api::V1::Web::ApplicationController
 
     def set_exams
       @exams = Exam.preload({ paper: :subject })
+      if params[:organization_id].present?
+        @exams = @exams.where(organization_id: params[:organization_id])
+      else
+        @exams = @exams.where(organization_id: nil)
+      end
       @exams = @exams.joins(:paper).where(paper: { subject_id: params[:subject_id] }) if params[:subject_id].present?
       @exams = @exams.where(paper_id: params[:paper_id]) if params[:paper_id].present?
       @exams = @exams.where(year: params[:year]) if params[:year].present?
