@@ -3,6 +3,7 @@ require 'swagger_helper'
 RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
   let(:admin) { create(:admin, super_admin: false) }
   let(:organization) { create(:organization, owner: admin) }
+  before { admin.update(selected_organization: organization) }
   let(:trainer) { create(:organization_account, account: create(:admin, super_admin: false), organization: organization, role: :trainer).account }
   let(:organization_invitation) { create(:organization_invitation, organization: organization, role: :trainee) }
   let(:id) { organization_invitation.id }
@@ -96,6 +97,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
                 .slice(:organization_id, :invite_type, :label, :used_count, :max_uses, :role).merge(role: :admin)
           }
         end
+        before { trainer.update(selected_organization: organization) }
 
         run_test!
       end
@@ -104,8 +106,8 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
         let(:data) do
           {
             organization_invitation:
-              attributes_for(:organization_invitation, :group_invite, :trainee, organization: organization)
-                .slice(:invite_type, :label, :used_count, :max_uses, :role)
+              attributes_for(:organization_invitation, :user_invite, :trainee, organization: organization)
+                .slice(:invite_type, :label, :used_count, :max_uses, :role, :account_id, :email).merge(account_id: create(:user).id)
           }
         end
 
@@ -176,6 +178,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
                 .slice(:organization_id, :invite_type, :label, :used_count, :max_uses, :role)
           }
         end
+        before { trainer.update(selected_organization: organization) }
 
         run_test! do |_response|
           expect(organization_invitation.reload.role).to eq('trainee')
@@ -192,6 +195,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
                 .slice(:organization_id, :invite_type, :label, :used_count, :max_uses, :role)
           }
         end
+        before { trainer.update(selected_organization: organization) }
 
         run_test!
       end
@@ -209,6 +213,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
       response(403, 'unauthorized') do
         let(:Authorization) { bearer_token_for(trainer) }
         let(:organization_invitation) { create(:organization_invitation, organization: organization, role: :trainer) }
+        before { trainer.update(selected_organization: organization) }
 
         run_test!
       end

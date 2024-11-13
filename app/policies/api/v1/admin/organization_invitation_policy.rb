@@ -32,8 +32,7 @@ class Api::V1::Admin::OrganizationInvitationPolicy < ApplicationPolicy
       if @user.super_admin?
         scope.all
       else
-        scope.joins(organization: :organization_accounts)
-          .where(organization: { organization_accounts: { account_id: user.id } })
+        scope_by_organization
       end
     end
   end

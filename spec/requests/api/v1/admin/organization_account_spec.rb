@@ -3,6 +3,7 @@ require 'swagger_helper'
 RSpec.describe 'api/v1/admin/organization_accounts', type: :request do
   let(:admin) { create(:admin, super_admin: false) }
   let(:organization) { create(:organization, owner: admin) }
+  before { admin.update(selected_organization: organization) }
   let(:trainer) { create(:organization_account, account: create(:admin, super_admin: false), organization: organization, role: :trainer).account }
   let(:organization_account) { create(:organization_account, organization: organization, role: :trainee) }
   let(:id) { organization_account.id }
@@ -136,6 +137,7 @@ RSpec.describe 'api/v1/admin/organization_accounts', type: :request do
 
       context 'when the user is a trainer' do
         let(:Authorization) { bearer_token_for(trainer) }
+        before { trainer.update(selected_organization: organization) }
 
         context 'when the account is trainee' do
           response(403, 'unauthorized') do
@@ -186,6 +188,7 @@ RSpec.describe 'api/v1/admin/organization_accounts', type: :request do
       response(403, 'unauthorized') do
         let(:Authorization) { bearer_token_for(trainer) }
         let(:organization_account) { create(:organization_account, organization: organization, role: :admin) }
+        before { trainer.update(selected_organization: organization) }
 
         run_test!
       end
@@ -193,6 +196,7 @@ RSpec.describe 'api/v1/admin/organization_accounts', type: :request do
       response(403, 'unauthorized') do
         let(:Authorization) { bearer_token_for(trainer) }
         let(:organization_account) { create(:organization_account, organization: organization, role: :trainer) }
+        before { trainer.update(selected_organization: organization) }
 
         run_test!
       end
