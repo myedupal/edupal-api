@@ -1,5 +1,5 @@
 class Api::V1::Admin::QuestionSerializer < ActiveModel::Serializer
-  attributes :id, :number, :question_type, :topics_label, :text, :exam_id, :subject_id, :metadata
+  attributes :id, :organization_id, :number, :question_type, :topics_label, :text, :exam_id, :subject_id, :metadata
   attributes :created_at, :updated_at
   has_one :exam
   has_one :subject

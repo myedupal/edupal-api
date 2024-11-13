@@ -1,5 +1,5 @@
 class Api::V1::Admin::ChallengeSerializer < ActiveModel::Serializer
-  attributes :id, :title, :challenge_type, :start_at, :end_at, :reward_points,
+  attributes :id, :organization_id, :title, :challenge_type, :start_at, :end_at, :reward_points,
              :reward_type, :penalty_seconds, :subject_id, :is_published, :banner
   attributes :created_at, :updated_at
   has_one :subject
