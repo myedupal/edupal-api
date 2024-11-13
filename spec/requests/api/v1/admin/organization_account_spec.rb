@@ -144,7 +144,7 @@ RSpec.describe 'api/v1/admin/organization_accounts', type: :request do
             let(:organization_account) { create(:organization_account, organization: organization, role: :trainee) }
             let(:data) { { organization_account: { role: :trainer } } }
 
-            run_test! do |response|
+            run_test! do
               expect(organization_account.reload.role).to eq('trainee')
             end
           end

@@ -27,7 +27,7 @@ class CreateOrganizations < ActiveRecord::Migration[7.0]
 
     reversible do |dir|
       dir.up do
-        add_column :accounts, :super_admin, :boolean, null: false, default: :false
+        add_column :accounts, :super_admin, :boolean, null: false, default: false
         Admin.update_all(super_admin: true)
       end
 
