@@ -312,7 +312,7 @@ RSpec.describe 'api/v1/admin/reports', type: :request do
       parameter name: :user_ids, in: :query, type: :array, items: { type: :string }, required: false, description: 'User ids to export'
 
       response(200, 'successful') do
-        let!(:user_account) { create(:user) }
+        let!(:user_account) { create(:user, :with_curriculum) }
         let!(:strong_subject) { create(:subject, curriculum: user_account.selected_curriculum) }
         let!(:weak_subject) { create(:subject, curriculum: user_account.selected_curriculum) }
 

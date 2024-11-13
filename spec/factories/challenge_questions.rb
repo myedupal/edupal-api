@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :challenge_question do
     transient do
-      challenge { create(:challenge) }
-      question { create(:question) }
+      challenge { create(:challenge, organization: organization) }
+      question { create(:question, organization: organization) }
+      organization { nil }
     end
     challenge_id { challenge.id }
     question_id { question.id }

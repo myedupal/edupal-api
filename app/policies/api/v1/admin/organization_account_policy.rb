@@ -18,7 +18,7 @@ class Api::V1::Admin::OrganizationAccountPolicy < ApplicationPolicy
   def can_user_manage_account?
     return true if record.organization.nil?
     return true if @user.super_admin?
-    return true if record.owner == @user
+    return true if record.organization.owner == @user
 
     if %w[admin trainer].include?(record.role)
       record.organization.organization_accounts.where(account_id: @user.id, role: :admin).any?

@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :guess_word do
-    subject_id { create(:subject).id }
+    organization { nil }
+    subject_id { create(:subject, organization: organization).id }
     guess_word_pool { nil }
     answer { Faker::Lorem.word }
     description { Faker::Lorem.paragraph }
