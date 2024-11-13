@@ -1,7 +1,8 @@
 FactoryBot.define do
   factory :study_goal do
     transient do
-      curriculum { create(:curriculum) }
+      curriculum { create(:curriculum, organization: organization) }
+      organization { nil }
     end
     user { create(:user) }
     curriculum_id { curriculum.id }

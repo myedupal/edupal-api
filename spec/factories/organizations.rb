@@ -8,5 +8,16 @@ FactoryBot.define do
     description { Faker::Lorem.paragraph }
     status { :active }
     maximum_headcount { 15 }
+
+    trait :with_admin do
+      transient do
+        admin { create(:admin) }
+        role {:admin}
+      end
+
+      after(:create) do |organization, evaluator|
+        create(:organization_account, organization: organization, account: evaluator.admin, role: evaluator.role)
+      end
+    end
   end
 end

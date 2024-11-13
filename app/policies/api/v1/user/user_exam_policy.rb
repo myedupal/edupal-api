@@ -14,7 +14,7 @@ class Api::V1::User::UserExamPolicy < ApplicationPolicy
   class Scope < Scope
     # NOTE: Be explicit about which records you allow access to!
     def resolve
-      scope.where(created_by_id: @user.id)
+      scope_by_organization.where(created_by_id: @user.id)
     end
   end
 end

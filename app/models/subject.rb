@@ -11,6 +11,8 @@ class Subject < ApplicationRecord
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
   has_many :challenges, dependent: :destroy
+  has_many :guess_words, dependent: :destroy
+  has_many :guess_word_pools, dependent: :destroy
 
   mount_base64_uploader :banner, ImageUploader
 

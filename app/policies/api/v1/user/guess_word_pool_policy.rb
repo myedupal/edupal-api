@@ -22,7 +22,7 @@ class Api::V1::User::GuessWordPoolPolicy < ApplicationPolicy
   class Scope < Scope
     # NOTE: Be explicit about which records you allow access to!
     def resolve
-      scope.where(user_id: @user.id).or(scope.where(published: true))
+      scope_by_organization.where(user_id: @user.id).or(scope_by_organization.where(published: true))
     end
   end
 end

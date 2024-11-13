@@ -11,6 +11,9 @@ class Organization < ApplicationRecord
 
   has_many :organization_invitations, dependent: :destroy
 
+  has_many :curriculums
+  has_many :subjects, through: :curriculums
+
   mount_base64_uploader :icon_image, ImageUploader
   mount_base64_uploader :banner_image, ImageUploader
 
