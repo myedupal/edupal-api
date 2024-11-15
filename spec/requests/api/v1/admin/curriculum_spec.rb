@@ -25,7 +25,6 @@ RSpec.describe 'api/v1/admin/curriculums', type: :request do
         end
 
         run_test! do |response|
-          puts response.body
           data = JSON.parse(response.body)
           expect(data['curriculums']).to all(include("organization_id" => nil))
         end
