@@ -26,7 +26,7 @@ RSpec.describe OrganizationInvitation, type: :model do
     it { is_expected.to validate_numericality_of(:max_uses).is_greater_than_or_equal_to(0).only_integer }
 
     context 'user invite' do
-      context '#either_email_or_account' do
+      context '#must_have_either_email_or_account' do
         subject(:organization_invitation) { build(:organization_invitation, invite_type: :user_invite, account: account, email: email) }
 
         context 'with account' do
@@ -49,9 +49,20 @@ RSpec.describe OrganizationInvitation, type: :model do
 
           it { is_expected.to be_invalid }
         end
+      end
 
-        context 'with email and account' do
-          let(:account) { build(:user) }
+      describe 'must_have_matching_email_and_account' do
+        subject(:organization_invitation) { build(:organization_invitation, invite_type: :user_invite, account: account, email: email) }
+
+        context 'with matching email and account' do
+          let(:account) { create(:user) }
+          let(:email) { account.email }
+
+          it { is_expected.to be_valid }
+        end
+
+        context 'with mismatching email and account' do
+          let(:account) { create(:user) }
           let(:email) { Faker::Internet.email }
 
           it { is_expected.to be_invalid }
@@ -65,7 +76,7 @@ RSpec.describe OrganizationInvitation, type: :model do
       it { is_expected.to validate_absence_of(:email) }
     end
 
-    context 'invite_type_not_changed' do
+    describe 'invite_type_not_changed' do
       subject(:organization_invitation) { create(:organization_invitation, invite_type: :group_invite) }
 
       it 'does not allow changing type' do
@@ -273,12 +284,46 @@ RSpec.describe OrganizationInvitation, type: :model do
       end
     end
 
-    describe '#downcase_email' do
-      let(:organization_invitation) { build(:organization_invitation, :user_invite, email: "USER@EXAMPLE.COM") }
+    describe '#resolve_email_to_account' do
+      let(:organization_invitation) { build(:organization_invitation, :user_invite, email: email, account: account) }
+      let!(:user) { create(:user) }
 
-      it 'downcase email' do
-        expect { organization_invitation.valid? }.to change(organization_invitation, :email).to('user@example.com')
+      context 'with existing account' do
+        let(:email) { user.email }
+        let(:account) { nil }
+
+        it 'update account' do
+          expect { organization_invitation.valid? }.to change(organization_invitation, :account).to(user)
+        end
       end
+
+      context 'with non-existing account' do
+        let(:email) { Faker::Internet.email }
+        let(:account) { nil }
+
+        it 'does not update account' do
+          expect { organization_invitation.valid? }.to_not change(organization_invitation, :account).from(nil)
+        end
+      end
+
+      context 'with both email and account' do
+        let(:email) { user.email }
+        let(:account) { create(:user) }
+
+        it 'to not update account' do
+          expect { organization_invitation.valid? }.to_not change(organization_invitation, :account).from(account)
+        end
+      end
+
+      context 'with no email' do
+        let(:email) { nil }
+        let(:account) { create(:user) }
+
+        it 'update account to match email' do
+          expect { organization_invitation.valid? }.to_not change(organization_invitation, :account).from(account)
+        end
+      end
+
     end
 
     describe '#set_label' do
@@ -298,6 +343,14 @@ RSpec.describe OrganizationInvitation, type: :model do
         it 'set label' do
           expect { organization_invitation.valid? }.not_to change(organization_invitation, :label).from('invite for class 1-A')
         end
+      end
+    end
+
+    describe '#downcase_email' do
+      let(:organization_invitation) { build(:organization_invitation, :user_invite, email: "USER@EXAMPLE.COM") }
+
+      it 'downcase email' do
+        expect { organization_invitation.valid? }.to change(organization_invitation, :email).to('user@example.com')
       end
     end
 
