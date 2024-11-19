@@ -34,7 +34,7 @@ RSpec.describe User, type: :model do
 
       describe 'study_goals' do
         describe 'current' do
-          let(:user) { create(:user) }
+          let(:user) { create(:user, :with_curriculum) }
           let!(:current_study_goal) { create(:study_goal, user: user, curriculum: user.selected_curriculum) }
           let!(:another_study_goal) { create(:study_goal, user: user) }
 

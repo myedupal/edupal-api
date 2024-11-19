@@ -27,6 +27,7 @@ class ApplicationPolicy
   end
 
   class Scope
+    include OrganizationScopedPolicy
     attr_reader :user, :scope
 
     def initialize(user, scope)

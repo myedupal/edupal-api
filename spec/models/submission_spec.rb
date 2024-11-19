@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Submission, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:challenge).optional }
     it { is_expected.to belong_to(:user_exam).optional }
     it { is_expected.to belong_to(:user) }
@@ -35,6 +36,10 @@ RSpec.describe Submission, type: :model do
       subject { build(:submission, user_exam: create(:user_exam), mcq_type: :yearly) }
 
       it { is_expected.to validate_absence_of(:mcq_type) }
+    end
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :challenge)
     end
   end
 

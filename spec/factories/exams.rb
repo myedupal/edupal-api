@@ -1,9 +1,10 @@
 FactoryBot.define do
   factory :exam do
     transient do
-      subject { create(:subject) }
-      paper { create(:paper, subject: subject) }
+      subject { create(:subject, organization: organization) }
+      paper { create(:paper, subject: subject, organization: organization) }
     end
+    organization { nil }
     paper_id { paper.id }
     sequence(:year) { |n| 2020 + n }
     season { %w[Summer Winter].sample }

@@ -1,5 +1,5 @@
 class Api::V1::Admin::GuessWordSerializer < ActiveModel::Serializer
-  attributes :id, :subject_id, :answer, :description, :attempts, :reward_points
+  attributes :id, :organization_id, :subject_id, :answer, :description, :attempts, :reward_points
   attribute :guess_word_submissions_count
 
   attributes :start_at, :end_at

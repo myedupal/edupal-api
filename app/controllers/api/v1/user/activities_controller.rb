@@ -49,6 +49,7 @@ class Api::V1::User::ActivitiesController < Api::V1::User::ApplicationController
     def set_activities
       pundit_authorize(Activity)
       @activities = pundit_scope(Activity.all).preload({ subject: :curriculum }, { exam: :paper }, :papers, :topics)
+      @activities = @activities.where(organization_id: params[:organization_id]) if params[:organization_id].present?
       @activities = @activities.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @activities = @activities.where(exam_id: params[:exam_id]) if params[:exam_id].present?
       @activities = @activities.where(activity_type: params[:activity_type]) if params[:activity_type].present?

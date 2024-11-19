@@ -82,6 +82,7 @@ class Api::V1::User::GuessWordPoolsController < Api::V1::User::ApplicationContro
     unless @guess_word_pool.daily_guess_word.present?
       guess_word_question = @guess_word_pool.guess_word_questions.order('RANDOM()').first
       @guess_word_pool.create_daily_guess_word!(
+        organization: @guess_word_pool.organization,
         subject: @guess_word_pool.subject,
         answer: guess_word_question.word,
         description: guess_word_question.description,

@@ -1,5 +1,6 @@
 class Submission < ApplicationRecord
   include AASM
+  belongs_to :organization, optional: true
   belongs_to :challenge, optional: true
   belongs_to :user_exam, optional: true
   belongs_to :user
@@ -11,6 +12,7 @@ class Submission < ApplicationRecord
 
   enum mcq_type: { yearly: 'yearly', topical: 'topical' }
 
+  validates :challenge, same_organization: true
   validates :title, presence: true, if: -> { challenge.blank? }
   validates :mcq_type, presence: true, if: -> { challenge.blank? && user_exam.blank? }
   validates :mcq_type, absence: true, if: -> { challenge.present? || user_exam.present? }

@@ -2,11 +2,12 @@ FactoryBot.define do
   factory :submission_answer do
     transient do
       user { create(:user) }
-      challenge { create(:challenge) }
-      question { create(:question, :mcq_with_answer) }
-      submission { create(:submission, user: user, challenge: challenge) }
+      challenge { create(:challenge, organization: organization) }
+      question { create(:question, :mcq_with_answer, organization: organization) }
+      submission { create(:submission, user: user, challenge: challenge, organization: organization) }
       skip_challenge_question { false }
     end
+    organization { nil }
     submission_id { submission&.id }
     question_id { question&.id }
     user_id { user&.id }
@@ -27,7 +28,7 @@ FactoryBot.define do
     end
 
     trait :correct_answer do
-      answer { question.answers.first.text }
+      answer { question.answers.correct.first.text }
     end
 
     trait :incorrect_answer do

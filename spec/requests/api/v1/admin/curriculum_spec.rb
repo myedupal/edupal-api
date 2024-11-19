@@ -21,9 +21,13 @@ RSpec.describe 'api/v1/admin/curriculums', type: :request do
       response(200, 'successful') do
         before do
           create_list(:curriculum, 3)
+          create(:curriculum, organization: create(:organization))
         end
 
-        run_test!
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['curriculums']).to all(include("organization_id" => nil))
+        end
       end
     end
 
@@ -51,7 +55,17 @@ RSpec.describe 'api/v1/admin/curriculums', type: :request do
       response(200, 'successful', save_request_example: :data) do
         let(:data) { { curriculum: attributes_for(:curriculum) } }
 
-        run_test!
+        let(:organization) { create(:organization, :with_admin, admin: user) }
+
+        before do
+          # create(:organization_account, account: user, organization: organization)
+          user.update(selected_organization: organization)
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['curriculum']['organization_id']).to eq organization.id
+        end
       end
     end
   end

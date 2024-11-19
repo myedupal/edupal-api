@@ -1,4 +1,6 @@
 class Curriculum < ApplicationRecord
+  belongs_to :organization, optional: true
+
   has_many :subjects, dependent: :destroy
   has_many :topics, through: :subjects
   has_many :papers, through: :subjects

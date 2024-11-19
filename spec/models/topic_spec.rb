@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Topic, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:subject) }
 
     it { is_expected.to have_many(:question_topics).dependent(:destroy) }
@@ -14,6 +15,10 @@ RSpec.describe Topic, type: :model do
 
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_uniqueness_of(:name).scoped_to(:subject_id).case_insensitive }
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :subject)
+    end
   end
 
   describe 'scopes' do

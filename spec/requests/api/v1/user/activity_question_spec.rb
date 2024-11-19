@@ -16,6 +16,7 @@ RSpec.describe 'api/v1/user/activity_questions', type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
+      parameter name: :organization_id, in: :query, type: :string, required: false, description: 'Filter by Organization id'
       parameter name: :activity_id, in: :query, type: :string, required: false, description: 'Filter by Activity id'
       parameter name: :question_id, in: :query, type: :string, required: false, description: 'Filter by Question id'
 

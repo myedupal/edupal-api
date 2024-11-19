@@ -10,6 +10,13 @@ class Account < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :point_activities, dependent: :destroy
 
+  has_many :owned_organizations, class_name: 'Organization', foreign_key: :owner_id, dependent: :restrict_with_error
+  belongs_to :selected_organization, class_name: 'Organization', optional: true
+  has_many :organization_accounts, foreign_key: :account_id, dependent: :destroy
+  has_many :organizations, class_name: 'Organization', through: :organization_accounts, source: :organization
+
+  validate :must_be_member_of_selected_organization, if: -> { selected_organization.present? }
+
   def self.find_or_register_by_oauth(provider, id_token)
     user = find_or_create_by!(email: id_token['email']) do |u|
       u.name = id_token['name']
@@ -57,4 +64,13 @@ class Account < ApplicationRecord
 
     ZkloginSaltGenerator.new.generate(oauth2_sub)
   end
+
+  private
+
+    def must_be_member_of_selected_organization
+      return if is_a?(Admin) && super_admin?
+      return if organizations.include?(selected_organization)
+
+      errors.add(:selected_organization, 'must be a member of the selected organization')
+    end
 end

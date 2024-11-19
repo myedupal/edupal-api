@@ -22,7 +22,7 @@ class Api::V1::Admin::AccountsController < Api::V1::Admin::ApplicationController
   private
 
     def account_params
-      params.require(:account).permit(:name, :email)
+      params.require(:account).permit(:name, :email, :selected_organization_id)
     end
 
     def password_params

@@ -1,4 +1,5 @@
 class Subject < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :curriculum
 
   has_many :topics, dependent: :destroy
@@ -10,9 +11,12 @@ class Subject < ApplicationRecord
   has_many :question_images, through: :questions
   has_many :question_topics, through: :questions
   has_many :challenges, dependent: :destroy
+  has_many :guess_words, dependent: :destroy
+  has_many :guess_word_pools, dependent: :destroy
 
   mount_base64_uploader :banner, ImageUploader
 
+  validates :curriculum, same_organization: true
   validates :name, presence: true, uniqueness: { scope: :curriculum_id, case_sensitive: false }
   # validates :code, uniqueness: { scope: :curriculum_id, case_sensitive: false }, allow_nil: true
 

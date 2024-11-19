@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Activity, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:subject) }
     it { is_expected.to belong_to(:exam).optional }
@@ -27,6 +28,11 @@ RSpec.describe Activity, type: :model do
       subject { create(:activity, :topical) }
 
       it { is_expected.to validate_absence_of(:exam_id) }
+    end
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :subject)
+      it_behaves_like('same_organization_validator', :exam)
     end
   end
 

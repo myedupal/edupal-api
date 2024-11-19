@@ -1,0 +1,75 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "1226f4b8261d4331f7ada105c106d51f0bb8951530c781803a4a7a145c343f76",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/admin/organization_invitations_controller.rb",
+      "line": 78,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :used_count, :max_uses, :role)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Api::V1::Admin::OrganizationInvitationsController",
+        "method": "organization_invitation_params"
+      },
+      "user_input": ":account_id",
+      "confidence": "High",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "de3262f42001c413bb0318344eac5c9b41ba72e8f48e93362577b27332882d22",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/admin/organization_accounts_controller.rb",
+      "line": 74,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:organization_account).permit(:organization_id, :account_id, :role)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Api::V1::Admin::OrganizationAccountsController",
+        "method": "organization_account_params"
+      },
+      "user_input": ":account_id",
+      "confidence": "High",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "e0301f103dfad31e1c3ac5dd728fe43d5dc76113d68285040077af718e057462",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/admin/organization_invitations_controller.rb",
+      "line": 76,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :invitation_code, :used_count, :max_uses, :role)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Api::V1::Admin::OrganizationInvitationsController",
+        "method": "organization_invitation_params"
+      },
+      "user_input": ":account_id",
+      "confidence": "High",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    }
+  ],
+  "updated": "2024-11-14 17:25:34 +0800",
+  "brakeman_version": "6.1.0"
+}

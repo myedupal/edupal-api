@@ -2,8 +2,9 @@ FactoryBot.define do
   factory :activity_paper do
     transient do
       user { create(:user) }
-      activity { create(:activity, :topical, user: user) }
-      paper { create(:paper, subject: activity.subject) }
+      organization { nil }
+      activity { create(:activity, :topical, user: user, organization: organization) }
+      paper { create(:paper, subject: activity.subject, organization: organization) }
     end
     activity_id { activity.id }
     paper_id { paper.id }

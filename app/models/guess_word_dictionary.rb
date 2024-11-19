@@ -1,4 +1,5 @@
 class GuessWordDictionary < ApplicationRecord
+  belongs_to :organization, optional: true
   validates :word, presence: true, uniqueness: true
 
   before_validation :downcase_word

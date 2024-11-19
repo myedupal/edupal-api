@@ -17,6 +17,7 @@ RSpec.describe 'api/v1/admin/admins', type: :request do
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search name, email address'
+      parameter name: :super_admin, in: :query, type: :boolean, required: false, description: 'Filter by super admin'
 
       response(200, 'successful') do
         before do
@@ -39,6 +40,7 @@ RSpec.describe 'api/v1/admin/admins', type: :request do
           admin: {
             type: :object,
             properties: {
+              super_admin: { type: :string },
               email: { type: :string },
               name: { type: :string },
               active: { type: :string },

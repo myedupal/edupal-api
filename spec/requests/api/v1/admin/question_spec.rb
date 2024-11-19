@@ -79,7 +79,10 @@ RSpec.describe 'api/v1/admin/questions', type: :request do
                   type: :object,
                   properties: {
                     text: { type: :string },
-                    image: { type: :string }
+                    image: { type: :string },
+                    display_order: { type: :integer },
+                    is_correct: { type: :boolean },
+                    description: { type: :string }
                   }
                 }
               }
@@ -163,7 +166,10 @@ RSpec.describe 'api/v1/admin/questions', type: :request do
                     id: { type: :string },
                     _destroy: { type: :boolean },
                     text: { type: :string },
-                    image: { type: :string }
+                    image: { type: :string },
+                    display_order: { type: :integer },
+                    is_correct: { type: :boolean },
+                    description: { type: :string }
                   }
                 }
               }

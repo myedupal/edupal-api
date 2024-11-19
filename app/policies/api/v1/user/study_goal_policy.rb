@@ -14,7 +14,7 @@ class Api::V1::User::StudyGoalPolicy < ApplicationPolicy
   class Scope < Scope
     # NOTE: Be explicit about which records you allow access to!
     def resolve
-      scope.where(user_id: @user.id)
+      scope.joins(:curriculum).where(user_id: @user.id, curriculum: { organization_id: @user.selected_organization_id })
     end
   end
 end

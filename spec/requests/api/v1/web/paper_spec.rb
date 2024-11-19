@@ -12,6 +12,7 @@ RSpec.describe 'api/v1/web/papers', type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
+      parameter name: :organization_id, in: :query, type: :string, required: false, description: 'Filter by Organization id'
       parameter name: :curriculum_id, in: :query, type: :string, required: false, description: 'Filter by curriculum id'
       parameter name: :subject_id, in: :query, type: :string, required: false, description: 'Filter by subject id'
 

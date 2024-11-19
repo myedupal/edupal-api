@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe UserCollection, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:curriculum) }
     it { is_expected.to have_many(:user_collection_questions).dependent(:destroy) }
@@ -14,6 +15,10 @@ RSpec.describe UserCollection, type: :model do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:title) }
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :curriculum)
+    end
   end
 
   describe 'nested attributes' do

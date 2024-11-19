@@ -19,6 +19,11 @@ class Api::V1::Web::PapersController < Api::V1::Web::ApplicationController
 
     def set_papers
       @papers = Paper.includes(:subject, :exams)
+      if params[:organization_id].present?
+        @papers = @papers.where(organization_id: params[:organization_id])
+      else
+        @papers = @papers.where(organization_id: nil)
+      end
       @papers = @papers.joins(:subject).where(subject: { curriculum_id: params[:curriculum_id] }) if params[:curriculum_id].present?
       @papers = @papers.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @papers = attribute_sortable(@papers)

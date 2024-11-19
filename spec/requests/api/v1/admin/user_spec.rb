@@ -16,6 +16,7 @@ RSpec.describe 'api/v1/admin/user', type: :request do
       parameter name: :items, in: :query, type: :integer, required: false, description: 'Number of items per page'
       parameter name: :sort_by, in: :query, type: :string, required: false, description: 'Sort by column name'
       parameter name: :sort_order, in: :query, type: :string, required: false, description: 'Sort order'
+      parameter name: :organization_id, in: :query, type: :string, required: false, description: 'Filter by Organization id'
       parameter name: :query, in: :query, type: :string, required: false, description: 'Search name, email address'
 
       response(200, 'successful') do

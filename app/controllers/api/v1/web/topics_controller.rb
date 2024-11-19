@@ -19,6 +19,11 @@ class Api::V1::Web::TopicsController < Api::V1::Web::ApplicationController
 
     def set_topics
       @topics = Topic.includes(:subject)
+      if params[:organization_id].present?
+        @topics = @topics.where(organization_id: params[:organization_id])
+      else
+        @topics = @topics.where(organization_id: nil)
+      end
       @topics = @topics.where(subject_id: params[:subject_id]) if params[:subject_id].present?
       @topics = keyword_queryable(@topics)
       @topics = attribute_sortable(@topics)

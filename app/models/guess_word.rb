@@ -1,9 +1,11 @@
 class GuessWord < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :subject
   belongs_to :guess_word_pool, optional: true
   has_many :guess_word_submissions
   attr_accessor :user_guess_word_submissions
 
+  validates :subject, :guess_word_pool, same_organization: true
   validates :answer, presence: true
   validates :attempts, presence: true
   validates :reward_points, presence: true

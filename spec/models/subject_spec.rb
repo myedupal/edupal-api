@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Subject, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:curriculum) }
     it { is_expected.to have_many(:topics).dependent(:destroy) }
     it { is_expected.to have_many(:papers).dependent(:destroy) }
@@ -17,9 +18,30 @@ RSpec.describe Subject, type: :model do
   describe 'validations' do
     subject { create(:subject) }
 
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_uniqueness_of(:name).scoped_to(:curriculum_id).case_insensitive }
     # it { is_expected.to validate_uniqueness_of(:code).scoped_to(:curriculum_id).allow_nil.case_insensitive }
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :curriculum)
+    end
+
+    describe 'same_organization' do
+      let(:organization) { create(:organization) }
+      let(:curriculum) { create(:curriculum, organization: organization) }
+      subject { build(:subject, curriculum: curriculum, organization: organization) }
+
+      context 'with same organization' do
+        it { is_expected.to be_valid }
+      end
+
+      context 'with different organization' do
+        subject { build(:subject, curriculum: curriculum, organization: create(:organization)) }
+
+        it { is_expected.to_not be_valid }
+      end
+    end
   end
 
   describe 'scopes' do

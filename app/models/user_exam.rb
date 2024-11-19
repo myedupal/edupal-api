@@ -1,9 +1,11 @@
 class UserExam < ApplicationRecord
   include NanoidGenerator
 
+  belongs_to :organization, optional: true
   belongs_to :created_by, class_name: 'Account'
   belongs_to :subject
 
+  validates :subject, same_organization: true
   validates :title, presence: true
 
   has_many :user_exam_questions, dependent: :destroy

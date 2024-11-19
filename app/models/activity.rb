@@ -1,4 +1,5 @@
 class Activity < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :user
   belongs_to :subject
   belongs_to :exam, optional: true
@@ -11,6 +12,7 @@ class Activity < ApplicationRecord
 
   enum activity_type: { yearly: 'yearly', topical: 'topical' }
 
+  validates :subject, :exam, same_organization: true
   validates :exam_id, presence: true, if: -> { yearly? }
   validates :exam_id, absence: true, if: -> { topical? }
 

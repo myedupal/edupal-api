@@ -1,4 +1,5 @@
 class GuessWordPool < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :subject
   belongs_to :user, class_name: 'User', optional: true
 
@@ -9,6 +10,7 @@ class GuessWordPool < ApplicationRecord
 
   validates :title, presence: true
   validates :user_id, absence: true, if: -> { default_pool? }
+  validates :subject, same_organization: true
 
   before_validation :set_title
 

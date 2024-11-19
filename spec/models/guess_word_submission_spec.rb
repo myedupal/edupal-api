@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe GuessWordSubmission, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:guess_word).counter_cache }
     it { is_expected.to belong_to(:user) }
     it { is_expected.to have_many(:guesses).dependent(:destroy).class_name('GuessWordSubmissionGuess').counter_cache(:guesses_count) }
@@ -11,6 +12,10 @@ RSpec.describe GuessWordSubmission, type: :model do
   describe 'validations' do
     subject { create(:guess_word_submission) }
     it { is_expected.to validate_uniqueness_of(:user_id).scoped_to(:guess_word_id).case_insensitive }
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :guess_word)
+    end
   end
 
   describe 'aasm' do

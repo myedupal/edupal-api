@@ -6,6 +6,8 @@ RSpec.describe 'api/v1/user/account', type: :request do
 
   path '/api/v1/user/account' do
     get('show account') do
+      let(:user) { create(:user, :with_curriculum) }
+
       response(200, 'successful') do
         tags 'User Account'
         produces 'application/json'

@@ -54,7 +54,7 @@ class Api::V1::Admin::GuessWordDictionariesController < Api::V1::Admin::Applicat
                     .map { |entry| { word: entry.strip.downcase } }
                     .select(&:present?)
 
-        result = GuessWordDictionary.insert_all(entries, unique_by: :word, returning: :id)
+        result = pundit_scope(GuessWordDictionary).insert_all(entries, unique_by: :word, returning: :id)
         imported += result.length
       end
     end

@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Challenge, type: :model do
   describe 'associations' do
+    it { is_expected.to belong_to(:organization).optional }
     it { is_expected.to belong_to(:subject).optional }
     it { is_expected.to have_many(:challenge_questions).dependent(:destroy) }
     it { is_expected.to have_many(:questions).through(:challenge_questions) }
@@ -129,6 +130,10 @@ RSpec.describe Challenge, type: :model do
       it 'validates uniqueness of start_at' do
         expect(challenge).to be_invalid
       end
+    end
+
+    describe 'same_organization_validator' do
+      it_behaves_like('same_organization_validator', :subject)
     end
   end
 

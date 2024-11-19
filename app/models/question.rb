@@ -1,6 +1,7 @@
 class Question < ApplicationRecord
   self.implicit_order_column = 'number'
 
+  belongs_to :organization, optional: true
   belongs_to :subject
   belongs_to :exam, optional: true
 
@@ -36,6 +37,8 @@ class Question < ApplicationRecord
               .select('activity_question_presence.question_id IS NOT NULL AS activity_presence')
   }
   scope :have_topics, -> { joins(:topics).distinct }
+
+  validates :subject, :exam, same_organization: true
 
   validates :number, presence: true, uniqueness: { scope: :exam_id }
 

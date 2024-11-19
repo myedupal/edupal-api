@@ -1,8 +1,10 @@
 class SubmissionAnswer < ApplicationRecord
+  belongs_to :organization, optional: true
   belongs_to :submission
   belongs_to :question
   belongs_to :user
 
+  validates :submission, same_organization: true
   validates :answer, presence: true
   validates :recorded_time, presence: true
   validates :question_id, uniqueness: { scope: :submission_id, case_sensitive: false }
@@ -15,7 +17,7 @@ class SubmissionAnswer < ApplicationRecord
     return if evaluated_at.present? && !force
     return unless question.mcq?
 
-    is_correct = question.answers.exists?(text: answer)
+    is_correct = question.answers.correct.exists?(text: answer)
     score = if !is_correct
               0
             elsif submission.challenge.present?
