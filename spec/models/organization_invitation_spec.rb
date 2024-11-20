@@ -369,6 +369,28 @@ RSpec.describe OrganizationInvitation, type: :model do
         end
       end
     end
+
+    describe '#send_invitation' do
+      let(:organization_invitation) { build(:organization_invitation, :user_invite, email: 'user@example.com', send_email: send_email) }
+      before { ActiveJob::Base.queue_adapter = :test }
+
+      context 'with send email' do
+        let(:send_email) { true }
+
+        it 'sends email' do
+          expect { organization_invitation.save }.to have_enqueued_job.exactly(:once).and have_enqueued_job(ActionMailer::MailDeliveryJob)
+        end
+      end
+
+
+      context 'without send email' do
+        let(:send_email) { false }
+
+        it 'does not sends email' do
+          expect { organization_invitation.save }.to_not have_enqueued_job(ActionMailer::MailDeliveryJob)
+        end
+      end
+    end
   end
 
   describe 'scopes' do

@@ -1,0 +1,12 @@
+Hi<%= @user.present? ? " #{@user.name}," : ',' %>
+
+You have been invited to join <%= @organization.title %> as <%= @invitation.role == 'admin' ? 'an' : 'a' %> <%= @invitation.role %> on Edupals.
+
+Please click the link below to accept your invitation and join the organization:
+
+<%= @invitation.invitation_link %>
+
+Thank you!
+
+Best regards,
+The Edupals Team

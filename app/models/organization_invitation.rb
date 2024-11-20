@@ -29,6 +29,10 @@ class OrganizationInvitation < ApplicationRecord
   before_create :set_invitation_code, if: -> { group_invite? && invitation_code.blank? }
   before_validation :set_label, if: -> { label.blank? }
 
+  attr_accessor :send_email
+
+  after_create :send_invitation, if: -> { send_email && user_invite? }
+
   scope :query_label, ->(keyword) { where("label ILIKE ?", "%#{keyword}%") }
   scope :query_code, ->(keyword) { where("invitation_code ILIKE ?", "%#{keyword.to_s.gsub('-', '').downcase}%") }
   scope :find_code, ->(keyword) { where("invitation_code ILIKE ?", keyword.to_s.gsub('-', '').downcase) }
@@ -121,7 +125,22 @@ class OrganizationInvitation < ApplicationRecord
     true
   end
 
+  def invitation_link
+    "https://#{Rails.configuration.web_host}/organizations/invitation?id=#{id}"
+  end
+
   private
+
+    def send_invitation
+      email = (account.present?) ? account.email : self.email
+
+      AccountMailer.with(
+        user: account,
+        email: email,
+        organization: organization,
+        invitation: self
+      ).invitation_email.deliver_later
+    end
 
     INVITE_CHARACTER = "0123456789abcdefghijklmnopqrstuvwxyz".freeze
     INVITE_LENGTH = 12

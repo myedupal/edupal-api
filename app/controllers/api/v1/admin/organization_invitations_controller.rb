@@ -73,9 +73,9 @@ class Api::V1::Admin::OrganizationInvitationsController < Api::V1::Admin::Applic
 
     def organization_invitation_params
       if current_admin.super_admin?
-        params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :invitation_code, :used_count, :max_uses, :role)
+        params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :invitation_code, :used_count, :max_uses, :role, :send_email)
       else
-        params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :used_count, :max_uses, :role)
+        params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :used_count, :max_uses, :role, :send_email)
       end
     end
 end

@@ -57,7 +57,8 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
               invitation_code: { type: :string },
               used_count: { type: :string },
               max_uses: { type: :string },
-              role: { type: :string, enum: OrganizationInvitation.roles }
+              role: { type: :string, enum: OrganizationInvitation.roles },
+              send_mail: { type: :boolean }
             }
           }
         }
@@ -120,7 +121,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
     get('show organization invitations') do
-      tags 'Admin Organization'
+      tags 'Admin Organization Invitation'
       produces 'application/json'
       security [{ bearerAuth: nil }]
 
@@ -130,7 +131,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
     end
 
     put('update organization invitations') do
-      tags 'Admin Organization'
+      tags 'Admin Organization Invitation'
       produces 'application/json'
       consumes 'application/json'
       security [{ bearerAuth: nil }]
@@ -202,7 +203,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
     end
 
     delete('delete organization invitations') do
-      tags 'Admin Organization'
+      tags 'Admin Organization Invitation'
       produces 'application/json'
       security [{ bearerAuth: nil }]
 
