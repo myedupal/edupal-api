@@ -22,10 +22,28 @@ RSpec.describe AccountMailer, type: :mailer do
       expect(mail.from).to eq(["Edupals"])
     end
 
-    it "renders the body" do
-      expect(mail.body.encoded).to match(/You have been invited to join the organization #{organization.title}/)
-      expect(mail.body.encoded).to match(/Please follow the link below to accept your invitation/)
-      expect(mail.body.encoded).to include(invitation.invitation_link)
+    it "is multipart" do
+      expect(mail.multipart?).to be true
+      expect(mail.parts.length).to eq(2)
+      expect(mail.parts.map(&:content_type))
+        .to match_array([
+                          "text/plain; charset=UTF-8",
+                          "text/html; charset=UTF-8"
+                        ])
+    end
+
+    it "renders the text part" do
+      text_part = mail.parts.find { |p| p.content_type.match(/text\/plain/) }
+      expect(text_part.body.encoded).to match(/You have been invited to join #{Regexp.quote(organization.title)}/)
+      expect(text_part.body.encoded).to match(/Please click the link below to accept your invitation/)
+      expect(text_part.body.encoded).to include(invitation.invitation_link)
+    end
+
+    it "renders the html part" do
+      html_part = mail.parts.find { |p| p.content_type.match(/text\/html/) }
+      expect(html_part.body.encoded).to match(/You have been invited to join.*#{Regexp.quote(organization.title)}/)
+      expect(html_part.body.encoded).to match(/Please click the button below to accept your invitation/)
+      expect(html_part.body.encoded).to include(invitation.invitation_link)
     end
   end
 end
