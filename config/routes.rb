@@ -71,7 +71,9 @@ Rails.application.routes.draw do
           post :leave, on: :member
         end
         resources :organization_accounts
-        resources :organization_invitations
+        resources :organization_invitations do
+          post :bulk_create, on: :collection
+        end
 
       end
 

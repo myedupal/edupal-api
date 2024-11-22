@@ -57,7 +57,8 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
               invitation_code: { type: :string },
               used_count: { type: :string },
               max_uses: { type: :string },
-              role: { type: :string, enum: OrganizationInvitation.roles }
+              role: { type: :string, enum: OrganizationInvitation.roles },
+              send_mail: { type: :boolean }
             }
           }
         }
@@ -116,11 +117,96 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
     end
   end
 
+  path '/api/v1/admin/organization_invitations/bulk_create' do
+    post('bulk create organization invitations') do
+      tags 'Admin Organization Invitation'
+      produces 'application/json'
+      consumes 'application/json'
+      security [{ bearerAuth: nil }]
+
+      parameter name: :data, in: :body, schema: {
+        type: :object,
+        required: [:organization_invitations],
+        properties: {
+          organization_invitations: {
+            type: :array,
+            items: {
+              type: :object,
+              required: [:organization_id, :invite_type, :role],
+              properties: {
+                organization_id: { type: :string },
+                account_id: { type: :string },
+                email: { type: :string },
+                invite_type: { type: :string, enum: OrganizationInvitation.invite_types },
+                label: { type: :string },
+                used_count: { type: :integer, minimum: 0 },
+                max_uses: { type: :integer, minimum: 1 },
+                role: { type: :string, enum: OrganizationInvitation.roles },
+                send_mail: { type: :boolean }
+              }
+            },
+            minItems: 1
+          }
+        }
+      }
+
+      response(200, 'successful') do
+        let(:labels) { 3.times.map { Faker::Lorem.words(number: 3).join(' ') } }
+        let(:organization_invitations) do
+          labels.map do |label|
+            attributes_for(:organization_invitation, :group_invite, :trainee, organization: organization)
+              .slice(:organization_id, :invite_type, :used_count, :max_uses, :role).merge(label: label)
+          end
+        end
+        let(:data) { { organization_invitations: organization_invitations } }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['organization_invitations'].count).to eq(3)
+          expect(data['organization_invitations'].pluck('organization_id')).to eq([organization.id] * 3)
+          expect(data['organization_invitations'].pluck('label')).to eq(labels)
+        end
+      end
+
+      response(422, 'unprocessable entity') do
+        let(:label) { Faker::Lorem.words(number: 3).join(' ') }
+        let(:data) do
+          {
+            organization_invitations: [
+              attributes_for(:organization_invitation, :group_invite, :trainee, organization: organization)
+                .slice(:organization_id, :invite_type, :used_count, :max_uses, :role).merge(label: label),
+              attributes_for(:organization_invitation, :user_invite, :trainee, organization: organization)
+                .slice(:organization_id, :invite_type, :used_count, :max_uses, :role).merge(account_id: create(:user).id, email: create(:user).email)
+            ]
+          }
+        end
+
+        run_test! do
+          expect(OrganizationInvitation.find_by(label: label)).to be_nil
+        end
+      end
+
+      response(403, 'unauthorized') do
+        let(:Authorization) { bearer_token_for(trainer) }
+        let(:data) do
+          {
+            organization_invitations: [
+              attributes_for(:organization_invitation, :group_invite, :trainer, organization: organization)
+            ]
+          }
+        end
+        before { trainer.update(selected_organization: organization) }
+
+        run_test!
+      end
+    end
+  end
+
   path '/api/v1/admin/organization_invitations/{id}' do
     parameter name: 'id', in: :path, type: :string, description: 'id'
 
     get('show organization invitations') do
-      tags 'Admin Organization'
+      tags 'Admin Organization Invitation'
       produces 'application/json'
       security [{ bearerAuth: nil }]
 
@@ -130,7 +216,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
     end
 
     put('update organization invitations') do
-      tags 'Admin Organization'
+      tags 'Admin Organization Invitation'
       produces 'application/json'
       consumes 'application/json'
       security [{ bearerAuth: nil }]
@@ -202,7 +288,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
     end
 
     delete('delete organization invitations') do
-      tags 'Admin Organization'
+      tags 'Admin Organization Invitation'
       produces 'application/json'
       security [{ bearerAuth: nil }]
 

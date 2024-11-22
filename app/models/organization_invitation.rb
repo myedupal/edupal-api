@@ -19,13 +19,19 @@ class OrganizationInvitation < ApplicationRecord
 
   validate :invite_type_not_changed
 
-  validate :either_email_or_account, if: -> { user_invite? }
+  validate :must_have_either_email_or_account, if: -> { user_invite? }
+  validate :must_have_matching_email_and_account, on: :create, if: -> { user_invite? && email.present? && account.present? }
   before_validation :fix_max_uses, if: -> { user_invite? && max_uses > 1 }
+  before_validation :resolve_email_to_account, if: -> { email.present? && account.blank? }
   before_validation :downcase_email, if: -> { email.present? }
 
   validates :account, :email, absence: true, if: -> { group_invite? }
   before_create :set_invitation_code, if: -> { group_invite? && invitation_code.blank? }
   before_validation :set_label, if: -> { label.blank? }
+
+  attr_accessor :send_email
+
+  after_create :send_invitation, if: -> { send_email && user_invite? }
 
   scope :query_label, ->(keyword) { where("label ILIKE ?", "%#{keyword}%") }
   scope :query_code, ->(keyword) { where("invitation_code ILIKE ?", "%#{keyword.to_s.gsub('-', '').downcase}%") }
@@ -119,7 +125,22 @@ class OrganizationInvitation < ApplicationRecord
     true
   end
 
+  def invitation_link
+    "https://#{Rails.configuration.web_host}/organizations/invitation?id=#{id}"
+  end
+
   private
+
+    def send_invitation
+      email = (account.present?) ? account.email : self.email
+
+      AccountMailer.with(
+        user: account,
+        email: email,
+        organization: organization,
+        invitation: self
+      ).invitation_email.deliver_later
+    end
 
     INVITE_CHARACTER = "0123456789abcdefghijklmnopqrstuvwxyz".freeze
     INVITE_LENGTH = 12
@@ -143,9 +164,16 @@ class OrganizationInvitation < ApplicationRecord
       end
     end
 
-    def either_email_or_account
-      errors.add(:base, 'Cannot have both email and account') if account.present? && email.present?
+    def must_have_either_email_or_account
       errors.add(:base, 'Must have either email or account') if account.blank? && email.blank?
+    end
+
+    def must_have_matching_email_and_account
+      errors.add(:base, 'Email and account must match') if account.email.downcase != email.downcase
+    end
+
+    def resolve_email_to_account
+      self.account = Account.where(email: email.downcase).first
     end
 
     def set_label
