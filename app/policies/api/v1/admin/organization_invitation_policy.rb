@@ -7,6 +7,10 @@ class Api::V1::Admin::OrganizationInvitationPolicy < ApplicationPolicy
     can_user_manage_invitation?
   end
 
+  def bulk_create?
+    can_user_manage_invitation?
+  end
+
   def update?
     can_user_manage_invitation?
   end

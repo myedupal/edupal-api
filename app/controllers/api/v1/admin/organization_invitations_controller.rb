@@ -23,6 +23,26 @@ class Api::V1::Admin::OrganizationInvitationsController < Api::V1::Admin::Applic
     end
   end
 
+  def bulk_create
+    @organization_invitations = bulk_organization_invitation_params
+    @created_invitations = []
+
+    OrganizationInvitation.transaction do
+      @organization_invitations.each do |invitation|
+        @organization_invitation = pundit_scope(OrganizationInvitation).new(invitation.merge(created_by: current_admin))
+        pundit_authorize(@organization_invitation)
+
+        raise ActiveRecord::RecordInvalid, @organization_invitation unless @organization_invitation.save
+
+        @created_invitations << @organization_invitation
+      end
+    end
+
+    render json: @created_invitations, each_serializer: Api::V1::Admin::OrganizationInvitationSerializer
+  rescue ActiveRecord::RecordInvalid => e
+    render json: ErrorResponse.new(e.record), status: :unprocessable_entity
+  end
+
   def update
     @organization_invitation.assign_attributes(organization_invitation_params)
     # make sure updated record is still following the policy
@@ -76,6 +96,12 @@ class Api::V1::Admin::OrganizationInvitationsController < Api::V1::Admin::Applic
         params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :invitation_code, :used_count, :max_uses, :role, :send_email)
       else
         params.require(:organization_invitation).permit(:organization_id, :account_id, :email, :invite_type, :label, :used_count, :max_uses, :role, :send_email)
+      end
+    end
+
+    def bulk_organization_invitation_params
+      params.require(:organization_invitations).map do |invitation|
+        invitation.permit(:organization_id, :account_id, :email, :invite_type, :label, :used_count, :max_uses, :role, :send_email)
       end
     end
 end
