@@ -181,7 +181,7 @@ RSpec.describe 'api/v1/admin/organization_invitations', type: :request do
           }
         end
 
-        run_test! do |response|
+        run_test! do
           expect(OrganizationInvitation.find_by(label: label)).to be_nil
         end
       end
